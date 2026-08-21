@@ -1,0 +1,167 @@
+{% extends "base.html" %}
+{% block title %}Risk Assessment — DiaBeates{% endblock %}
+{% set active_page = 'assessment' %}
+
+{% block content %}
+<div class="flex-1 bg-slate-50 py-12 px-4">
+  <div class="max-w-2xl mx-auto">
+
+    <div class="text-center mb-8">
+      <h1 class="font-display text-3xl font-extrabold text-slate-900 mb-2">Diabetes Complication Risk Assessment</h1>
+      <p class="text-slate-500 text-sm">No medical background needed, just answer what you can. Anything you're unsure of, your doctor can help fill in.</p>
+    </div>
+
+    <div class="bg-white rounded-2xl border border-slate-200 shadow-sm p-6 sm:p-8">
+
+      {% if errors %}
+      <div class="mb-6 bg-red-50 border border-red-200 rounded-xl p-4 flex items-start gap-3">
+        <svg width="20" height="20" viewBox="0 0 20 20" fill="currentColor" class="text-red-500 shrink-0 mt-0.5">
+          <path fill-rule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clip-rule="evenodd"/>
+        </svg>
+        <div class="text-sm text-red-700">
+          <strong>Please fix the following:</strong>
+          <ul class="mt-1 list-disc list-inside space-y-0.5">
+            {% for e in errors %}
+            <li>{{ e }}</li>
+            {% endfor %}
+          </ul>
+        </div>
+      </div>
+      {% endif %}
+
+      <form action="/predict" method="post" novalidate>
+
+        <h3 class="font-semibold text-xs text-slate-500 uppercase tracking-wider mb-4">About You</h3>
+        <div class="grid grid-cols-2 gap-4 mb-6">
+
+          <div class="space-y-1.5 col-span-2 sm:col-span-1">
+            <label class="block text-sm font-semibold text-slate-700 font-display">BMI (Body Mass Index) <span class="text-red-500">*</span></label>
+            <input type="number" step="0.1" min="10" max="80" name="BMI"
+                   value="{{ form_data.get('BMI', '') if form_data else '' }}"
+                   placeholder="e.g. 24.5"
+                   class="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 text-sm text-slate-800 bg-white placeholder-slate-400/60 focus:outline-none focus:ring-2 focus:ring-teal-400/50 focus:border-teal-400 transition-all" required>
+            <p class="text-xs text-slate-400 leading-snug">Don't know it? It's weight (kg) ÷ height (m)² or ask your doctor at your last checkup.</p>
+          </div>
+
+          <div class="space-y-1.5 col-span-2 sm:col-span-1">
+            <label class="block text-sm font-semibold text-slate-700 font-display">Age range <span class="text-red-500">*</span></label>
+            <select name="Age" required
+                    class="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 text-sm text-slate-800 bg-white cursor-pointer focus:outline-none focus:ring-2 focus:ring-teal-400/50 focus:border-teal-400 transition-all">
+              <option value="" disabled {{ 'selected' if not (form_data and form_data.get('Age')) }}>Select your age range</option>
+              {% set age_ranges = [
+                ('1','18–24'), ('2','25–29'), ('3','30–34'), ('4','35–39'), ('5','40–44'),
+                ('6','45–49'), ('7','50–54'), ('8','55–59'), ('9','60–64'), ('10','65–69'),
+                ('11','70–74'), ('12','75–79'), ('13','80 or older'),
+              ] %}
+              {% for val, label_text in age_ranges %}
+              <option value="{{ val }}" {{ 'selected' if form_data and form_data.get('Age') == val }}>{{ label_text }}</option>
+              {% endfor %}
+            </select>
+            <p class="text-xs text-slate-400 leading-snug">Just pick the range you fall into.</p>
+          </div>
+
+          <div class="space-y-1.5 col-span-2 sm:col-span-1">
+            <label class="block text-sm font-semibold text-slate-700 font-display">How would you rate your general health? <span class="text-red-500">*</span></label>
+            <select name="GenHlth" required
+                    class="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 text-sm text-slate-800 bg-white cursor-pointer focus:outline-none focus:ring-2 focus:ring-teal-400/50 focus:border-teal-400 transition-all">
+              <option value="" disabled {{ 'selected' if not (form_data and form_data.get('GenHlth')) }}>Select one</option>
+              {% set health_ratings = [('1','Excellent'), ('2','Very good'), ('3','Good'), ('4','Fair'), ('5','Poor')] %}
+              {% for val, label_text in health_ratings %}
+              <option value="{{ val }}" {{ 'selected' if form_data and form_data.get('GenHlth') == val }}>{{ label_text }}</option>
+              {% endfor %}
+            </select>
+            <p class="text-xs text-slate-400 leading-snug">Your own honest sense of it, no test needed.</p>
+          </div>
+
+          <div class="space-y-1.5 col-span-2 sm:col-span-1">
+            <label class="block text-sm font-semibold text-slate-700 font-display">Sex</label>
+            <select name="Sex"
+                    class="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 text-sm text-slate-800 bg-white cursor-pointer focus:outline-none focus:ring-2 focus:ring-teal-400/50 focus:border-teal-400 transition-all">
+              <option value="0" {{ 'selected' if form_data and form_data.get('Sex') == '0' }}>Female</option>
+              <option value="1" {{ 'selected' if form_data and form_data.get('Sex') == '1' }}>Male</option>
+            </select>
+            <p class="text-xs text-slate-400 leading-snug">Used because risk patterns can differ by sex.</p>
+          </div>
+
+          <div class="space-y-1.5 col-span-2 sm:col-span-1">
+            <label class="block text-sm font-semibold text-slate-700 font-display">Days of poor physical health <span class="text-red-500">*</span></label>
+            <input type="number" min="0" max="30" name="PhysHlth"
+                   value="{{ form_data.get('PhysHlth', '') if form_data else '' }}"
+                   placeholder="e.g. 3"
+                   class="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 text-sm text-slate-800 bg-white placeholder-slate-400/60 focus:outline-none focus:ring-2 focus:ring-teal-400/50 focus:border-teal-400 transition-all" required>
+            <p class="text-xs text-slate-400 leading-snug">Out of the last 30 days, physical illness or injury. Enter 0 if none.</p>
+          </div>
+
+          <div class="space-y-1.5 col-span-2 sm:col-span-1">
+            <label class="block text-sm font-semibold text-slate-700 font-display">Days of poor mental health <span class="text-red-500">*</span></label>
+            <input type="number" min="0" max="30" name="MentHlth"
+                   value="{{ form_data.get('MentHlth', '') if form_data else '' }}"
+                   placeholder="e.g. 3"
+                   class="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 text-sm text-slate-800 bg-white placeholder-slate-400/60 focus:outline-none focus:ring-2 focus:ring-teal-400/50 focus:border-teal-400 transition-all" required>
+            <p class="text-xs text-slate-400 leading-snug">Out of the last 30 days, stress, depression, emotional struggles. Enter 0 if none.</p>
+          </div>
+        </div>
+
+        <h3 class="font-semibold text-xs text-slate-500 uppercase tracking-wider mb-1">Health & Risk Factors</h3>
+        <p class="text-xs text-slate-400 mb-4">Check anything that applies to you. Not sure about one? Leave it unchecked.</p>
+        <div class="grid grid-cols-2 gap-3 mb-8">
+          {% set checkboxes = [
+            ('HighBP', 'High blood pressure'),
+            ('HighChol', 'High cholesterol'),
+            ('Smoker', 'Smoker'),
+            ('HeartDiseaseorAttack', 'Prior heart disease/attack'),
+            ('Stroke', 'Prior stroke'),
+            ('DiffWalk', 'Difficulty walking/climbing stairs'),
+            ('NoDocbcCost', 'Skipped care due to cost'),
+          ] %}
+          {% for field, cb_label in checkboxes %}
+          <label class="flex items-center gap-2.5 px-3.5 py-2.5 rounded-xl border border-slate-200 text-sm text-slate-700 cursor-pointer hover:bg-slate-50 has-[:checked]:bg-teal-50 has-[:checked]:border-teal-300 transition-all">
+            <input type="checkbox" value="1" name="{{ field }}" class="w-4 h-4 rounded border-slate-300 text-teal-600 focus:ring-teal-400/50"
+                   {{ 'checked' if form_data and form_data.get(field) }}>
+            {{ cb_label }}
+          </label>
+          {% endfor %}
+        </div>
+
+        <h3 class="font-semibold text-xs text-slate-500 uppercase tracking-wider mb-1">Lab Values (Optional)</h3>
+        <p class="text-xs text-slate-400 mb-4">Have recent lab results? Adding them gives a more precise assessment. Don't have them handy? Just skip this, you'll still get a full result from the fields above.</p>
+        <div class="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-8">
+          <div class="space-y-1.5">
+            <label class="block text-sm font-semibold text-slate-700 font-display">HbA1c (%)</label>
+            <input type="number" step="0.1" min="3" max="20" name="LabHbA1c"
+                   value="{{ form_data.get('LabHbA1c', '') if form_data else '' }}"
+                   placeholder="e.g. 7.2"
+                   class="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 text-sm text-slate-800 bg-white placeholder-slate-400/60 focus:outline-none focus:ring-2 focus:ring-teal-400/50 focus:border-teal-400 transition-all">
+            <p class="text-xs text-slate-400 leading-snug">A blood test showing your average blood sugar over ~3 months.</p>
+          </div>
+          <div class="space-y-1.5">
+            <label class="block text-sm font-semibold text-slate-700 font-display">Systolic BP (mmHg)</label>
+            <input type="number" min="60" max="250" name="LabSystolicBP"
+                   value="{{ form_data.get('LabSystolicBP', '') if form_data else '' }}"
+                   placeholder="e.g. 138"
+                   class="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 text-sm text-slate-800 bg-white placeholder-slate-400/60 focus:outline-none focus:ring-2 focus:ring-teal-400/50 focus:border-teal-400 transition-all">
+            <p class="text-xs text-slate-400 leading-snug">The top (higher) number in a blood pressure reading, e.g. the 138 in 138/85.</p>
+          </div>
+          <div class="space-y-1.5">
+            <label class="block text-sm font-semibold text-slate-700 font-display">LDL Cholesterol (mg/dL)</label>
+            <input type="number" min="20" max="400" name="LabLDL"
+                   value="{{ form_data.get('LabLDL', '') if form_data else '' }}"
+                   placeholder="e.g. 130"
+                   class="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 text-sm text-slate-800 bg-white placeholder-slate-400/60 focus:outline-none focus:ring-2 focus:ring-teal-400/50 focus:border-teal-400 transition-all">
+            <p class="text-xs text-slate-400 leading-snug">Sometimes called "bad cholesterol", found on a cholesterol blood test.</p>
+          </div>
+        </div>
+
+        <button type="submit" class="w-full flex items-center justify-center gap-2 px-7 py-3.5 rounded-xl gradient-primary text-white text-sm font-bold hover:opacity-90 transition-opacity shadow-md">
+          Get My Results
+          <svg width="14" height="14" viewBox="0 0 14 14" fill="none" stroke="white" stroke-width="2"><path d="M5 2l5 5-5 5"/></svg>
+        </button>
+      </form>
+    </div>
+
+    <p class="text-xs text-center text-slate-400 mt-4">
+      Results combine a clinically-cited rule matrix with a trained classification model. For educational purposes only, not a substitute for professional medical advice.
+    </p>
+  </div>
+</div>
+{% endblock %}

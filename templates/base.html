@@ -1,0 +1,127 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>{% block title %}DiaBeates{% endblock %}</title>
+
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:ital,wght@0,400;0,500;0,600;0,700;0,800;1,400&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          fontFamily: {
+            display: ['Plus Jakarta Sans', 'sans-serif'],
+            body: ['Inter', 'sans-serif'],
+          },
+        },
+      },
+    };
+  </script>
+  <style>
+    body { font-family: 'Inter', sans-serif; background-color: #f8fafc; color: #1e293b; -webkit-font-smoothing: antialiased; }
+    h1, h2, h3, h4, h5, h6, .font-display { font-family: 'Plus Jakarta Sans', sans-serif; }
+
+    .gradient-primary { background: linear-gradient(135deg, #0d9488 0%, #0284c7 100%); }
+    .gradient-hero { background: linear-gradient(135deg, #0f766e 0%, #0d9488 40%, #0284c7 100%); }
+    .gradient-card { background: linear-gradient(135deg, rgba(13,148,136,0.08) 0%, rgba(2,132,199,0.08) 100%); }
+    .text-gradient {
+      background: linear-gradient(135deg, #0d9488, #0284c7);
+      -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;
+    }
+
+    ::-webkit-scrollbar { width: 6px; height: 6px; }
+    ::-webkit-scrollbar-track { background: transparent; }
+    ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 3px; }
+    ::-webkit-scrollbar-thumb:hover { background: #94a3b8; }
+  </style>
+  {% block extra_head %}{% endblock %}
+</head>
+<body class="min-h-screen flex flex-col">
+
+  <nav class="sticky top-0 z-50 bg-white/90 backdrop-blur-md border-b border-slate-200 shadow-sm">
+    <div class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
+      <div class="flex items-center justify-between h-16">
+        <a href="/" class="flex items-center gap-2.5">
+          <img src="{{ url_for('static', filename='logo.svg') }}" alt="DiaBeates logo" class="w-9 h-9 rounded-full">
+          <span class="font-display font-extrabold text-lg text-slate-900">
+            Dia<span class="text-gradient">Beates</span>
+          </span>
+        </a>
+
+        <div class="hidden md:flex items-center gap-1">
+          <a href="/" class="px-4 py-2 rounded-lg text-sm font-medium transition-colors duration-150 {{ 'bg-teal-50 text-teal-700' if active_page == 'home' else 'text-slate-600 hover:text-slate-900 hover:bg-slate-50' }}">
+            Home
+          </a>
+          <a href="/assessment" class="px-4 py-2 rounded-lg text-sm font-medium transition-colors duration-150 {{ 'bg-teal-50 text-teal-700' if active_page == 'assessment' else 'text-slate-600 hover:text-slate-900 hover:bg-slate-50' }}">
+            Risk Assessment
+          </a>
+          <a href="/history" class="px-4 py-2 rounded-lg text-sm font-medium transition-colors duration-150 {{ 'bg-teal-50 text-teal-700' if active_page == 'history' else 'text-slate-600 hover:text-slate-900 hover:bg-slate-50' }}">
+            History
+          </a>
+          <a href="/about" class="px-4 py-2 rounded-lg text-sm font-medium transition-colors duration-150 {{ 'bg-teal-50 text-teal-700' if active_page == 'about' else 'text-slate-600 hover:text-slate-900 hover:bg-slate-50' }}">
+            About
+          </a>
+        </div>
+
+        <button id="menuBtn" class="md:hidden p-2 rounded-lg text-slate-600 hover:bg-slate-100" onclick="document.getElementById('mobileMenu').classList.toggle('hidden')">
+          <svg width="20" height="20" viewBox="0 0 20 20" fill="currentColor">
+            <path fill-rule="evenodd" clip-rule="evenodd" d="M3 5a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zM3 10a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zM3 15a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1z" />
+          </svg>
+        </button>
+      </div>
+
+      <div id="mobileMenu" class="hidden md:hidden pb-4 space-y-1">
+        <a href="/" class="block px-4 py-2.5 rounded-lg text-sm font-medium {{ 'bg-teal-50 text-teal-700' if active_page == 'home' else 'text-slate-600 hover:bg-slate-50' }}">Home</a>
+        <a href="/assessment" class="block px-4 py-2.5 rounded-lg text-sm font-medium {{ 'bg-teal-50 text-teal-700' if active_page == 'assessment' else 'text-slate-600 hover:bg-slate-50' }}">Risk Assessment</a>
+        <a href="/history" class="block px-4 py-2.5 rounded-lg text-sm font-medium {{ 'bg-teal-50 text-teal-700' if active_page == 'history' else 'text-slate-600 hover:bg-slate-50' }}">History</a>
+        <a href="/about" class="block px-4 py-2.5 rounded-lg text-sm font-medium {{ 'bg-teal-50 text-teal-700' if active_page == 'about' else 'text-slate-600 hover:bg-slate-50' }}">About</a>
+      </div>
+    </div>
+  </nav>
+
+  {% block content %}{% endblock %}
+
+  <footer class="bg-slate-900 text-slate-400 mt-auto">
+    <div class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-10">
+      <div class="grid sm:grid-cols-3 gap-8 mb-8">
+        <div>
+          <div class="flex items-center gap-2.5 mb-3">
+            <img src="{{ url_for('static', filename='logo.svg') }}" alt="DiaBeates logo" class="w-8 h-8 rounded-full">
+            <span class="font-display font-extrabold text-base text-white">
+              Dia<span class="text-teal-300">Beates</span>
+            </span>
+          </div>
+          <p class="text-sm leading-relaxed">
+            A rule matrix and trained classifiers, shown side by side, to help people get an early
+            sense of their diabetes complication risk.
+          </p>
+        </div>
+        <div>
+          <h4 class="text-white text-sm font-semibold mb-3">Navigate</h4>
+          <ul class="space-y-2 text-sm">
+            <li><a href="/" class="hover:text-white transition-colors">Home</a></li>
+            <li><a href="/assessment" class="hover:text-white transition-colors">Risk Assessment</a></li>
+            <li><a href="/history" class="hover:text-white transition-colors">History</a></li>
+            <li><a href="/about" class="hover:text-white transition-colors">About &amp; Ethics</a></li>
+          </ul>
+        </div>
+        <div>
+          <h4 class="text-white text-sm font-semibold mb-3">Please note</h4>
+          <p class="text-sm leading-relaxed">
+            This is an educational case study project, not a certified medical device. It does not
+            diagnose anything and is never a substitute for advice from a licensed healthcare
+            provider.
+          </p>
+        </div>
+      </div>
+      <div class="border-t border-slate-800 pt-6 text-xs text-slate-500 text-center">
+        DiaBeates — a student case study project on classification models for diabetes complication risk screening.
+      </div>
+    </div>
+  </footer>
+
+</body>
+</html>

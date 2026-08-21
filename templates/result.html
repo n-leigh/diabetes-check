@@ -1,0 +1,168 @@
+{% extends "base.html" %}
+{% block title %}Risk Results — DiaBeates{% endblock %}
+{% set active_page = 'assessment' %}
+
+{% block content %}
+<div class="flex-1 bg-slate-50 py-12 px-4">
+  <div class="max-w-3xl mx-auto">
+
+    <div class="text-center mb-8">
+      <h1 class="font-display text-3xl font-extrabold text-slate-900 mb-2">Complication Risk Results</h1>
+      {% if viewing_past %}
+      <p class="text-slate-500 text-sm">Viewing past assessment from {{ created_at }} UTC</p>
+      {% else %}
+      <p class="text-slate-500 text-sm">Based on the health indicators you submitted</p>
+      {% endif %}
+    </div>
+
+    <div class="grid sm:grid-cols-3 gap-5 mb-8">
+      {% for cat in categories %}
+      {% set pct = rule_results[cat].percentage %}
+      {% set label = rule_results[cat].label %}
+      {% if label == 'Low' %}
+        {% set tier_color, tier_bg, tier_text = '#22c55e', '#f0fdf4', '#15803d' %}
+      {% elif label == 'Moderate' %}
+        {% set tier_color, tier_bg, tier_text = '#f59e0b', '#fffbeb', '#b45309' %}
+      {% else %}
+        {% set tier_color, tier_bg, tier_text = '#ef4444', '#fef2f2', '#b91c1c' %}
+      {% endif %}
+      {% set circumference = 314.159 %}
+      {% set dash_offset = circumference * (1 - pct / 100) %}
+
+      <div class="bg-white rounded-2xl border border-slate-200 shadow-sm p-5 flex flex-col items-center">
+        <div class="relative w-32 h-32">
+          <svg width="128" height="128" viewBox="0 0 128 128">
+            <circle cx="64" cy="64" r="50" fill="none" stroke="#e2e8f0" stroke-width="10" />
+            <circle cx="64" cy="64" r="50" fill="none" stroke="{{ tier_color }}" stroke-width="10"
+                    stroke-dasharray="{{ circumference }}"
+                    stroke-dashoffset="{{ dash_offset }}"
+                    stroke-linecap="round" transform="rotate(-90 64 64)" />
+            <text x="64" y="60" text-anchor="middle" font-size="24" font-weight="700" fill="#1e293b" font-family="'Plus Jakarta Sans', sans-serif">{{ pct }}%</text>
+            <text x="64" y="82" text-anchor="middle" font-size="11" fill="#64748b" font-family="Inter, sans-serif">risk score</text>
+          </svg>
+        </div>
+
+        <p class="text-sm font-semibold text-slate-800 font-display text-center leading-tight mt-2">
+          {{ cat.replace('_', ' ').title() }}
+        </p>
+        <span class="mt-2 px-2.5 py-0.5 rounded-full text-xs font-semibold" style="background-color: {{ tier_bg }}; color: {{ tier_text }};">
+          {{ label }} Risk
+        </span>
+
+        <div class="w-full mt-4 pt-4 border-t border-slate-100 text-xs text-slate-500 space-y-1">
+          <div class="flex justify-between">
+            <span>Rule matrix</span>
+            <span class="font-semibold text-slate-700">{{ rule_results[cat].score }} pts</span>
+          </div>
+          {% if model_results.get(cat) %}
+          <div class="flex justify-between">
+            <span>Model prediction</span>
+            <span class="font-semibold text-slate-700">{{ model_results[cat] }}</span>
+          </div>
+          {% if model_names.get(cat) %}
+          <div class="flex justify-between">
+            <span>Model used</span>
+            <span class="font-medium text-slate-500">{{ model_names[cat] }}</span>
+          </div>
+          {% endif %}
+          {% endif %}
+        </div>
+      </div>
+      {% endfor %}
+    </div>
+
+    {% if lab_assessment %}
+    {% set ll = lab_assessment.label %}
+    {% if ll == 'Low' %}
+      {% set l_color, l_bg, l_text = '#22c55e', '#f0fdf4', '#15803d' %}
+    {% elif ll == 'Moderate' %}
+      {% set l_color, l_bg, l_text = '#f59e0b', '#fffbeb', '#b45309' %}
+    {% else %}
+      {% set l_color, l_bg, l_text = '#ef4444', '#fef2f2', '#b91c1c' %}
+    {% endif %}
+    <div class="bg-white rounded-2xl border border-slate-200 shadow-sm p-6 mb-8">
+      <div class="flex items-start justify-between mb-4">
+        <div>
+          <h3 class="font-display text-lg font-bold text-slate-900">Lab-Based Clinical Assessment</h3>
+          <p class="text-xs text-slate-400 mt-0.5">Scored directly against ADA/NHANES clinical thresholds — independent of the survey-based model above</p>
+        </div>
+        <span class="px-3 py-1 rounded-full text-xs font-semibold shrink-0" style="background-color: {{ l_bg }}; color: {{ l_text }};">
+          {{ ll }} Risk
+        </span>
+      </div>
+      <div class="grid sm:grid-cols-3 gap-4">
+        {% if lab_assessment.details.hba1c %}
+        <div class="bg-slate-50 rounded-xl p-4">
+          <p class="text-xs text-slate-500 mb-1">HbA1c</p>
+          <p class="text-lg font-bold text-slate-800 font-display">{{ lab_assessment.details.hba1c.value }}%</p>
+        </div>
+        {% endif %}
+        {% if lab_assessment.details.systolic_bp %}
+        <div class="bg-slate-50 rounded-xl p-4">
+          <p class="text-xs text-slate-500 mb-1">Systolic BP</p>
+          <p class="text-lg font-bold text-slate-800 font-display">{{ lab_assessment.details.systolic_bp.value }} mmHg</p>
+        </div>
+        {% endif %}
+        {% if lab_assessment.details.ldl %}
+        <div class="bg-slate-50 rounded-xl p-4">
+          <p class="text-xs text-slate-500 mb-1">LDL Cholesterol</p>
+          <p class="text-lg font-bold text-slate-800 font-display">{{ lab_assessment.details.ldl.value }} mg/dL</p>
+        </div>
+        {% endif %}
+      </div>
+    </div>
+    {% endif %}
+
+    {% if recommendations %}
+    {% set ot = recommendations.overall_tier %}
+    {% if ot == 'Low' %}
+      {% set ot_color, ot_bg, ot_text = '#22c55e', '#f0fdf4', '#15803d' %}
+    {% elif ot == 'Moderate' %}
+      {% set ot_color, ot_bg, ot_text = '#f59e0b', '#fffbeb', '#b45309' %}
+    {% else %}
+      {% set ot_color, ot_bg, ot_text = '#ef4444', '#fef2f2', '#b91c1c' %}
+    {% endif %}
+    <div class="bg-white rounded-2xl border border-slate-200 shadow-sm p-6 mb-8">
+      <div class="flex items-start gap-3 mb-5">
+        <div class="w-9 h-9 rounded-xl flex items-center justify-center shrink-0" style="background-color: {{ ot_bg }};">
+          <svg width="18" height="18" viewBox="0 0 20 20" fill="none" stroke="{{ ot_text }}" stroke-width="2"><path d="M9 12l2 2 4-4M7.835 4.697a3.42 3.42 0 001.946-.806 3.42 3.42 0 014.438 0 3.42 3.42 0 001.946.806 3.42 3.42 0 013.138 3.138 3.42 3.42 0 00.806 1.946 3.42 3.42 0 010 4.438 3.42 3.42 0 00-.806 1.946 3.42 3.42 0 01-3.138 3.138 3.42 3.42 0 00-1.946.806 3.42 3.42 0 01-4.438 0 3.42 3.42 0 00-1.946-.806 3.42 3.42 0 01-3.138-3.138 3.42 3.42 0 00-.806-1.946 3.42 3.42 0 010-4.438 3.42 3.42 0 00.806-1.946 3.42 3.42 0 013.138-3.138z"/></svg>
+        </div>
+        <div>
+          <h3 class="font-display text-lg font-bold text-slate-900">What You Can Do</h3>
+          <p class="text-sm text-slate-500 mt-0.5">{{ recommendations.headline }}</p>
+        </div>
+      </div>
+      <div class="space-y-3">
+        {% for item in recommendations.steps %}
+        <div class="bg-slate-50 rounded-xl p-4 border border-slate-100">
+          <p class="font-display font-semibold text-sm text-slate-800 mb-1">{{ item.title }}</p>
+          <p class="text-sm text-slate-500 leading-relaxed">{{ item.description }}</p>
+        </div>
+        {% endfor %}
+      </div>
+      <p class="text-xs text-slate-400 mt-4 pt-4 border-t border-slate-100">
+        These are general wellness suggestions, not medical advice. Only a licensed healthcare provider can advise on diagnosis or treatment.
+      </p>
+    </div>
+    {% endif %}
+
+    <div class="bg-teal-50 border border-teal-200 rounded-xl p-4 flex items-start gap-3 mb-8">
+      <svg width="20" height="20" viewBox="0 0 20 20" fill="currentColor" class="text-teal-500 shrink-0 mt-0.5">
+        <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/>
+      </svg>
+      <p class="text-sm text-teal-700">
+        Each category shows two independent estimates: a transparent, clinically-cited <strong>rule matrix</strong> score, and a <strong>trained classifier's</strong> prediction learned from 35,346 real patient records. Showing both side by side keeps the system explainable.
+      </p>
+    </div>
+
+    <div class="flex flex-col sm:flex-row gap-3">
+      <a href="/assessment" class="flex-1 text-center px-6 py-3 rounded-xl gradient-primary text-white text-sm font-bold hover:opacity-90 transition-opacity shadow-sm">
+        Check Someone Else
+      </a>
+      <a href="/history" class="flex-1 text-center px-6 py-3 rounded-xl border border-slate-200 text-sm font-semibold text-slate-600 hover:bg-slate-50 transition-all">
+        View History
+      </a>
+    </div>
+  </div>
+</div>
+{% endblock %}
