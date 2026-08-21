@@ -24,13 +24,52 @@
     body { font-family: 'Inter', sans-serif; background-color: #f8fafc; color: #1e293b; -webkit-font-smoothing: antialiased; }
     h1, h2, h3, h4, h5, h6, .font-display { font-family: 'Plus Jakarta Sans', sans-serif; }
 
-    .gradient-primary { background: linear-gradient(135deg, #0d9488 0%, #0284c7 100%); }
-    .gradient-hero { background: linear-gradient(135deg, #0f766e 0%, #0d9488 40%, #0284c7 100%); }
-    .gradient-card { background: linear-gradient(135deg, rgba(13,148,136,0.08) 0%, rgba(2,132,199,0.08) 100%); }
+    .gradient-primary { background: linear-gradient(135deg, #03bdcd 0%, #063154 100%); }
+    .gradient-hero { background: linear-gradient(135deg, #03bdcd 0%, #063154 100%); }
+    .gradient-card { background: linear-gradient(135deg, rgba(3,189,205,0.08) 0%, rgba(6,49,84,0.08) 100%); }
     .text-gradient {
-      background: linear-gradient(135deg, #0d9488, #0284c7);
+      background: linear-gradient(135deg, #03bdcd, #063154);
       -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;
     }
+    .text-gradient-hero {
+      background: #03bdcd;
+      -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;
+    }
+
+    @keyframes floatOrb1 {
+      0% { transform: translate(0px, 0px) scale(1); }
+      50% { transform: translate(35px, -25px) scale(1.08); }
+      100% { transform: translate(-25px, 20px) scale(0.95); }
+    }
+    @keyframes floatOrb2 {
+      0% { transform: translate(0px, 0px) scale(1); }
+      50% { transform: translate(-30px, 30px) scale(1.1); }
+      100% { transform: translate(25px, -20px) scale(0.92); }
+    }
+    @keyframes floatOrb3 {
+      0% { transform: translate(0px, 0px) scale(1); }
+      50% { transform: translate(20px, 35px) scale(1.05); }
+      100% { transform: translate(-25px, -25px) scale(1.08); }
+    }
+    @keyframes pulseGlow {
+      0%, 100% { opacity: 0.25; transform: scale(1); }
+      50% { opacity: 0.45; transform: scale(1.06); }
+    }
+    @keyframes gradientShift {
+      0% { background-position: 0% 50%; }
+      50% { background-position: 100% 50%; }
+      100% { background-position: 0% 50%; }
+    }
+
+    .floating-bg {
+      background: linear-gradient(135deg, #03bdcd 0%, #04658e 35%, #063154 70%, #031b2e 100%);
+      background-size: 200% 200%;
+      animation: gradientShift 14s ease infinite;
+    }
+    .floating-orb-1 { animation: floatOrb1 10s ease-in-out infinite alternate; }
+    .floating-orb-2 { animation: floatOrb2 14s ease-in-out infinite alternate; }
+    .floating-orb-3 { animation: floatOrb3 12s ease-in-out infinite alternate; }
+    .floating-glow { animation: pulseGlow 6s ease-in-out infinite; }
 
     ::-webkit-scrollbar { width: 6px; height: 6px; }
     ::-webkit-scrollbar-track { background: transparent; }
@@ -45,7 +84,7 @@
     <div class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
       <div class="flex items-center justify-between h-16">
         <a href="/" class="flex items-center gap-2.5">
-          <img src="{{ url_for('static', filename='logo.svg') }}" alt="DiaBeates logo" class="w-9 h-9 rounded-full">
+          <img src="{{ url_for('static', filename='logo.png') }}" alt="DiaBeates logo" class="w-9 h-9 object-contain">
           <span class="font-display font-extrabold text-lg text-slate-900">
             Dia<span class="text-gradient">Beates</span>
           </span>
@@ -89,7 +128,7 @@
       <div class="grid sm:grid-cols-3 gap-8 mb-8">
         <div>
           <div class="flex items-center gap-2.5 mb-3">
-            <img src="{{ url_for('static', filename='logo.svg') }}" alt="DiaBeates logo" class="w-8 h-8 rounded-full">
+            <img src="{{ url_for('static', filename='logo.png') }}" alt="DiaBeates logo" class="w-8 h-8 object-contain">
             <span class="font-display font-extrabold text-base text-white">
               Dia<span class="text-teal-300">Beates</span>
             </span>
@@ -105,7 +144,7 @@
             <li><a href="/" class="hover:text-white transition-colors">Home</a></li>
             <li><a href="/assessment" class="hover:text-white transition-colors">Risk Assessment</a></li>
             <li><a href="/history" class="hover:text-white transition-colors">History</a></li>
-            <li><a href="/about" class="hover:text-white transition-colors">About &amp; Ethics</a></li>
+            <li><a href="/about" class="hover:text-white transition-colors">About</a></li>
           </ul>
         </div>
         <div>
