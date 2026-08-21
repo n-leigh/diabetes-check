@@ -159,6 +159,12 @@
       <a href="/assessment" class="flex-1 text-center px-6 py-3 rounded-xl gradient-primary text-white text-sm font-bold hover:opacity-90 transition-opacity shadow-sm">
         Check Someone Else
       </a>
+      {% if assessment_id %}
+      <a href="/history/{{ assessment_id }}/print" target="_blank" class="flex-1 flex items-center justify-center gap-2 px-6 py-3 rounded-xl border border-slate-200 text-sm font-semibold text-slate-600 hover:bg-slate-50 transition-all">
+        <svg width="16" height="16" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.7"><path d="M6 9V3h8v6M6 14h8v4H6v-4zM4 9h12a2 2 0 012 2v4h-3M4 15H1v-4a2 2 0 012-2h0"/></svg>
+        Print / Save Result
+      </a>
+      {% endif %}
       <a href="/history" class="flex-1 text-center px-6 py-3 rounded-xl border border-slate-200 text-sm font-semibold text-slate-600 hover:bg-slate-50 transition-all">
         View History
       </a>

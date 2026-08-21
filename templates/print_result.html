@@ -1,0 +1,202 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>DiaBeates Risk Summary — {{ created_at }}</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;700;800&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+  <style>
+    * { box-sizing: border-box; }
+    body {
+      font-family: 'Inter', sans-serif;
+      color: #1e293b;
+      max-width: 780px;
+      margin: 0 auto;
+      padding: 40px 32px;
+      line-height: 1.5;
+    }
+    h1, h2, h3, .display { font-family: 'Plus Jakarta Sans', sans-serif; }
+
+    .print-toolbar {
+      background: #0d9488;
+      color: white;
+      padding: 14px 20px;
+      border-radius: 12px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 28px;
+    }
+    .print-toolbar button {
+      background: white;
+      color: #0d9488;
+      border: none;
+      padding: 9px 18px;
+      border-radius: 8px;
+      font-weight: 700;
+      font-size: 13px;
+      cursor: pointer;
+      font-family: 'Inter', sans-serif;
+    }
+    .print-toolbar button:hover { background: #f0fdfa; }
+
+    .header {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      border-bottom: 3px solid #0d9488;
+      padding-bottom: 16px;
+      margin-bottom: 24px;
+    }
+    .brand { display: flex; align-items: center; gap: 10px; }
+    .brand img { width: 34px; height: 34px; border-radius: 50%; }
+    .brand-name { font-size: 20px; font-weight: 800; }
+    .brand-name .accent { color: #0d9488; }
+    .meta { text-align: right; font-size: 12px; color: #64748b; }
+
+    h1.title { font-size: 22px; font-weight: 800; margin: 0 0 4px 0; }
+    .subtitle { font-size: 13px; color: #64748b; margin: 0 0 24px 0; }
+
+    section { margin-bottom: 26px; break-inside: avoid; }
+    h2.section-title {
+      font-size: 12px;
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+      color: #64748b;
+      font-weight: 700;
+      margin: 0 0 12px 0;
+      padding-bottom: 6px;
+      border-bottom: 1px solid #e2e8f0;
+    }
+
+    .info-grid { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 12px 24px; }
+    .info-item .label { font-size: 11px; color: #94a3b8; margin-bottom: 2px; }
+    .info-item .value { font-size: 14px; font-weight: 600; color: #1e293b; }
+
+    .risk-factors-list { font-size: 13px; color: #334155; margin-top: 10px; }
+    .risk-factors-list span { display: inline-block; background: #f1f5f9; padding: 3px 10px; border-radius: 999px; margin: 2px 4px 2px 0; font-size: 12px; }
+
+    table.risk-table { width: 100%; border-collapse: collapse; font-size: 13px; }
+    table.risk-table th {
+      text-align: left; font-size: 11px; text-transform: uppercase; letter-spacing: 0.04em;
+      color: #94a3b8; padding: 6px 10px; border-bottom: 1px solid #e2e8f0;
+    }
+    table.risk-table td { padding: 10px; border-bottom: 1px solid #f1f5f9; }
+    .tier-badge {
+      display: inline-block; padding: 2px 10px; border-radius: 999px;
+      font-size: 12px; font-weight: 700; border: 1.5px solid;
+    }
+    .tier-Low { color: #15803d; border-color: #86efac; background: #f0fdf4; }
+    .tier-Moderate { color: #b45309; border-color: #fcd34d; background: #fffbeb; }
+    .tier-High { color: #b91c1c; border-color: #fca5a5; background: #fef2f2; }
+
+    .rec-item { padding: 10px 0; border-bottom: 1px solid #f1f5f9; }
+    .rec-item:last-child { border-bottom: none; }
+    .rec-item .rec-title { font-weight: 700; font-size: 13px; margin-bottom: 2px; }
+    .rec-item .rec-desc { font-size: 12.5px; color: #475569; line-height: 1.5; }
+
+    .disclaimer {
+      margin-top: 30px; padding: 14px 16px; background: #fffbeb; border: 1px solid #fde68a;
+      border-radius: 10px; font-size: 11.5px; color: #92400e; line-height: 1.5;
+    }
+    .footer-note { text-align: center; font-size: 11px; color: #94a3b8; margin-top: 24px; }
+
+    @media print {
+      body { padding: 0 24px; }
+      .print-toolbar { display: none; }
+      section { break-inside: avoid; }
+      a { color: inherit; text-decoration: none; }
+    }
+  </style>
+</head>
+<body>
+
+  <div class="print-toolbar">
+    <span>This is your printable summary — use your browser's print dialog to print or save as PDF.</span>
+    <button onclick="window.print()">Print / Save as PDF</button>
+  </div>
+
+  <div class="header">
+    <div class="brand">
+      <img src="{{ url_for('static', filename='logo.svg') }}" alt="DiaBeates logo">
+      <span class="brand-name">Dia<span class="accent">Beates</span></span>
+    </div>
+    <div class="meta">
+      Assessment #{{ assessment_id }}<br>
+      {{ created_at }} UTC
+    </div>
+  </div>
+
+  <h1 class="title">Diabetes Complication Risk Summary</h1>
+  <p class="subtitle">Generated from a clinically-cited rule matrix and a trained classification model. Keep this for your own records or to share with a healthcare provider.</p>
+
+  <section>
+    <h2 class="section-title">Information Provided</h2>
+    <div class="info-grid">
+      <div class="info-item"><div class="label">BMI</div><div class="value">{{ patient_display.BMI }}</div></div>
+      <div class="info-item"><div class="label">Age range</div><div class="value">{{ patient_display.Age }}</div></div>
+      <div class="info-item"><div class="label">Sex</div><div class="value">{{ patient_display.Sex }}</div></div>
+      <div class="info-item"><div class="label">General health</div><div class="value">{{ patient_display.GenHlth }}</div></div>
+      <div class="info-item"><div class="label">Poor physical health days</div><div class="value">{{ patient_display.PhysHlth }} / 30</div></div>
+      <div class="info-item"><div class="label">Poor mental health days</div><div class="value">{{ patient_display.MentHlth }} / 30</div></div>
+    </div>
+    {% if patient_display.risk_factors %}
+    <div class="risk-factors-list">
+      <div class="label" style="font-size:11px;color:#94a3b8;margin-bottom:4px;">Reported risk factors</div>
+      {% for rf in patient_display.risk_factors %}<span>{{ rf }}</span>{% endfor %}
+    </div>
+    {% endif %}
+  </section>
+
+  <section>
+    <h2 class="section-title">Complication Risk Results</h2>
+    <table class="risk-table">
+      <thead>
+        <tr><th>Category</th><th>Rule Matrix</th><th>Model Prediction</th><th>Risk Level</th></tr>
+      </thead>
+      <tbody>
+        {% for cat in categories %}
+        <tr>
+          <td style="font-weight:600;">{{ cat.replace('_', ' ').title() }}</td>
+          <td>{{ rule_results[cat].score }} pts ({{ rule_results[cat].percentage }}%)</td>
+          <td>{{ model_results.get(cat, '—') }}</td>
+          <td><span class="tier-badge tier-{{ rule_results[cat].label }}">{{ rule_results[cat].label }}</span></td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </section>
+
+  {% if lab_assessment %}
+  <section>
+    <h2 class="section-title">Lab-Based Assessment</h2>
+    <div class="info-grid" style="margin-bottom:10px;">
+      {% if lab_assessment.details.hba1c %}<div class="info-item"><div class="label">HbA1c</div><div class="value">{{ lab_assessment.details.hba1c.value }}%</div></div>{% endif %}
+      {% if lab_assessment.details.systolic_bp %}<div class="info-item"><div class="label">Systolic BP</div><div class="value">{{ lab_assessment.details.systolic_bp.value }} mmHg</div></div>{% endif %}
+      {% if lab_assessment.details.ldl %}<div class="info-item"><div class="label">LDL Cholesterol</div><div class="value">{{ lab_assessment.details.ldl.value }} mg/dL</div></div>{% endif %}
+    </div>
+    <span class="tier-badge tier-{{ lab_assessment.label }}">{{ lab_assessment.label }} Risk</span>
+  </section>
+  {% endif %}
+
+  <section>
+    <h2 class="section-title">What You Can Do</h2>
+    {% for item in recommendations.steps %}
+    <div class="rec-item">
+      <div class="rec-title">{{ item.title }}</div>
+      <div class="rec-desc">{{ item.description }}</div>
+    </div>
+    {% endfor %}
+  </section>
+
+  <div class="disclaimer">
+    <strong>Not medical advice.</strong> This summary is generated by an academic case study tool for educational
+    purposes and is not a certified diagnostic device. Risk levels are statistical estimates based on a rule
+    matrix and a classification model trained on self-reported survey data — they are not a diagnosis. Please
+    share this summary with a licensed healthcare provider for interpretation and any decisions about your care.
+  </div>
+
+  <p class="footer-note">DiaBeates — A Web-Based Diabetes Complication Prediction System Using Classification Models</p>
+
+</body>
+</html>

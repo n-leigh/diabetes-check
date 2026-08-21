@@ -19,6 +19,7 @@ from flask import Flask, render_template, request, redirect, url_for
 from rule_matrix import compute_all_risks, compute_lab_assessment
 from recommendations import build_recommendations
 from validation import validate_patient_form
+from field_labels import describe_patient
 import database
 
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
@@ -93,7 +94,7 @@ def predict():
                 pred = MODELS[cat].predict(X)[0]
                 model_results[cat] = pred
 
-    database.save_assessment(patient, rule_results, model_results, lab_assessment)
+    assessment_id = database.save_assessment(patient, rule_results, model_results, lab_assessment)
 
     recommendations = build_recommendations(rule_results, lab_assessment)
 
@@ -106,6 +107,7 @@ def predict():
         categories=CATEGORIES,
         lab_assessment=lab_assessment,
         recommendations=recommendations,
+        assessment_id=assessment_id,
     )
 
 
@@ -131,6 +133,26 @@ def history_detail(assessment_id):
         recommendations=build_recommendations(record["rule_results"], record.get("lab_assessment")),
         viewing_past=True,
         created_at=record["created_at"],
+        assessment_id=assessment_id,
+    )
+
+
+@app.route("/history/<int:assessment_id>/print", methods=["GET"])
+def print_result(assessment_id):
+    record = database.get_assessment(assessment_id)
+    if not record:
+        return redirect(url_for("history"))
+    return render_template(
+        "print_result.html",
+        assessment_id=assessment_id,
+        created_at=record["created_at"],
+        patient_display=describe_patient(record["patient"]),
+        rule_results=record["rule_results"],
+        model_results=record["model_results"],
+        model_names=MODEL_NAMES,
+        categories=CATEGORIES,
+        lab_assessment=record.get("lab_assessment"),
+        recommendations=build_recommendations(record["rule_results"], record.get("lab_assessment")),
     )
 
 
