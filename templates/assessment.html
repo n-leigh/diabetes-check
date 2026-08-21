@@ -8,7 +8,7 @@
 
     <div class="text-center mb-8">
       <h1 class="font-display text-3xl font-extrabold text-slate-900 mb-2">Diabetes Complication Risk Assessment</h1>
-      <p class="text-slate-500 text-sm">No medical background needed — just answer what you can. Anything you're unsure of, your doctor can help fill in.</p>
+      <p class="text-slate-500 text-sm">No medical background needed, just answer what you can. Anything you're unsure of, your doctor can help fill in.</p>
     </div>
 
     <div class="bg-white rounded-2xl border border-slate-200 shadow-sm p-6 sm:p-8">
@@ -40,7 +40,7 @@
                    value="{{ form_data.get('BMI', '') if form_data else '' }}"
                    placeholder="e.g. 24.5"
                    class="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 text-sm text-slate-800 bg-white placeholder-slate-400/60 focus:outline-none focus:ring-2 focus:ring-teal-400/50 focus:border-teal-400 transition-all" required>
-            <p class="text-xs text-slate-400 leading-snug">Don't know it? It's weight (kg) ÷ height (m)² — or ask your doctor at your last checkup.</p>
+            <p class="text-xs text-slate-400 leading-snug">Don't know it? It's weight (kg) ÷ height (m)², or ask your doctor at your last checkup.</p>
           </div>
 
           <div class="space-y-1.5 col-span-2 sm:col-span-1">
@@ -70,7 +70,7 @@
               <option value="{{ val }}" {{ 'selected' if form_data and form_data.get('GenHlth') == val }}>{{ label_text }}</option>
               {% endfor %}
             </select>
-            <p class="text-xs text-slate-400 leading-snug">Your own honest sense of it — no test needed.</p>
+            <p class="text-xs text-slate-400 leading-snug">Your own honest sense of it, no test needed.</p>
           </div>
 
           <div class="space-y-1.5 col-span-2 sm:col-span-1">
@@ -89,7 +89,7 @@
                    value="{{ form_data.get('PhysHlth', '') if form_data else '' }}"
                    placeholder="e.g. 3"
                    class="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 text-sm text-slate-800 bg-white placeholder-slate-400/60 focus:outline-none focus:ring-2 focus:ring-teal-400/50 focus:border-teal-400 transition-all" required>
-            <p class="text-xs text-slate-400 leading-snug">Out of the last 30 days — physical illness or injury. Enter 0 if none.</p>
+            <p class="text-xs text-slate-400 leading-snug">Out of the last 30 days, physical illness or injury. Enter 0 if none.</p>
           </div>
 
           <div class="space-y-1.5 col-span-2 sm:col-span-1">
@@ -98,7 +98,7 @@
                    value="{{ form_data.get('MentHlth', '') if form_data else '' }}"
                    placeholder="e.g. 3"
                    class="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 text-sm text-slate-800 bg-white placeholder-slate-400/60 focus:outline-none focus:ring-2 focus:ring-teal-400/50 focus:border-teal-400 transition-all" required>
-            <p class="text-xs text-slate-400 leading-snug">Out of the last 30 days — stress, depression, emotional struggles. Enter 0 if none.</p>
+            <p class="text-xs text-slate-400 leading-snug">Out of the last 30 days, stress, depression, emotional struggles. Enter 0 if none.</p>
           </div>
         </div>
 
@@ -124,7 +124,7 @@
         </div>
 
         <h3 class="font-semibold text-xs text-slate-500 uppercase tracking-wider mb-1">Lab Values (Optional)</h3>
-        <p class="text-xs text-slate-400 mb-4">Have recent lab results? Adding them gives a more precise assessment. Don't have them handy? Just skip this — you'll still get a full result from the fields above.</p>
+        <p class="text-xs text-slate-400 mb-4">Have recent lab results? Adding them gives a more precise assessment. Don't have them handy? Just skip this, you'll still get a full result from the fields above.</p>
         <div class="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-8">
           <div class="space-y-1.5">
             <label class="block text-sm font-semibold text-slate-700 font-display">HbA1c (%)</label>
@@ -148,7 +148,7 @@
                    value="{{ form_data.get('LabLDL', '') if form_data else '' }}"
                    placeholder="e.g. 130"
                    class="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 text-sm text-slate-800 bg-white placeholder-slate-400/60 focus:outline-none focus:ring-2 focus:ring-teal-400/50 focus:border-teal-400 transition-all">
-            <p class="text-xs text-slate-400 leading-snug">Sometimes called "bad cholesterol" — found on a cholesterol blood test.</p>
+            <p class="text-xs text-slate-400 leading-snug">Sometimes called "bad cholesterol", found on a cholesterol blood test.</p>
           </div>
         </div>
 
@@ -160,7 +160,7 @@
     </div>
 
     <p class="text-xs text-center text-slate-400 mt-4">
-      Results combine a clinically-cited rule matrix with a trained classification model. For educational purposes only — not a substitute for professional medical advice.
+      Results combine a clinically-cited rule matrix with a trained classification model. For educational purposes only, not a substitute for professional medical advice.
     </p>
   </div>
 </div>
