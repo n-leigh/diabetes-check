@@ -11,7 +11,8 @@
       <p class="text-slate-500 text-sm">No medical background needed, just answer what you can. Anything you're unsure of, your doctor can help fill in.</p>
     </div>
 
-    <div class="bg-white rounded-2xl border border-slate-200 shadow-sm p-6 sm:p-8">
+    <div class="animated-border-card">
+      <div class="card-inner p-6 sm:p-8">
 
       {% if errors %}
       <div class="mb-6 bg-red-50 border border-red-200 rounded-xl p-4 flex items-start gap-3">
@@ -159,8 +160,11 @@
       </form>
     </div>
 
+      </div>
+    </div>
+
     <p class="text-xs text-center text-slate-400 mt-4">
-      Results combine a clinically-cited rule matrix with a trained classification model. For educational purposes only, not a substitute for professional medical advice.
+      Results combine a clinically-cited rule matrix with a trained classification model to provide transparent risk projections. For educational and informational purposes only, not a diagnosis or substitute for professional medical advice.
     </p>
   </div>
 </div>
