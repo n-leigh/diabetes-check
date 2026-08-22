@@ -5,18 +5,20 @@
 {% block content %}
 <div class="flex-1 bg-slate-50">
 
-  <section class="gradient-hero text-white py-16 px-4">
-    <div class="max-w-4xl mx-auto text-center">
-      <div class="inline-block bg-white/15 border border-white/25 rounded-full px-4 py-1.5 text-sm font-medium mb-6">
-        Case Study Background
+  <section class="relative isolate overflow-hidden py-16 sm:py-20 px-4 border-b border-slate-200/80">
+    <img class="absolute inset-0 -z-20 h-full w-full object-cover" src="https://images.unsplash.com/photo-1641679103706-fc8542e2a97a?auto=format&amp;fit=crop&amp;w=2000&amp;q=85" alt="A pile of white sugar cubes representing blood sugar levels" />
+    <div class="absolute inset-0 -z-10" style="background: rgba(6, 49, 84, 0.65);"></div>
+    <div class="max-w-4xl mx-auto text-center relative z-10">
+      <div class="inline-block border border-white/30 text-white font-semibold rounded-full px-4 py-1 text-xs uppercase tracking-wider mb-6" style="background: linear-gradient(135deg, rgba(3, 189, 205, 0.55) 0%, rgba(6, 49, 84, 0.55) 100%); box-shadow: 0 0 0 1px rgba(255,255,255,0.05); backdrop-filter: blur(2px);">
+        Health Screening
       </div>
-      <h1 class="font-display text-4xl sm:text-5xl font-extrabold mb-5">
-        A Web-Based Diabetes<br>
-        <span class="text-teal-200">Complication Prediction System</span>
+      <h1 class="font-display text-4xl sm:text-5xl font-extrabold mb-5 tracking-tight">
+        <span class="text-white">Understand your risk</span><br>
+        <span class="text-gradient-hero">before complications advance</span>
       </h1>
-      <p class="text-white/80 text-base max-w-2xl mx-auto leading-relaxed">
-        Developed as a case study for a Professional Elective on Data Analytics, focused on applying
-        classification models to a real-world healthcare screening problem.
+      <p class="text-white/90 text-base max-w-2xl mx-auto leading-relaxed">
+        DiaBeates is a web-based diabetes risk screening tool that helps individuals estimate their
+        likelihood of developing diabetes-related complications based on their health indicators.
       </p>
     </div>
   </section>
@@ -25,50 +27,80 @@
     <div class="max-w-4xl mx-auto">
       <div class="grid md:grid-cols-2 gap-12 items-center">
         <div>
-          <h2 class="font-display text-3xl font-extrabold text-slate-900 mb-4">Study Background</h2>
+          <h2 class="font-display text-3xl font-extrabold text-slate-900 mb-4">What DiaBeates does</h2>
           <div class="space-y-4 text-slate-500 text-base leading-relaxed">
             <p>
-              Diabetes complications — including cardiovascular disease, neuropathy, and broader
-              health burden — are a leading driver of long-term morbidity among people living with
-              diabetes. Early, low-cost screening from routinely available health indicators can help
-              flag elevated risk before it's confirmed through more expensive clinical testing.
+              Diabetes can progress quietly, and many complications become more difficult to manage when
+              they are identified too late. DiaBeates is designed to make that first step easier by
+              translating routine health information into a practical risk assessment.
             </p>
             <p>
-              DiaBeates was built to explore whether that screening can be done two ways at once: a
-              transparent, clinically-cited <strong>rule matrix</strong> that scores known risk factors
-              against established thresholds, and a <strong>trained classification model</strong> that
-              learns the same patterns directly from real patient data — shown side by side rather than
-              choosing one over the other.
+              DiaBeates was built to assess risk in two ways at once: a transparent, clinically-cited
+              <strong>rule matrix</strong> and a <strong>trained classification model</strong>, shown
+              side by side to support earlier follow-up and better-informed discussion with clinicians.
             </p>
             <p>
-              The system is trained on the CDC Diabetes Health Indicators dataset (BRFSS 2015),
-              filtered to 35,346 diabetic-positive respondents, and evaluates risk across three
-              categories: cardiovascular complications, neuropathy/mobility impact, and general
-              complication burden. An optional lab-values layer (HbA1c, blood pressure, LDL
-              cholesterol) adds a more precise, clinically-cited assessment when real lab results are
-              available.
+              Early screening matters because small changes in blood pressure, cholesterol, lifestyle,
+              mobility, and overall health burden can signal elevated risk before significant illness
+              develops. DiaBeates supports informed decision-making by turning those signals into a clear,
+              explainable summary that is easy to understand and discuss with a healthcare professional.
             </p>
           </div>
         </div>
         <div class="space-y-4">
           <div class="rounded-2xl border p-5 bg-teal-50 border-teal-200">
-            <span class="text-xs font-semibold px-2.5 py-0.5 rounded-full bg-white border border-teal-200 text-teal-600">Rule Matrix</span>
-            <h3 class="font-display font-bold text-base mb-2 mt-3 text-teal-600">Clinically-Cited Scoring</h3>
+            <span class="text-xs font-semibold px-2.5 py-0.5 rounded-full bg-white border border-teal-200 text-teal-600">Transparent Risk Logic</span>
+            <h3 class="font-display font-bold text-base mb-2 mt-3 text-teal-600">Structured clinical rules</h3>
             <p class="text-sm text-slate-600 leading-relaxed">
               Encodes established risk factors (hypertension, cholesterol, smoking, mobility
               difficulty, general health burden) into a transparent point system, cited to ADA
-              Standards of Care and NHANES threshold research. Every score is explainable — no black box.
+              Standards of Care and NHANES threshold research. Every score is explainable, no black box.
             </p>
           </div>
           <div class="rounded-2xl border p-5 bg-sky-50 border-sky-200">
-            <span class="text-xs font-semibold px-2.5 py-0.5 rounded-full bg-white border border-sky-200 text-sky-600">Classification Models</span>
-            <h3 class="font-display font-bold text-base mb-2 mt-3 text-sky-600">Trained & Compared</h3>
+            <span class="text-xs font-semibold px-2.5 py-0.5 rounded-full bg-white border border-sky-200 text-sky-600">Predictive Modeling</span>
+            <h3 class="font-display font-bold text-base mb-2 mt-3 text-sky-600">Statistical classification</h3>
             <p class="text-sm text-slate-600 leading-relaxed">
-              Decision Tree, Logistic Regression, and Random Forest classifiers are each trained per
-              complication category; the best-performing model on held-out data is kept and shown
-              alongside the rule matrix's result.
+              In addition to rule-based assessment, the system applies statistical classification models to
+              detect patterns in the submitted health indicators and generate a category prediction for
+              comparison with the rule-matrix result.
             </p>
           </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="py-16 px-4 bg-slate-50 border-t border-slate-100">
+    <div class="max-w-5xl mx-auto">
+      <h2 class="font-display text-3xl font-extrabold text-slate-900 mb-8 text-center">Built for clarity, transparency, and action</h2>
+
+      <div class="grid md:grid-cols-3 gap-6">
+        <div class="bg-white border border-slate-200 rounded-2xl p-6 shadow-sm">
+          <div class="w-10 h-10 rounded-full bg-teal-100 flex items-center justify-center mb-4 text-teal-700 font-bold">01</div>
+          <h3 class="font-display font-bold text-slate-800 mb-2">Complete-data validation</h3>
+          <p class="text-sm text-slate-600 leading-relaxed">
+            Every assessment is checked for required inputs and valid values before analysis so the
+            screening estimate uses complete, usable information.
+          </p>
+        </div>
+
+        <div class="bg-white border border-slate-200 rounded-2xl p-6 shadow-sm">
+          <div class="w-10 h-10 rounded-full bg-sky-100 flex items-center justify-center mb-4 text-sky-700 font-bold">02</div>
+          <h3 class="font-display font-bold text-slate-800 mb-2">Personalized guidance</h3>
+          <p class="text-sm text-slate-600 leading-relaxed">
+            Results are paired with practical health guidance designed to help users understand what the
+            risk level may mean and which habits or follow-up steps deserve attention.
+          </p>
+        </div>
+
+        <div class="bg-white border border-slate-200 rounded-2xl p-6 shadow-sm">
+          <div class="w-10 h-10 rounded-full bg-amber-100 flex items-center justify-center mb-4 text-amber-700 font-bold">03</div>
+          <h3 class="font-display font-bold text-slate-800 mb-2">Referral advisories</h3>
+          <p class="text-sm text-slate-600 leading-relaxed">
+            For higher-risk cases, the system can suggest when a physician review may be appropriate,
+            helping users act sooner when elevated risk warrants medical attention.
+          </p>
         </div>
       </div>
     </div>
@@ -88,7 +120,7 @@
             <h3 class="font-display font-bold text-amber-800 mb-2">Not a diagnostic tool</h3>
             <p class="text-sm text-amber-700 leading-relaxed">
               DiaBeates is an academic case study built to demonstrate classification modeling on a
-              healthcare screening problem — it is not a certified or clinically validated medical
+              healthcare screening problem, it is not a certified or clinically validated medical
               device. Risk levels shown are statistical estimates, not diagnoses. Results should never
               replace evaluation by a licensed healthcare provider, and no treatment decision should be
               made on this tool's output alone.
@@ -101,7 +133,7 @@
           <p class="text-sm text-slate-600 leading-relaxed">
             The classifiers were trained on labels generated by our own rule matrix, not on
             confirmed clinical diagnoses of complications. This means the model's job is to learn to
-            approximate the rule matrix efficiently — not to discover new medical patterns. Two of the
+            approximate the rule matrix efficiently, not to discover new medical patterns. Two of the
             three categories reach near-perfect accuracy for exactly this reason: their underlying
             rules are simple enough that a classifier can reconstruct them almost exactly. This is
             expected and disclosed here rather than presented as a stronger result than it is.
@@ -111,7 +143,7 @@
         <div class="bg-slate-50 border border-slate-200 rounded-2xl p-6">
           <h3 class="font-display font-bold text-slate-800 mb-2">Dataset scope</h3>
           <p class="text-sm text-slate-600 leading-relaxed">
-            Training data comes from the CDC's BRFSS survey — self-reported health data from U.S.
+            Training data comes from the CDC's BRFSS survey, self-reported health data from U.S.
             respondents, not lab-confirmed clinical records. Findings may not generalize to
             populations, healthcare systems, or reporting norms outside that context. The optional
             lab-values layer (HbA1c, blood pressure, LDL) is scored against cited clinical thresholds,
@@ -124,7 +156,7 @@
           <p class="text-sm text-slate-600 leading-relaxed">
             Assessments entered into this system are stored locally in the app's own database for
             demonstration purposes (e.g. the History page). No real patient data, consent process, or
-            production-grade privacy safeguards are involved — this system is not intended for
+            production-grade privacy safeguards are involved, this system is not intended for
             deployment with real patient records without further ethical review and safeguards.
           </p>
         </div>

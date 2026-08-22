@@ -3,36 +3,40 @@
 {% set active_page = 'home' %}
 
 {% block content %}
-<div class="flex-1">
+<div class="flex-1 bg-slate-50">
 
-  <section class="gradient-hero text-white pt-20 pb-28 px-4 relative overflow-hidden">
-    <div class="absolute inset-0 opacity-10">
-      <div class="absolute top-10 right-10 w-96 h-96 rounded-full bg-white blur-3xl"></div>
-      <div class="absolute bottom-0 left-0 w-64 h-64 rounded-full bg-sky-300 blur-3xl"></div>
-    </div>
-    <div class="max-w-6xl mx-auto relative">
-      <div class="max-w-3xl">
-        <div class="inline-flex items-center gap-2 bg-white/15 backdrop-blur-sm border border-white/20 rounded-full px-4 py-1.5 mb-6">
-          <span class="w-2 h-2 rounded-full bg-teal-300 animate-pulse"></span>
-          <span class="text-sm font-medium text-white/90">Rule matrix + trained classifiers, side by side</span>
+  <!-- Hero Section with Rounded Floating Box Aligned to Navbar Width -->
+  <section class="pt-6 pb-12 px-4 sm:px-6 lg:px-8">
+    <div class="max-w-6xl mx-auto">
+      <div class="floating-bg text-white rounded-3xl p-8 sm:p-12 lg:p-16 relative overflow-hidden border border-slate-900/40 shadow-[0_25px_60px_-15px_rgba(6,49,84,0.55),0_12px_28px_-6px_rgba(0,0,0,0.35)]">
+
+        <!-- Floating Background Ambient Elements (pointer-events-none to ensure full clickability) -->
+        <div class="absolute inset-0 pointer-events-none overflow-hidden select-none">
+          <div class="floating-orb-1 absolute -top-16 -right-16 w-96 h-96 rounded-full bg-[#03bdcd] opacity-35 blur-3xl"></div>
+          <div class="floating-orb-2 absolute top-1/3 -left-20 w-80 h-80 rounded-full bg-cyan-300 opacity-25 blur-3xl"></div>
+          <div class="floating-orb-3 absolute -bottom-10 right-1/4 w-96 h-96 rounded-full bg-[#063154] opacity-60 blur-3xl"></div>
+          <div class="floating-glow absolute top-1/2 left-1/3 w-64 h-64 rounded-full bg-teal-400 opacity-20 blur-2xl"></div>
         </div>
-        <h1 class="font-display text-5xl sm:text-6xl font-extrabold leading-tight mb-6">
-          Predict Diabetes<br>
-          Complications<br>
-          <span class="text-teal-200">With Real Data</span>
-        </h1>
-        <p class="text-lg text-white/80 max-w-xl leading-relaxed mb-10">
-          DiaBeates combines a clinically-cited rule matrix with classifiers trained on 35,346 real patient records to estimate diabetes complication risk — showing both methods side by side, transparently.
-        </p>
-        <div class="flex flex-wrap gap-4">
-          <a href="/assessment" class="inline-flex items-center gap-2 bg-white text-teal-700 font-semibold px-7 py-3.5 rounded-xl hover:bg-teal-50 transition-colors shadow-lg text-sm">
-            Start Risk Assessment
-            <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 8h10M9 4l4 4-4 4"/></svg>
-          </a>
-          <a href="/about" class="inline-flex items-center gap-2 bg-white/10 border border-white/30 text-white font-semibold px-7 py-3.5 rounded-xl hover:bg-white/20 transition-colors text-sm">
-            Learn About the Research
-          </a>
+
+        <div class="max-w-4xl mx-auto text-center relative z-10">
+          <h1 class="font-display text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-extrabold leading-tight mb-6 tracking-tight">
+            <span class="inline-block sm:whitespace-nowrap">Predict Diabetes Complications</span><br>
+            <span class="text-cyan-300">With Real Data</span>
+          </h1>
+          <p class="text-base sm:text-lg text-white/90 max-w-2xl mx-auto leading-relaxed mb-10 font-normal">
+            An educational screening tool that uses the health indicators you provide to estimate diabetes complication risk. DiaBeates combines transparent rule-based scoring with trained statistical models and general wellness guidance.
+          </p>
+          <div class="flex flex-wrap justify-center items-center gap-4">
+            <a href="/assessment" class="inline-flex items-center gap-2 bg-white text-[#063154] font-bold px-7 py-3.5 rounded-xl hover:bg-slate-50 hover:shadow-xl hover:shadow-cyan-950/40 hover:-translate-y-0.5 active:scale-95 transition-all duration-200 text-sm cursor-pointer shadow-md">
+              Start Risk Assessment
+              <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M3 8h10M9 4l4 4-4 4"/></svg>
+            </a>
+            <a href="/about" class="inline-flex items-center gap-2 bg-white/10 backdrop-blur-md border border-white/30 text-white font-semibold px-7 py-3.5 rounded-xl hover:bg-white/20 hover:-translate-y-0.5 active:scale-95 transition-all duration-200 text-sm cursor-pointer">
+              Learn About the Research
+            </a>
+          </div>
         </div>
+
       </div>
     </div>
   </section>
@@ -41,36 +45,61 @@
     <div class="max-w-6xl mx-auto">
       <div class="text-center mb-12">
         <h2 class="font-display text-3xl font-extrabold text-slate-900 mb-3">Complications We Assess</h2>
-        <p class="text-slate-500 max-w-xl mx-auto">Three complication categories, each scored two independent ways — a transparent rule matrix and a trained classifier.</p>
+        <p class="text-slate-500 max-w-xl mx-auto">Evaluates three complication categories using two separate methods: a clear rule matrix and a trained statistical model.</p>
       </div>
-      <div class="grid sm:grid-cols-3 gap-5">
-        <div class="bg-white rounded-2xl p-6 text-center border border-slate-100 shadow-sm hover:shadow-md hover:-translate-y-0.5 transition-all duration-200">
-          <div class="text-3xl mb-3">❤️</div>
-          <div class="font-display font-bold text-base text-slate-800 mb-1">Cardiovascular</div>
-          <div class="text-xs text-slate-400 leading-snug">Hypertension, cholesterol, smoking &amp; prior heart events</div>
+      <div class="grid sm:grid-cols-3 gap-6">
+        <div class="bg-[#025f67] text-white rounded-3xl p-7 text-center border border-teal-600/30 shadow-[0_20px_40px_-10px_rgba(2,95,103,0.45),0_10px_20px_-5px_rgba(0,0,0,0.25)] hover:shadow-[0_25px_50px_-8px_rgba(2,95,103,0.55),0_12px_24px_-4px_rgba(0,0,0,0.3)] hover:-translate-y-1.5 transition-all duration-300">
+          <div class="w-12 h-12 mx-auto mb-3.5 rounded-xl bg-white/10 flex items-center justify-center text-[#37f6f2] shadow-inner">
+            <svg class="w-6 h-6" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M19 14c1.49-1.46 3-3.21 3-5.5A5.5 5.5 0 0 0 16.5 3c-1.76 0-3 .5-4.5 2-1.5-1.5-2.74-2-4.5-2A5.5 5.5 0 0 0 2 8.5c0 2.3 1.5 4.05 3 5.5l7 7Z"/>
+              <path d="M3.22 12H9.5l1.5-3 2 6 1.5-3h6.78"/>
+            </svg>
+          </div>
+          <div class="font-display font-bold text-lg text-white mb-1.5">Cardiovascular</div>
+          <div class="text-xs text-teal-100/85 leading-relaxed">Hypertension, cholesterol, smoking, and prior heart events</div>
         </div>
-        <div class="bg-white rounded-2xl p-6 text-center border border-slate-100 shadow-sm hover:shadow-md hover:-translate-y-0.5 transition-all duration-200">
-          <div class="text-3xl mb-3">🦶</div>
-          <div class="font-display font-bold text-base text-slate-800 mb-1">Neuropathy / Mobility</div>
-          <div class="text-xs text-slate-400 leading-snug">Difficulty walking, physical health burden &amp; BMI</div>
+
+        <div class="bg-[#025f67] text-white rounded-3xl p-7 text-center border border-teal-600/30 shadow-[0_20px_40px_-10px_rgba(2,95,103,0.45),0_10px_20px_-5px_rgba(0,0,0,0.25)] hover:shadow-[0_25px_50px_-8px_rgba(2,95,103,0.55),0_12px_24px_-4px_rgba(0,0,0,0.3)] hover:-translate-y-1.5 transition-all duration-300">
+          <div class="w-12 h-12 mx-auto mb-3.5 rounded-xl bg-white/10 flex items-center justify-center text-[#37f6f2] shadow-inner">
+            <svg class="w-6 h-6" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <circle cx="13" cy="4" r="2"/>
+              <path d="M10.5 22l1.5-7 1-4 3 2 2.5 4"/>
+              <path d="M11.5 15l-4 2.5L5 21"/>
+              <path d="M12 11l-3-2 1-3"/>
+            </svg>
+          </div>
+          <div class="font-display font-bold text-lg text-white mb-1.5">Neuropathy / Mobility</div>
+          <div class="text-xs text-teal-100/85 leading-relaxed">Difficulty walking, physical health burden, and BMI</div>
         </div>
-        <div class="bg-white rounded-2xl p-6 text-center border border-slate-100 shadow-sm hover:shadow-md hover:-translate-y-0.5 transition-all duration-200">
-          <div class="text-3xl mb-3">⚕️</div>
-          <div class="font-display font-bold text-base text-slate-800 mb-1">General Burden</div>
-          <div class="text-xs text-slate-400 leading-snug">Overall health status &amp; healthcare access barriers</div>
+
+        <div class="bg-[#025f67] text-white rounded-3xl p-7 text-center border border-teal-600/30 shadow-[0_20px_40px_-10px_rgba(2,95,103,0.45),0_10px_20px_-5px_rgba(0,0,0,0.25)] hover:shadow-[0_25px_50px_-8px_rgba(2,95,103,0.55),0_12px_24px_-4px_rgba(0,0,0,0.3)] hover:-translate-y-1.5 transition-all duration-300">
+          <div class="w-12 h-12 mx-auto mb-3.5 rounded-xl bg-white/10 flex items-center justify-center text-[#37f6f2] shadow-inner">
+            <svg class="w-6 h-6" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M4 2v6a4 4 0 0 0 8 0V2"/>
+              <path d="M4 2h2M10 2h2"/>
+              <path d="M8 15a6 6 0 0 0 12 0v-3"/>
+              <circle cx="20" cy="10" r="2"/>
+            </svg>
+          </div>
+          <div class="font-display font-bold text-lg text-white mb-1.5">General Burden</div>
+          <div class="text-xs text-teal-100/85 leading-relaxed">Overall health status and healthcare access barriers</div>
         </div>
       </div>
     </div>
   </section>
 
-  <section class="py-20 px-4 gradient-card border-y border-teal-100">
-    <div class="max-w-2xl mx-auto text-center">
-      <h2 class="font-display text-3xl font-extrabold text-slate-900 mb-4">Ready to assess your risk?</h2>
-      <p class="text-slate-500 mb-8">Enter a few health indicators and get results from both methods in seconds.</p>
-      <a href="/assessment" class="inline-flex items-center gap-2 gradient-primary text-white font-semibold px-7 py-3.5 rounded-xl hover:opacity-90 transition-opacity shadow-md text-sm">
-        Begin Assessment
-        <svg width="14" height="14" viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="2"><path d="M2 7h10M8 3l4 4-4 4"/></svg>
-      </a>
+  <section class="py-16 px-4">
+    <div class="max-w-4xl mx-auto">
+      <div class="scan-light-card">
+        <div class="scan-light-card-inner p-10 sm:p-14 text-center">
+          <h2 class="font-display text-3xl font-extrabold text-slate-900 mb-4">Ready to assess your risk?</h2>
+          <p class="text-slate-500 mb-8 max-w-lg mx-auto">Enter a few health indicators and get results from both methods in seconds.</p>
+          <a href="/assessment" class="inline-flex items-center gap-2 gradient-primary text-white font-bold px-8 py-4 rounded-xl hover:opacity-95 hover:shadow-xl hover:shadow-cyan-900/25 hover:-translate-y-0.5 active:scale-95 transition-all duration-200 text-sm shadow-md">
+            Start Risk Assessment
+            <svg width="14" height="14" viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M2 7h10M8 3l4 4-4 4"/></svg>
+          </a>
+        </div>
+      </div>
     </div>
   </section>
 

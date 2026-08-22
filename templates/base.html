@@ -24,13 +24,138 @@
     body { font-family: 'Inter', sans-serif; background-color: #f8fafc; color: #1e293b; -webkit-font-smoothing: antialiased; }
     h1, h2, h3, h4, h5, h6, .font-display { font-family: 'Plus Jakarta Sans', sans-serif; }
 
-    .gradient-primary { background: linear-gradient(135deg, #0d9488 0%, #0284c7 100%); }
-    .gradient-hero { background: linear-gradient(135deg, #0f766e 0%, #0d9488 40%, #0284c7 100%); }
-    .gradient-card { background: linear-gradient(135deg, rgba(13,148,136,0.08) 0%, rgba(2,132,199,0.08) 100%); }
+    .gradient-primary { background: linear-gradient(135deg, #03bdcd 0%, #063154 100%); }
+    .gradient-hero { background: linear-gradient(135deg, #03bdcd 0%, #063154 100%); }
+    .gradient-card { background: linear-gradient(135deg, rgba(3,189,205,0.08) 0%, rgba(6,49,84,0.08) 100%); }
     .text-gradient {
-      background: linear-gradient(135deg, #0d9488, #0284c7);
+      background: linear-gradient(135deg, #03bdcd, #063154);
       -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;
     }
+    .text-gradient-hero {
+      background: #03bdcd;
+      -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;
+    }
+
+    .animated-border-card {
+      position: relative;
+      border-radius: 1.5rem;
+      background: rgba(255, 255, 255, 0.98);
+      overflow: hidden;
+      border: 1px solid rgba(6, 49, 84, 0.8);
+      box-shadow: 0 12px 32px rgba(6, 49, 84, 0.08);
+    }
+
+    .animated-border-card::before {
+      content: "";
+      position: absolute;
+      inset: -1px;
+      border-radius: inherit;
+      padding: 1px;
+      background: conic-gradient(
+        from 0deg,
+        rgba(3, 189, 205, 0) 0deg,
+        rgba(3, 189, 205, 0.92) 35deg,
+        rgba(255, 255, 255, 0.98) 70deg,
+        rgba(3, 189, 205, 0.22) 130deg,
+        rgba(6, 49, 84, 0.9) 220deg,
+        rgba(3, 189, 205, 0) 360deg
+      );
+      -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+      -webkit-mask-composite: xor;
+      mask-composite: exclude;
+      animation: borderSpin 6s linear infinite;
+      pointer-events: none;
+    }
+
+    .animated-border-card > .card-inner {
+      position: relative;
+      z-index: 1;
+      background: rgba(255, 255, 255, 0.96);
+      border-radius: calc(1.5rem - 1px);
+    }
+
+    .scan-light-card {
+      position: relative;
+      border-radius: 1.8rem;
+      overflow: hidden;
+      background: rgba(255, 255, 255, 0.18);
+      box-shadow: 0 20px 45px -12px rgba(3, 189, 205, 0.18);
+    }
+
+    .scan-light-card::before {
+      content: "";
+      position: absolute;
+      inset: 0;
+      border-radius: inherit;
+      padding: 1px;
+      background: conic-gradient(
+        from 0deg,
+        rgba(3, 189, 205, 0) 0deg,
+        rgba(255, 255, 255, 0.9) 38deg,
+        rgba(3, 189, 205, 0.9) 78deg,
+        rgba(6, 49, 84, 0.3) 140deg,
+        rgba(3, 189, 205, 0) 220deg,
+        rgba(3, 189, 205, 0) 360deg
+      );
+      -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+      -webkit-mask-composite: xor;
+      mask-composite: exclude;
+      animation: borderSweep 3.6s linear infinite;
+      pointer-events: none;
+    }
+
+    .scan-light-card-inner {
+      position: relative;
+      z-index: 1;
+      background: rgba(224, 235, 240, 0.85);
+      border-radius: calc(1.8rem - 1px);
+      border: 1px solid rgba(110, 189, 206, 0.38);
+    }
+
+    @keyframes borderSpin {
+      0% { transform: rotate(0deg); }
+      100% { transform: rotate(360deg); }
+    }
+
+    @keyframes borderSweep {
+      0% { transform: rotate(0deg); }
+      100% { transform: rotate(360deg); }
+    }
+
+    @keyframes floatOrb1 {
+      0% { transform: translate(0px, 0px) scale(1); }
+      50% { transform: translate(35px, -25px) scale(1.08); }
+      100% { transform: translate(-25px, 20px) scale(0.95); }
+    }
+    @keyframes floatOrb2 {
+      0% { transform: translate(0px, 0px) scale(1); }
+      50% { transform: translate(-30px, 30px) scale(1.1); }
+      100% { transform: translate(25px, -20px) scale(0.92); }
+    }
+    @keyframes floatOrb3 {
+      0% { transform: translate(0px, 0px) scale(1); }
+      50% { transform: translate(20px, 35px) scale(1.05); }
+      100% { transform: translate(-25px, -25px) scale(1.08); }
+    }
+    @keyframes pulseGlow {
+      0%, 100% { opacity: 0.25; transform: scale(1); }
+      50% { opacity: 0.45; transform: scale(1.06); }
+    }
+    @keyframes gradientShift {
+      0% { background-position: 0% 50%; }
+      50% { background-position: 100% 50%; }
+      100% { background-position: 0% 50%; }
+    }
+
+    .floating-bg {
+      background: linear-gradient(135deg, #03bdcd 0%, #04658e 35%, #063154 70%, #031b2e 100%);
+      background-size: 200% 200%;
+      animation: gradientShift 14s ease infinite;
+    }
+    .floating-orb-1 { animation: floatOrb1 10s ease-in-out infinite alternate; }
+    .floating-orb-2 { animation: floatOrb2 14s ease-in-out infinite alternate; }
+    .floating-orb-3 { animation: floatOrb3 12s ease-in-out infinite alternate; }
+    .floating-glow { animation: pulseGlow 6s ease-in-out infinite; }
 
     ::-webkit-scrollbar { width: 6px; height: 6px; }
     ::-webkit-scrollbar-track { background: transparent; }
@@ -45,7 +170,7 @@
     <div class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
       <div class="flex items-center justify-between h-16">
         <a href="/" class="flex items-center gap-2.5">
-          <img src="{{ url_for('static', filename='logo.svg') }}" alt="DiaBeates logo" class="w-9 h-9 rounded-full">
+          <img src="{{ url_for('static', filename='logo.png') }}" alt="DiaBeates logo" class="w-9 h-9 object-contain">
           <span class="font-display font-extrabold text-lg text-slate-900">
             Dia<span class="text-gradient">Beates</span>
           </span>
@@ -89,14 +214,14 @@
       <div class="grid sm:grid-cols-3 gap-8 mb-8">
         <div>
           <div class="flex items-center gap-2.5 mb-3">
-            <img src="{{ url_for('static', filename='logo.svg') }}" alt="DiaBeates logo" class="w-8 h-8 rounded-full">
+            <img src="{{ url_for('static', filename='logo.png') }}" alt="DiaBeates logo" class="w-8 h-8 object-contain">
             <span class="font-display font-extrabold text-base text-white">
               Dia<span class="text-teal-300">Beates</span>
             </span>
           </div>
           <p class="text-sm leading-relaxed">
-            A rule matrix and trained classifiers, shown side by side, to help people get an early
-            sense of their diabetes complication risk.
+            A transparent screening tool that helps users estimate diabetes complication risk using
+            structured clinical indicators and predictive modeling.
           </p>
         </div>
         <div>
@@ -105,20 +230,20 @@
             <li><a href="/" class="hover:text-white transition-colors">Home</a></li>
             <li><a href="/assessment" class="hover:text-white transition-colors">Risk Assessment</a></li>
             <li><a href="/history" class="hover:text-white transition-colors">History</a></li>
-            <li><a href="/about" class="hover:text-white transition-colors">About &amp; Ethics</a></li>
+            <li><a href="/about" class="hover:text-white transition-colors">About</a></li>
           </ul>
         </div>
         <div>
           <h4 class="text-white text-sm font-semibold mb-3">Please note</h4>
           <p class="text-sm leading-relaxed">
-            This is an educational case study project, not a certified medical device. It does not
-            diagnose anything and is never a substitute for advice from a licensed healthcare
-            provider.
+            DiaBeates is designed to support early awareness and informed follow-up. It does not
+            diagnose conditions and should not replace a clinical evaluation by a licensed healthcare
+            professional.
           </p>
         </div>
       </div>
       <div class="border-t border-slate-800 pt-6 text-xs text-slate-500 text-center">
-        DiaBeates — a student case study project on classification models for diabetes complication risk screening.
+        DiaBeates, a student case study project on classification models for diabetes complication risk screening.
       </div>
     </div>
   </footer>
