@@ -27,6 +27,12 @@ Cite in your methodology chapter:
 
 from typing import Dict
 
+# Bump this whenever scoring logic or thresholds change. Stored alongside
+# every saved assessment so historical records stay interpretable even if
+# the rule matrix is later revised — a record scored under v1.0 shouldn't
+# be silently reinterpreted as if it were scored under v1.1's thresholds.
+RULE_VERSION = "1.0"
+
 
 def _get(row: dict, key: str, default=0):
     return row.get(key, default)

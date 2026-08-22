@@ -1,0 +1,20 @@
+# Python bytecode cache - auto-generated, never real source code
+__pycache__/
+*.pyc
+*.pyo
+
+# Virtual environments, if you or your teammate use one
+venv/
+.venv/
+env/
+
+# The local SQLite database file - this is runtime data (whatever
+# assessments you've personally submitted while testing), not source
+# code. Each teammate will get their own fresh copy automatically the
+# first time they run the app, since app.py creates it if missing.
+diabetes_system.db
+
+# Editor/OS clutter
+.vscode/
+.DS_Store
+Thumbs.db
