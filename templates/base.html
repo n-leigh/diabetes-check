@@ -21,6 +21,11 @@
     };
   </script>
   <style>
+    :root {
+      --page-transition-duration: 380ms;
+      --page-transition-ease: cubic-bezier(0.22, 1, 0.36, 1);
+    }
+
     body { font-family: 'Inter', sans-serif; background-color: #f8fafc; color: #1e293b; -webkit-font-smoothing: antialiased; }
     h1, h2, h3, h4, h5, h6, .font-display { font-family: 'Plus Jakarta Sans', sans-serif; }
 
@@ -161,10 +166,144 @@
     ::-webkit-scrollbar-track { background: transparent; }
     ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 3px; }
     ::-webkit-scrollbar-thumb:hover { background: #94a3b8; }
+
+    body.page-transition {
+      opacity: 1;
+      transform: translateY(0) scale(1);
+      filter: blur(0);
+    }
+
+    .page-transition-overlay {
+      position: fixed;
+      inset: 0;
+      display: grid;
+      place-items: center;
+      background: radial-gradient(circle at center, rgba(255, 255, 255, 0.38) 0%, rgba(248, 250, 252, 0.74) 48%, rgba(241, 245, 249, 0.84) 100%);
+      opacity: 0;
+      z-index: 9999;
+      pointer-events: none;
+      transition: opacity var(--page-transition-duration) var(--page-transition-ease);
+      will-change: opacity;
+    }
+
+    .page-transition-logo {
+      position: relative;
+      width: 108px;
+      height: 108px;
+      border-radius: 9999px;
+      padding: 12px;
+      background: rgba(255, 255, 255, 0.96);
+      border: 1px solid rgba(3, 189, 205, 0.35);
+      box-shadow: 0 18px 42px rgba(6, 49, 84, 0.24), 0 0 0 12px rgba(3, 189, 205, 0.22);
+      transform: scale(0.86);
+      transition: transform var(--page-transition-duration) var(--page-transition-ease);
+    }
+
+    .page-transition-logo::before {
+      content: "";
+      position: absolute;
+      inset: -36px;
+      border-radius: 9999px;
+      background: radial-gradient(circle, rgba(3, 189, 205, 0.6) 0%, rgba(3, 189, 205, 0.2) 42%, rgba(3, 189, 205, 0) 74%);
+      filter: blur(6px);
+      z-index: -1;
+    }
+
+    .page-transition-logo img {
+      width: 100%;
+      height: 100%;
+      object-fit: contain;
+      border-radius: inherit;
+    }
+
+    body.page-transition > *:not(.page-transition-overlay) {
+      transition:
+        transform var(--page-transition-duration) var(--page-transition-ease),
+        opacity var(--page-transition-duration) var(--page-transition-ease),
+        filter var(--page-transition-duration) var(--page-transition-ease);
+      transform-origin: center center;
+    }
+
+    body.page-transition.is-transitioning > *:not(.page-transition-overlay) {
+      opacity: 0;
+      transform: translateY(14px) scale(0.985);
+      filter: blur(2px);
+    }
+
+    body.page-transition.is-transitioning .page-transition-overlay,
+    body.page-transition.is-revealing .page-transition-overlay {
+      opacity: 1;
+    }
+
+    body.page-transition.is-transitioning .page-transition-logo,
+    body.page-transition.is-revealing .page-transition-logo {
+      transform: scale(1);
+    }
+
+    body.page-transition.is-revealing > *:not(.page-transition-overlay) {
+      animation: pageReveal var(--page-transition-duration) var(--page-transition-ease) both;
+    }
+
+    body.page-transition.is-transitioning .page-transition-logo img,
+    body.page-transition.is-revealing .page-transition-logo img {
+      animation: logoBreath var(--page-transition-duration) ease-in-out infinite alternate;
+    }
+
+    body.page-transition.is-transitioning .page-transition-logo::before,
+    body.page-transition.is-revealing .page-transition-logo::before {
+      animation: logoGlowPulse var(--page-transition-duration) ease-in-out infinite alternate;
+    }
+
+    @keyframes pageReveal {
+      0% {
+        opacity: 0;
+        transform: translateY(12px) scale(0.988);
+        filter: blur(2px);
+      }
+      100% {
+        opacity: 1;
+        transform: translateY(0) scale(1);
+        filter: blur(0);
+      }
+    }
+
+    @keyframes logoBreath {
+      0% { transform: scale(1); }
+      100% { transform: scale(1.06); }
+    }
+
+    @keyframes logoGlowPulse {
+      0% { opacity: 0.65; transform: scale(0.98); }
+      100% { opacity: 1; transform: scale(1.08); }
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      body.page-transition > *:not(.page-transition-overlay) {
+        transition: none;
+        animation: none;
+      }
+      body.page-transition.is-transitioning > *:not(.page-transition-overlay) {
+        opacity: 1;
+        transform: none;
+        filter: none;
+      }
+      .page-transition-overlay,
+      .page-transition-logo,
+      .page-transition-logo::before,
+      .page-transition-logo img {
+        transition: none;
+        animation: none;
+      }
+    }
   </style>
   {% block extra_head %}{% endblock %}
 </head>
-<body class="min-h-screen flex flex-col">
+<body class="min-h-screen flex flex-col page-transition">
+  <div class="page-transition-overlay" aria-hidden="true">
+    <div class="page-transition-logo">
+      <img src="{{ url_for('static', filename='logo.png') }}" alt="">
+    </div>
+  </div>
 
   <nav class="sticky top-0 z-50 bg-white/90 backdrop-blur-md border-b border-slate-200 shadow-sm">
     <div class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -250,6 +389,154 @@
 
   <script>
     document.getElementById('currentYear').textContent = new Date().getFullYear();
+
+    (function () {
+      const body = document.body;
+      let isLeaving = false;
+      let revealTimer;
+      const TRANSITION_FLAG = 'diabeates:page-transition';
+      const TRANSITION_PATH_KEY = 'diabeates:page-transition:path';
+      const TRANSITION_DURATION_MS = 380;
+      const EXIT_DURATION_MS = TRANSITION_DURATION_MS;
+      const ENTER_DURATION_MS = TRANSITION_DURATION_MS;
+      const prefersReducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+      const getPathFromUrl = (url) => {
+        try {
+          return new URL(url, window.location.href).pathname;
+        } catch (error) {
+          return window.location.pathname;
+        }
+      };
+
+      const getTransitionFlag = () => {
+        try {
+          return sessionStorage.getItem(TRANSITION_FLAG) === '1';
+        } catch (error) {
+          return false;
+        }
+      };
+
+      const getTransitionPath = () => {
+        try {
+          return sessionStorage.getItem(TRANSITION_PATH_KEY);
+        } catch (error) {
+          return null;
+        }
+      };
+
+      const setTransitionState = (targetPath) => {
+        try {
+          sessionStorage.setItem(TRANSITION_FLAG, '1');
+          sessionStorage.setItem(TRANSITION_PATH_KEY, targetPath);
+        } catch (error) {
+          // Ignore storage errors; transition can still run on the current page.
+        }
+      };
+
+      const clearTransitionState = () => {
+        try {
+          sessionStorage.removeItem(TRANSITION_FLAG);
+          sessionStorage.removeItem(TRANSITION_PATH_KEY);
+        } catch (error) {
+          // Ignore storage errors.
+        }
+      };
+
+      const runEnterAnimation = () => {
+        if (prefersReducedMotion) return;
+        window.clearTimeout(revealTimer);
+        body.classList.remove('is-transitioning');
+        body.classList.add('is-revealing');
+        revealTimer = window.setTimeout(() => {
+          body.classList.remove('is-revealing');
+        }, ENTER_DURATION_MS);
+      };
+
+      const shouldHandleLink = (anchor, event) => {
+        if (!anchor || isLeaving) return false;
+        if (event.defaultPrevented) return false;
+        if (anchor.target && anchor.target !== '_self') return false;
+        if (anchor.hasAttribute('download')) return false;
+        if (event.metaKey || event.ctrlKey || event.shiftKey || event.altKey) return false;
+
+        const href = anchor.getAttribute('href');
+        if (!href || href.startsWith('#') || href.startsWith('javascript:')) return false;
+
+        const url = new URL(anchor.href, window.location.href);
+        if (url.origin !== window.location.origin) return false;
+        if (url.href === window.location.href) return false;
+        return true;
+      };
+
+      const shouldHandleForm = (form, event) => {
+        if (!form || isLeaving) return false;
+        if (event.defaultPrevented) return false;
+        if (form.target && form.target !== '_self') return false;
+
+        const method = (form.method || 'get').toLowerCase();
+        if (method === 'dialog') return false;
+
+        const action = form.getAttribute('action') || window.location.href;
+        if (action.startsWith('javascript:')) return false;
+
+        const url = new URL(form.action || window.location.href, window.location.href);
+        if (url.origin !== window.location.origin) return false;
+        return true;
+      };
+
+      const startTransition = (navigate, targetUrl) => {
+        isLeaving = true;
+        setTransitionState(getPathFromUrl(targetUrl));
+        body.classList.remove('is-revealing');
+        body.classList.add('is-transitioning');
+
+        window.setTimeout(() => {
+          navigate();
+        }, EXIT_DURATION_MS);
+      };
+
+      const shouldRunEnter = getTransitionFlag();
+      const expectedPath = getTransitionPath();
+      const currentPath = window.location.pathname;
+      if (shouldRunEnter && expectedPath === currentPath) {
+        clearTransitionState();
+        runEnterAnimation();
+      } else {
+        clearTransitionState();
+      }
+
+      window.addEventListener('pageshow', (event) => {
+        if (event.persisted) {
+          runEnterAnimation();
+        }
+      });
+
+      document.addEventListener('click', (event) => {
+        const anchor = event.target.closest('a[href]');
+        if (!shouldHandleLink(anchor, event)) return;
+
+        if (prefersReducedMotion) return;
+
+        event.preventDefault();
+        startTransition(() => {
+          window.location.assign(anchor.href);
+        }, anchor.href);
+      });
+
+      document.addEventListener('submit', (event) => {
+        const form = event.target;
+        if (!shouldHandleForm(form, event)) return;
+
+        if (prefersReducedMotion) return;
+
+        event.preventDefault();
+        const destination = form.action || window.location.href;
+        startTransition(() => {
+          form.submit();
+        }, destination);
+      });
+    })();
   </script>
 </body>
 </html>
