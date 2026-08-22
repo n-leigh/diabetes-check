@@ -40,7 +40,7 @@
       position: relative;
       border-radius: 1.5rem;
       background: rgba(255, 255, 255, 0.98);
-      overflow: hidden;
+      overflow: visible;
       border: 1px solid rgba(6, 49, 84, 0.8);
       box-shadow: 0 12px 32px rgba(6, 49, 84, 0.08);
     }
@@ -63,7 +63,7 @@
       -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
       -webkit-mask-composite: xor;
       mask-composite: exclude;
-      animation: borderSpin 6s linear infinite;
+
       pointer-events: none;
     }
 
@@ -243,10 +243,13 @@
         </div>
       </div>
       <div class="border-t border-slate-800 pt-6 text-xs text-slate-500 text-center">
-        DiaBeates, a student case study project on classification models for diabetes complication risk screening.
+        © <span id="currentYear"></span> DiaBeates, a student case study project on classification models for diabetes complication risk screening.
       </div>
     </div>
   </footer>
 
+  <script>
+    document.getElementById('currentYear').textContent = new Date().getFullYear();
+  </script>
 </body>
 </html>
