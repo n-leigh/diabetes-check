@@ -176,13 +176,17 @@
     .page-transition-overlay {
       position: fixed;
       inset: 0;
-      display: grid;
-      place-items: center;
+      display: flex;
+      align-items: center;
+      justify-content: center;
       background: radial-gradient(circle at center, rgba(255, 255, 255, 0.38) 0%, rgba(248, 250, 252, 0.74) 48%, rgba(241, 245, 249, 0.84) 100%);
       opacity: 0;
+      visibility: hidden;
       z-index: 9999;
       pointer-events: none;
-      transition: opacity var(--page-transition-duration) var(--page-transition-ease);
+      transition:
+        opacity var(--page-transition-duration) var(--page-transition-ease),
+        visibility 0s linear var(--page-transition-duration);
       will-change: opacity;
     }
 
@@ -233,6 +237,8 @@
     body.page-transition.is-transitioning .page-transition-overlay,
     body.page-transition.is-revealing .page-transition-overlay {
       opacity: 1;
+      visibility: visible;
+      transition-delay: 0s;
     }
 
     body.page-transition.is-transitioning .page-transition-logo,
@@ -394,6 +400,7 @@
       const body = document.body;
       let isLeaving = false;
       let revealTimer;
+      let leaveFailSafeTimer;
       const TRANSITION_FLAG = 'diabeates:page-transition';
       const TRANSITION_PATH_KEY = 'diabeates:page-transition:path';
       const TRANSITION_DURATION_MS = 380;
@@ -453,6 +460,14 @@
         }, ENTER_DURATION_MS);
       };
 
+      const clearTransitionClasses = () => {
+        window.clearTimeout(revealTimer);
+        window.clearTimeout(leaveFailSafeTimer);
+        isLeaving = false;
+        body.classList.remove('is-transitioning');
+        body.classList.remove('is-revealing');
+      };
+
       const shouldHandleLink = (anchor, event) => {
         if (!anchor || isLeaving) return false;
         if (event.defaultPrevented) return false;
@@ -491,10 +506,22 @@
         body.classList.remove('is-revealing');
         body.classList.add('is-transitioning');
 
+        // If navigation is canceled or blocked, ensure the overlay never remains stuck.
+        window.clearTimeout(leaveFailSafeTimer);
+        leaveFailSafeTimer = window.setTimeout(() => {
+          if (document.visibilityState === 'visible') {
+            clearTransitionState();
+            clearTransitionClasses();
+          }
+        }, EXIT_DURATION_MS + 1200);
+
         window.setTimeout(() => {
           navigate();
         }, EXIT_DURATION_MS);
       };
+
+      // Defensive reset for BFCache restores and interrupted transitions.
+      clearTransitionClasses();
 
       const shouldRunEnter = getTransitionFlag();
       const expectedPath = getTransitionPath();
@@ -507,6 +534,7 @@
       }
 
       window.addEventListener('pageshow', (event) => {
+        clearTransitionClasses();
         if (event.persisted) {
           runEnterAnimation();
         }
