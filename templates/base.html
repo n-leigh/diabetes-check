@@ -114,7 +114,7 @@
       z-index: 1;
       background: rgba(224, 235, 240, 0.85);
       border-radius: calc(1.8rem - 1px);
-      border: 1px solid rgba(110, 189, 206, 0.38);
+      border: 1px solid rgba(6, 49, 84, 0.9);
     }
 
     @keyframes borderSpin {
@@ -169,20 +169,22 @@
 
     body.page-transition {
       opacity: 1;
-      transform: translateY(0) scale(1);
-      filter: blur(0);
     }
 
     .page-transition-overlay {
       position: fixed;
       inset: 0;
-      display: grid;
-      place-items: center;
+      display: flex;
+      align-items: center;
+      justify-content: center;
       background: radial-gradient(circle at center, rgba(255, 255, 255, 0.38) 0%, rgba(248, 250, 252, 0.74) 48%, rgba(241, 245, 249, 0.84) 100%);
       opacity: 0;
+      visibility: hidden;
       z-index: 9999;
       pointer-events: none;
-      transition: opacity var(--page-transition-duration) var(--page-transition-ease);
+      transition:
+        opacity var(--page-transition-duration) var(--page-transition-ease),
+        visibility 0s linear var(--page-transition-duration);
       will-change: opacity;
     }
 
@@ -233,6 +235,8 @@
     body.page-transition.is-transitioning .page-transition-overlay,
     body.page-transition.is-revealing .page-transition-overlay {
       opacity: 1;
+      visibility: visible;
+      transition-delay: 0s;
     }
 
     body.page-transition.is-transitioning .page-transition-logo,
@@ -295,6 +299,42 @@
         animation: none;
       }
     }
+
+    .disclaimer-backdrop {
+      position: fixed;
+      inset: 0;
+      z-index: 10000;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 1rem;
+      background: rgba(6, 49, 84, 0.58);
+      backdrop-filter: blur(8px);
+      -webkit-backdrop-filter: blur(8px);
+    }
+
+    .disclaimer-backdrop[hidden] { display: none; }
+
+    .disclaimer-dialog {
+      width: min(100%, 34rem);
+      max-height: min(90vh, 38rem);
+      overflow-y: auto;
+      border: 1px solid rgba(3, 189, 205, 0.28);
+      border-radius: 1.25rem;
+      background: rgba(255, 255, 255, 0.98);
+      box-shadow: 0 24px 70px rgba(6, 49, 84, 0.3);
+    }
+
+    .disclaimer-dialog:focus { outline: none; }
+
+    @media (prefers-reduced-motion: no-preference) {
+      .disclaimer-dialog { animation: disclaimerEnter 180ms ease-out both; }
+    }
+
+    @keyframes disclaimerEnter {
+      from { opacity: 0; transform: translateY(10px) scale(0.98); }
+      to { opacity: 1; transform: translateY(0) scale(1); }
+    }
   </style>
   {% block extra_head %}{% endblock %}
 </head>
@@ -346,6 +386,35 @@
     </div>
   </nav>
 
+  <div id="disclaimerModal" class="disclaimer-backdrop" role="presentation" hidden>
+    <section class="disclaimer-dialog" role="dialog" aria-modal="true" aria-labelledby="disclaimerTitle" aria-describedby="disclaimerDescription" tabindex="-1">
+      <div class="p-6 sm:p-8">
+        <div class="flex items-start justify-between gap-5">
+          <div class="flex items-start gap-3">
+            <div class="w-10 h-10 rounded-xl bg-amber-100 text-amber-700 flex items-center justify-center shrink-0" aria-hidden="true">
+              <svg width="21" height="21" viewBox="0 0 24 24" fill="currentColor">
+                <path fill-rule="evenodd" d="M9.401 3.003c.75-1.334 2.657-1.334 3.407 0l7.09 12.604c.746 1.327-.212 2.968-1.703 2.968H4.014c-1.49 0-2.449-1.641-1.703-2.968L9.401 3.003ZM12 8a1 1 0 0 1 1 1v3a1 1 0 1 1-2 0V9a1 1 0 0 1 1-1Zm0 8a1 1 0 1 0 0-2 1 1 0 0 0 0 2Z" clip-rule="evenodd" />
+              </svg>
+            </div>
+            <h2 id="disclaimerTitle" class="font-display text-xl sm:text-2xl font-extrabold text-slate-900 leading-tight pt-1">Intended Use &amp; Clinical Disclaimer</h2>
+          </div>
+          <button type="button" id="disclaimerClose" class="p-2 -mr-2 -mt-2 rounded-lg text-slate-400 hover:bg-slate-100 hover:text-slate-700 transition-colors" aria-label="Close disclaimer">
+            <svg width="20" height="20" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="m5 5 10 10M15 5 5 15" /></svg>
+          </button>
+        </div>
+        <div id="disclaimerDescription" class="mt-5 space-y-3 text-sm text-slate-600 leading-relaxed">
+          <p>DiaBeates is a preliminary screening and risk projection tool designed for educational and informational use. It is <strong class="text-slate-800">not a diagnostic device</strong>.</p>
+          <p>The results provided do not constitute medical advice or a formal clinical diagnosis. They should not be used alone to make decisions about treatment or care.</p>
+          <p>Always consult a licensed healthcare professional for medical evaluation, interpretation of your results, and guidance about your health.</p>
+        </div>
+        <div class="mt-7 flex flex-col-reverse sm:flex-row sm:justify-end gap-3">
+          <button type="button" id="disclaimerCancel" class="px-5 py-3 rounded-xl border border-slate-200 text-slate-600 text-sm font-semibold hover:bg-slate-50 transition-colors">Cancel</button>
+          <button type="button" id="disclaimerAgree" class="px-5 py-3 rounded-xl gradient-primary text-white text-sm font-bold hover:opacity-90 transition-opacity shadow-md">I Understand &amp; Agree</button>
+        </div>
+      </div>
+    </section>
+  </div>
+
   {% block content %}{% endblock %}
 
   <footer class="bg-slate-900 text-slate-400 mt-auto">
@@ -391,9 +460,78 @@
     document.getElementById('currentYear').textContent = new Date().getFullYear();
 
     (function () {
+      const modal = document.getElementById('disclaimerModal');
+      const dialog = modal.querySelector('[role="dialog"]');
+      const closeButton = document.getElementById('disclaimerClose');
+      const cancelButton = document.getElementById('disclaimerCancel');
+      const agreeButton = document.getElementById('disclaimerAgree');
+      const acceptanceKey = 'diabeates:intended-use-accepted';
+      let pendingDestination = '/assessment';
+      let previousFocus = null;
+
+      const hasAccepted = () => {
+        try {
+          return sessionStorage.getItem(acceptanceKey) === '1';
+        } catch (error) {
+          return false;
+        }
+      };
+
+      const setAccepted = () => {
+        try {
+          sessionStorage.setItem(acceptanceKey, '1');
+        } catch (error) {
+          // Continue to the assessment if storage is unavailable.
+        }
+      };
+
+      const closeModal = () => {
+        modal.hidden = true;
+        document.body.classList.remove('overflow-hidden');
+        if (previousFocus) previousFocus.focus();
+      };
+
+      const openModal = (destination, trigger) => {
+        pendingDestination = destination;
+        previousFocus = trigger;
+        modal.hidden = false;
+        document.body.classList.add('overflow-hidden');
+        dialog.focus();
+      };
+
+      document.addEventListener('click', (event) => {
+        const anchor = event.target.closest('a[href]');
+        if (!anchor || event.defaultPrevented || anchor.target && anchor.target !== '_self') return;
+        if (event.metaKey || event.ctrlKey || event.shiftKey || event.altKey) return;
+
+        const url = new URL(anchor.href, window.location.href);
+        if (url.origin !== window.location.origin || url.pathname !== '/assessment' || url.pathname === window.location.pathname) return;
+        if (hasAccepted()) return;
+
+        event.preventDefault();
+        openModal(anchor.href, anchor);
+      });
+
+      closeButton.addEventListener('click', closeModal);
+      cancelButton.addEventListener('click', closeModal);
+      modal.addEventListener('click', (event) => {
+        if (event.target === modal) closeModal();
+      });
+      document.addEventListener('keydown', (event) => {
+        if (!modal.hidden && event.key === 'Escape') closeModal();
+      });
+      agreeButton.addEventListener('click', () => {
+        setAccepted();
+        closeModal();
+        window.location.assign(pendingDestination);
+      });
+    }());
+
+    (function () {
       const body = document.body;
       let isLeaving = false;
       let revealTimer;
+      let leaveFailSafeTimer;
       const TRANSITION_FLAG = 'diabeates:page-transition';
       const TRANSITION_PATH_KEY = 'diabeates:page-transition:path';
       const TRANSITION_DURATION_MS = 380;
@@ -453,6 +591,14 @@
         }, ENTER_DURATION_MS);
       };
 
+      const clearTransitionClasses = () => {
+        window.clearTimeout(revealTimer);
+        window.clearTimeout(leaveFailSafeTimer);
+        isLeaving = false;
+        body.classList.remove('is-transitioning');
+        body.classList.remove('is-revealing');
+      };
+
       const shouldHandleLink = (anchor, event) => {
         if (!anchor || isLeaving) return false;
         if (event.defaultPrevented) return false;
@@ -491,10 +637,22 @@
         body.classList.remove('is-revealing');
         body.classList.add('is-transitioning');
 
+        // If navigation is canceled or blocked, ensure the overlay never remains stuck.
+        window.clearTimeout(leaveFailSafeTimer);
+        leaveFailSafeTimer = window.setTimeout(() => {
+          if (document.visibilityState === 'visible') {
+            clearTransitionState();
+            clearTransitionClasses();
+          }
+        }, EXIT_DURATION_MS + 1200);
+
         window.setTimeout(() => {
           navigate();
         }, EXIT_DURATION_MS);
       };
+
+      // Defensive reset for BFCache restores and interrupted transitions.
+      clearTransitionClasses();
 
       const shouldRunEnter = getTransitionFlag();
       const expectedPath = getTransitionPath();
@@ -507,6 +665,7 @@
       }
 
       window.addEventListener('pageshow', (event) => {
+        clearTransitionClasses();
         if (event.persisted) {
           runEnterAnimation();
         }
