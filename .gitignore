@@ -18,3 +18,8 @@ diabetes_system.db
 .vscode/
 .DS_Store
 Thumbs.db
+
+# Raw BRFSS source data used to build the training datasets - these are
+# huge (the raw 2024 CSV alone is over 400MB) and GitHub rejects files
+# over 100MB anyway.
+data_2024_update/

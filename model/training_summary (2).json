@@ -1,0 +1,77 @@
+{
+  "cardiovascular": {
+    "best_model": "Random Forest",
+    "accuracy": 0.9899,
+    "all_models_compared": {
+      "Decision Tree": 0.9232,
+      "Logistic Regression": 0.9352,
+      "Random Forest": 0.9899
+    },
+    "features": [
+      "HighBP",
+      "HighChol",
+      "Smoker",
+      "HeartDiseaseorAttack",
+      "Stroke",
+      "BMI",
+      "Age",
+      "PhysHlth",
+      "GenHlth",
+      "MentHlth",
+      "NoDocbcCost",
+      "Sex"
+    ],
+    "dataset": "cardio_dataset.csv",
+    "n_respondents": 92622,
+    "rule_matrix_version": "1.0"
+  },
+  "neuropathy_mobility": {
+    "best_model": "Decision Tree",
+    "accuracy": 1.0,
+    "all_models_compared": {
+      "Decision Tree": 1.0,
+      "Logistic Regression": 0.9394,
+      "Random Forest": 0.9995
+    },
+    "features": [
+      "Smoker",
+      "HeartDiseaseorAttack",
+      "Stroke",
+      "BMI",
+      "Age",
+      "DiffWalk",
+      "PhysHlth",
+      "GenHlth",
+      "MentHlth",
+      "NoDocbcCost",
+      "Sex"
+    ],
+    "dataset": "neuropathy_dataset.csv",
+    "n_respondents": 56683,
+    "rule_matrix_version": "1.0"
+  },
+  "general_burden": {
+    "best_model": "Decision Tree",
+    "accuracy": 1.0,
+    "all_models_compared": {
+      "Decision Tree": 1.0,
+      "Logistic Regression": 0.9637,
+      "Random Forest": 1.0
+    },
+    "features": [
+      "Smoker",
+      "HeartDiseaseorAttack",
+      "Stroke",
+      "BMI",
+      "Age",
+      "PhysHlth",
+      "GenHlth",
+      "MentHlth",
+      "NoDocbcCost",
+      "Sex"
+    ],
+    "dataset": "general_burden_dataset.csv",
+    "n_respondents": 196518,
+    "rule_matrix_version": "1.0"
+  }
+}

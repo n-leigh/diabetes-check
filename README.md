@@ -1,8 +1,56 @@
-# Web-Based Diabetes Complication Prediction System
+# Web-Based Diabetes Complication Prediction System (DiaBeates)
 
-Clinical rule matrix + trained classifier + Flask web app, trained on the
-real CDC Diabetes Health Indicators dataset (BRFSS 2015), filtered to
-diabetic-positive respondents — 35,346 rows, no missing values.
+A Flask web app combining a clinically-cited rule matrix with trained
+classification models to estimate diabetes complication risk across
+three categories: Cardiovascular, Neuropathy/Mobility, and General
+Complication Burden. Both methods run on every submission and are shown
+side by side.
+
+## Data sources (updated to 2021-2024)
+
+The project originally used the 2015 CDC Diabetes Health Indicators
+dataset. It's since been rebuilt on more recent BRFSS (Behavioral Risk
+Factor Surveillance System) data from 2021-2024, matching the "data no
+older than 5 years" requirement.
+
+This wasn't a simple file swap. BRFSS rotates some questions between a
+core and an optional module each year, and no single recent year (or
+combination of years) contains every variable the original rule matrix
+needed. Specifically:
+
+- High blood pressure / high cholesterol questions were asked in 2021
+  and 2023, but not in 2022 or 2024.
+- A difficulty-walking / mobility question wasn't in any of the
+  2021-2024 pre-cleaned extracts available, but was present in a
+  separate, raw (unprocessed) 2024 BRFSS file.
+
+Since BRFSS surveys a different, anonymous group of people every year,
+there's no valid way to attach one year's respondent's answer onto a
+different year's respondent's record — that would be fabricating data
+that specific person never actually gave. So each category now trains
+on whichever real, internally-consistent respondent pool actually has
+the variables that category needs:
+
+| Category | Data source | Real respondents (diabetic-positive) |
+|---|---|---|
+| Cardiovascular | 2021 + 2023 BRFSS | 92,622 |
+| General Complication Burden | 2021 + 2022 + 2023 + 2024 BRFSS | 196,518 |
+| Neuropathy / Mobility | Raw 2024 BRFSS extract | 56,683 |
+
+`build_datasets_2021_2024.py` builds all three from the raw source
+files (see `data_2024_update/`, gitignored due to size — the raw 2024
+CSV alone is 400MB+). The derived, already-cleaned CSVs it produces
+(`data/cardio_dataset.csv`, `data/general_burden_dataset.csv`,
+`data/neuropathy_dataset.csv`) are a few MB each and are what
+`train_model.py` actually reads — those are what should be committed to
+git, not the raw sources.
+
+**Real consequence of this:** each category's classifier now trains on
+a different, honestly-scoped subset of features (whatever its data
+source actually has). This is documented per-category in
+`model/training_summary.json` under `"features"`, and `app.py` reads
+that automatically — it selects the right columns per model rather than
+assuming one shared feature set.
 
 ## Setup
 
@@ -13,126 +61,116 @@ pip install -r requirements.txt
 ## Project structure
 
 ```
-rule_matrix.py          # clinical rule matrix (label generator + live scorer)
-train_model.py          # loads data, applies rules, compares 3 classifiers per category, saves the best
-database.py              # SQLite persistence for assessments
-app.py                  # Flask web app (form -> rule matrix + model results, /history page)
+rule_matrix.py                  # clinical rule matrix (label generator + live scorer)
+build_datasets_2021_2024.py     # builds the 3 category-specific datasets from raw BRFSS sources
+train_model.py                  # loads each category's dataset, trains + compares 3 classifiers, saves the best
+database.py                     # SQLite persistence (normalized schema, session-scoped)
+app.py                          # Flask web app
+recommendations.py              # plain-language "what to do" engine based on risk tiers
+field_labels.py                 # translates coded form values to plain language (used by the print view)
+validation.py                   # server-side form validation
 data/
-  generate_sample_data.py   # synthetic data generator (no longer needed, kept for reference)
-  diabetes_dataset.csv      # REAL DATA: 35,346 diabetic-positive CDC/BRFSS respondents
+  cardio_dataset.csv            # 2021+2023 real respondents
+  general_burden_dataset.csv    # 2021-2024 real respondents
+  neuropathy_dataset.csv        # raw 2024 real respondents
 templates/
-  index.html             # patient input form
-  result.html             # risk results page (shows rule matrix + model side by side)
-  history.html            # list of past assessments, links to detail view
-model/                   # trained .pkl files + training_summary.json (which model won, why)
-diabetes_system.db       # created automatically on first run
+  home.html, assessment.html, result.html, history.html, about.html, print_result.html, base.html
+model/                          # trained .pkl files + training_summary.json
+diabetes_system.db              # created automatically on first run (gitignored)
 ```
 
-## How to run right now
+## How to run
 
 ```bash
-python3 train_model.py     # retrains + saves models (already run once on real data)
-python3 app.py              # starts the web server
+python3 build_datasets_2021_2024.py   # only needed once, or if you get new raw source data
+python3 train_model.py                 # trains + saves models
+python3 app.py                         # starts the web server
 # open http://127.0.0.1:5000
 ```
 
-## Current results (best of 3 classifiers per category, real data, 35,346 rows, 80/20 split)
+## Current results (best of 3 classifiers per category, 80/20 split)
 
 | Category | Best model | Accuracy | Notes |
 |---|---|---|---|
-| Cardiovascular | Random Forest | 98.7% | Decision Tree alone gets 84% (still your most "realistic" single-model story); ensemble closes the gap because it has enough capacity to approximate the rule's threshold interactions closely |
-| Neuropathy/Mobility | Decision Tree | 100% | Simple rule logic dominated by `DiffWalk` — any of the 3 models reconstructs it almost exactly |
+| Cardiovascular | Random Forest | 99.0% | Decision Tree alone gets 92.3% — the more "realistic" single-model story, since this category has the most features and widest point spread |
+| Neuropathy/Mobility | Decision Tree | 100% | Simple rule logic dominated by difficulty-walking — any model reconstructs it almost exactly |
 | General Burden | Decision Tree | 100% | Same cause — few features, deterministic thresholds |
 
-Full comparison across all 3 algorithms for all 3 categories is saved in
-`model/training_summary.json` — pull straight from there for your
-results-chapter comparison table.
+Full comparison across all 3 algorithms for all 3 categories, plus which
+dataset and features each category used, is saved in
+`model/training_summary.json`.
 
-## Live demo checklist for next week
+**For your limitations section:** the near-100% categories reflect
+models learning to reconstruct simple, human-authored threshold rules,
+not discovering new medical patterns — because the training labels
+themselves came from the rule matrix, not confirmed diagnoses. State
+this proactively; it's explained in full on `/about`.
 
-1. `pip install -r requirements.txt`
-2. `python3 train_model.py` (already run — re-run only if you change the
-   dataset or rule matrix)
-3. `python3 app.py` → open http://127.0.0.1:5000
-4. Submit a few assessments with different values (try one with all boxes
-   unchecked and low BMI for a "Low" result, one with everything checked
-   and high BMI for "High" — makes for a clean before/after demo)
-5. Click **History** to show persistence — this is your strongest visual
-   proof the "web-based system" part of the title is real, not just a
-   script
-6. Click **View** on a past record to show it's independently retrievable
+## Backend / Database
 
-Also note for your limitations section: 5,122 of the 35,346 rows are
-exact duplicates across the feature set. Expected — BRFSS features are
-coarse/categorical, so distinct respondents legitimately share identical
-profiles. Kept rather than dropped, to avoid selection bias.
+SQLite, normalized into 4 tables (`database.py`):
+
+- **`assessments`** — raw inputs, an anonymous `session_id`, and the
+  `rule_matrix_version` that scored it, plus an `archived` flag
+- **`risk_results`** — one row per (assessment, category): rule score,
+  rule label, model name, model prediction, and model confidence
+  (`predict_proba` max probability)
+- **`lab_assessments`** — one row per assessment, only if lab values
+  were provided
+- **`feedback`** — "was this helpful?" responses, tied to an assessment
+
+**Privacy:** every visitor gets an anonymous session cookie. History,
+detail view, print view, archive/delete, and feedback routes all verify
+the requested record actually belongs to the requesting session before
+acting — tested directly with two separate simulated clients to confirm
+one cannot view, print, archive, delete, or leave feedback on the
+other's data by guessing an ID.
+
+**Auto-migration:** `init_db()` checks SQLite's `PRAGMA user_version`
+against the app's expected schema. A mismatch (e.g. an old copy of
+`diabetes_system.db`) triggers an automatic rebuild of the app's tables
+— no manual steps needed.
+
+## History page: archive & delete
+
+Users can archive (reversible, moves out of the main list) or
+permanently delete (cascades across all 4 tables, no orphaned rows) any
+of their own past assessments. Both actions check session ownership
+first — a different session cannot archive or delete someone else's
+record.
 
 ## Printable results
 
-Every result has a "Print / Save Result" button (also available from the
-History table) linking to `/history/<id>/print` — a standalone,
-purpose-built template (`templates/print_result.html`), not just the
-styled page dumped to a printer. It translates coded values back to
-plain language (e.g. Age band 9 → "60–64"), lays out risk results as a
-clean table, includes the recommendations and lab assessment if present,
-and ends with the same "not medical advice" disclaimer. An on-screen
-"Print / Save as PDF" button triggers `window.print()`; it's hidden via
-`@media print` so it doesn't appear in the actual printout.
-
-## Recent updates
-
-- **Footer** added site-wide via `base.html`, with nav links and a plain-language disclaimer
-- **Gauge fixed** — the circular risk-score rings were using a hand-rotated 270° arc that
-  visually misrepresented the percentage and had overlapping text. Replaced with a standard
-  full-circle progress ring (`templates/result.html`) — verified the dash-offset math directly
-  against expected values before shipping.
-- **Form redesigned for a general audience, not just clinicians**: Age and General Health are
-  now dropdowns with plain-language options (no more guessing what "band 6" means), every field
-  has a one-line plain-English explanation, and required fields use light "e.g. 24.5" placeholder
-  hints instead of silently pre-filled fake values that could look like real data.
-- **Recommendations engine** (`recommendations.py`) — turns the risk results into plain-language
-  next steps per category, always ending with a "this isn't medical advice" reminder. Wired into
-  both `/predict` and `/history/<id>`.
-- **Language pass**: "Assess Another Patient" → "Check Someone Else", since this system is meant
-  for anyone checking their own risk, not just healthcare staff reviewing a patient's chart.
-
-## Routes
-
-- `/` — Home landing page (hero, stats, category overview)
-- `/assessment` — the actual risk assessment form
-- `/predict` — POST target for the form, shows results
-- `/history` — list of past assessments
-- `/history/<id>` — a single past assessment's results
-- `/about` — Study Background + Ethics/Limitations/Disclaimer
-
-## Design
-
-Restyled to match the "DiaBeates" Figma Make design (teal/sky gradient
-theme, Plus Jakarta Sans + Inter fonts, circular risk gauges, your custom
-logo) — Tailwind CSS via CDN, no build step needed. `templates/base.html`
-holds the shared navbar and design tokens; `index.html`, `result.html`,
-and `history.html` extend it. A compact hero banner (adapted from the
-Figma design's Home page) sits above the form, using our real numbers
-(35,346 real patient records, 3 categories, 3 classifiers compared) —
-not the placeholder marketing stats from the original design.
+Every result has a "Print / Save Result" button linking to
+`/history/<id>/print` — a standalone template (`print_result.html`),
+not the styled page dumped to a printer. Translates coded values to
+plain language, includes recommendations and lab assessment if present,
+and ends with the same "not medical advice" disclaimer.
 
 ## Optional lab values (HbA1c, Systolic BP, LDL)
 
-The CDC dataset used to train the classifiers is self-reported survey
-data — it doesn't contain lab values, so the trained models can't use
-them. Instead, `rule_matrix.py`'s `compute_lab_assessment()` scores any
-lab values a user enters directly against cited ADA/NHANES thresholds,
-shown as a separate "Lab-Based Clinical Assessment" card, fully optional
-and independent of the 3 survey-based categories above it. If a
-panelist asks about HbA1c/lab data: this is your answer — it's there,
-cited, and deliberately kept separate from the classifier rather than
-silently blended in, since the classifier was never trained on it.
+None of the training datasets contain real lab values, so the
+classifiers can't use them. `rule_matrix.py`'s `compute_lab_assessment()`
+scores any lab values a user enters directly against cited ADA/NHANES
+thresholds, shown as a separate card, fully optional and independent of
+the 3 model-based categories.
+
+## Routes
+
+- `/` — Home landing page
+- `/assessment` — the risk assessment form
+- `/predict` — POST target, shows results
+- `/history` — list of past assessments (active/archived tabs)
+- `/history/<id>` — a single assessment's results
+- `/history/<id>/print` — printable summary
+- `/history/<id>/archive`, `/history/<id>/delete` — POST actions
+- `/feedback/<id>` — POST, records a helpful/not-helpful response
+- `/about` — Study Background + Ethics/Limitations/Disclaimer
 
 ## About page
 
-`/about` covers the actual Study Background and a substantive
-Ethics, Limitations & Disclaimer section written specifically for this
-project: rule-derived training labels (not real diagnosed outcomes),
-CDC/BRFSS dataset scope and bias, and local-only data handling. R&D
-Phases, Research Significance, and Team sections were intentionally
-left out — add them later with real specifics if you want the full page.
+`/about` covers the real Study Background and a substantive Ethics,
+Limitations & Disclaimer section: rule-derived training labels (not
+diagnosed outcomes), BRFSS dataset scope, and local-only data handling.
+Worth updating to mention the multi-year, per-category data sourcing
+described above.

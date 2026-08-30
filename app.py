@@ -34,19 +34,18 @@ app.secret_key = "diabeates-dev-secret-replace-before-any-real-deployment"
 database.init_db()
 
 CATEGORIES = ["cardiovascular", "neuropathy_mobility", "general_burden"]
-FEATURE_COLUMNS = [
-    "HighBP", "HighChol", "Smoker", "HeartDiseaseorAttack", "Stroke",
-    "BMI", "Age", "DiffWalk", "PhysHlth", "GenHlth", "MentHlth",
-    "NoDocbcCost", "Sex",
-]
 
 MODELS = {}
 MODEL_NAMES = {}
+MODEL_FEATURES = {}
 _summary_path = os.path.join(BASE_DIR, "model", "training_summary.json")
 if os.path.exists(_summary_path):
     with open(_summary_path) as f:
         _summary = json.load(f)
         MODEL_NAMES = {cat: _summary[cat]["best_model"] for cat in _summary}
+        MODEL_FEATURES = {cat: _summary[cat]["features"] for cat in _summary}
+else:
+    print("WARNING: model/training_summary.json not found — run train_model.py first.")
 
 for cat in CATEGORIES:
     path = os.path.join(BASE_DIR, "model", f"{cat}_model.pkl")
@@ -101,16 +100,18 @@ def predict():
 
     model_results = {}
     model_confidences = {}
-    if MODELS:
-        X = pd.DataFrame([patient])[FEATURE_COLUMNS]
-        for cat in CATEGORIES:
-            if cat in MODELS:
-                model = MODELS[cat]
-                pred = model.predict(X)[0]
-                model_results[cat] = pred
-                if hasattr(model, "predict_proba"):
-                    proba = model.predict_proba(X)[0]
-                    model_confidences[cat] = round(max(proba) * 100, 1)
+    for cat in CATEGORIES:
+        if cat in MODELS and cat in MODEL_FEATURES:
+            model = MODELS[cat]
+            # Each category's model was trained on ONLY the columns that
+            # category's rule matrix actually scores on (see train_model.py) —
+            # so we select just those columns here, not the full patient dict.
+            X = pd.DataFrame([{k: patient[k] for k in MODEL_FEATURES[cat]}])
+            pred = model.predict(X)[0]
+            model_results[cat] = pred
+            if hasattr(model, "predict_proba"):
+                proba = model.predict_proba(X)[0]
+                model_confidences[cat] = round(max(proba) * 100, 1)
 
     assessment_id = database.save_assessment(
         session_id=session["session_id"],
