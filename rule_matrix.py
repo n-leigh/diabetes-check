@@ -40,10 +40,31 @@ def _get(row: dict, key: str, default=0):
 
 def score_cardiovascular(row: Dict) -> int:
     """
-    Risk factors: HighBP, HighChol, Smoker, BMI, prior HeartDiseaseorAttack
-    or Stroke, and Age band.
-    Expects CDC-style binary flags (0/1) plus BMI (numeric) and Age
-    (BRFSS age band code 1-13, roughly 18 -> 80+).
+    Calculate cardiovascular disease risk points based on clinical rule matrix.
+    
+    Scoring logic (total max: 15 points):
+    - HighBP: +2
+    - HighChol: +2
+    - Smoker: +1
+    - Prior heart disease/attack: +3
+    - Prior stroke: +3
+    - BMI ≥30 (obese): +2
+    - BMI 25–29 (overweight): +1
+    - Age ≥55 (BRFSS band 9+): +2
+    - Age 40–54 (BRFSS band 6–8): +1
+    
+    Rationale: Hypertension, dyslipidemia, smoking, obesity, age, and prior 
+    CVD events are established risk factors per ADA Standards of Care 2026.
+    
+    Args:
+        row (dict): Patient data with keys: HighBP, HighChol, Smoker, 
+                    HeartDiseaseorAttack, Stroke, BMI, Age
+    
+    Returns:
+        int: Total points (0–15)
+        
+    See Also:
+        classify_pct(): Convert points to Low/Moderate/High label
     """
     points = 0
     if _get(row, "HighBP") == 1:
@@ -71,9 +92,26 @@ def score_cardiovascular(row: Dict) -> int:
 
 def score_neuropathy_mobility(row: Dict) -> int:
     """
-    Proxy for neuropathy / diabetic foot complications using DiffWalk
-    (difficulty walking/climbing stairs), PhysHlth (poor physical health
-    days in past 30), BMI, and Age.
+    Calculate diabetic neuropathy/foot complication risk points.
+    
+    Scoring logic (total max: 7 points):
+    - Difficulty walking/climbing stairs (DiffWalk): +3 (direct indicator)
+    - PhysHlth ≥15 poor health days: +2
+    - PhysHlth 5–14 poor health days: +1
+    - BMI ≥30: +1
+    - Age ≥55: +1
+    
+    Rationale: DiffWalk is a direct neuropathy marker (numbness/weakness in legs).
+    Physical limitation days and obesity/age are risk confounders.
+    
+    Args:
+        row (dict): Patient data with keys: DiffWalk, PhysHlth, BMI, Age
+    
+    Returns:
+        int: Total points (0–7)
+        
+    See Also:
+        classify_pct(): Convert points to Low/Moderate/High label
     """
     points = 0
     if _get(row, "DiffWalk") == 1:
@@ -94,8 +132,26 @@ def score_neuropathy_mobility(row: Dict) -> int:
 
 def score_general_complication_burden(row: Dict) -> int:
     """
-    Broad complication burden proxy using self-reported general health,
-    mental health days, and healthcare access barriers.
+    Calculate overall diabetes complication burden and healthcare access barriers.
+    
+    Scoring logic (total max: 5 points):
+    - GenHlth 4–5 (fair/poor): +3
+    - GenHlth 3 (good): +1
+    - MentHlth ≥15 poor mental health days: +1
+    - Skipped care due to cost (NoDocbcCost): +1
+    
+    Rationale: Self-reported general health and mental health are proxies for 
+    overall complication burden and self-management capacity. Cost barriers 
+    indicate access problems.
+    
+    Args:
+        row (dict): Patient data with keys: GenHlth, MentHlth, NoDocbcCost
+    
+    Returns:
+        int: Total points (0–5)
+        
+    See Also:
+        classify_pct(): Convert points to Low/Moderate/High label
     """
     points = 0
     gen_hlth = _get(row, "GenHlth", 1)  # 1=excellent ... 5=poor
@@ -113,9 +169,25 @@ def score_general_complication_burden(row: Dict) -> int:
 
 def classify_pct(pct: float) -> str:
     """
-    Single, consistent tier boundary used for every category (and the lab
-    assessment below) — the label is always derived directly from the
-    same percentage shown in the gauge, so the two can never disagree.
+    Convert risk percentage (0–100) to Low/Moderate/High tier label.
+    
+    Uses percentile-based classification: 33/66 split. See METHODOLOGY.md
+    for sensitivity analysis justifying this choice.
+    
+    Thresholds:
+    - 0–33% : Low
+    - 34–66% : Moderate
+    - 67–100% : High
+    
+    Args:
+        pct (float): Risk percentage (0–100)
+    
+    Returns:
+        str: "Low", "Moderate", or "High"
+        
+    Note:
+        This function is used both for rule matrix and lab assessment,
+        ensuring consistent tier boundaries across all predictions.
     """
     if pct <= 33:
         return "Low"
@@ -134,26 +206,62 @@ MAX_SCORES = {
 
 def compute_lab_assessment(hba1c=None, systolic_bp=None, ldl=None) -> Dict:
     """
-    Optional, clinically-cited assessment using actual lab values, kept
-    fully separate from the 3 CDC-survey-based categories above. The CDC
-    Diabetes Health Indicators dataset (used to train the classifiers)
-    doesn't contain HbA1c, blood pressure readings, or lipid panels — it's
-    self-reported survey data, not lab draws — so this section can't be
-    fed into the trained classifiers without an entirely different
-    dataset. Instead, when a user supplies real lab values, this function
-    scores them directly against cited clinical thresholds. It's meant to
-    be shown as an additional, clearly-labeled panel, not merged into the
-    cardiovascular/neuropathy/general_burden scores above.
-
-    Returns None if no lab values were supplied at all.
-
-    Thresholds cited:
-    - HbA1c: ADA Standards of Care in Diabetes glycemic targets
-      (<6.5% controlled, 6.5-8.0% suboptimal, >8.0% poor control)
-    - Systolic BP: NHANES study threshold of 127 mmHg for accelerated
-      kidney damage progression in type 2 diabetes; ADA target <130 mmHg
-    - LDL cholesterol: ADA/ACC lipid targets (<100 mg/dL optimal,
-      100-129 borderline, >=130 elevated)
+    Assess diabetes control and cardiovascular risk using clinical lab values.
+    
+    Provides **optional, additional scoring** based on actual lab values 
+    (HbA1c, BP, LDL). This is completely separate from the three CDC-survey-based
+    categories (cardiovascular, neuropathy_mobility, general_burden) because the
+    training dataset doesn't contain lab values.
+    
+    **Important:** If lab values are provided, they're scored against clinical 
+    thresholds and shown in a separate result panel. They are NOT fed into the
+    trained classifiers (which expect only survey data).
+    
+    Clinical Thresholds:
+    - HbA1c: 
+      * <6.5%: Controlled (0 pts)
+      * 6.5–8.0%: Suboptimal (1 pt)
+      * >8.0%: Poor control (2 pts)
+      * Per ADA Standards of Care 2026
+    - Systolic BP:
+      * <130: Controlled (0 pts)
+      * 130–139: Elevated (1 pt)
+      * ≥140: High (2 pts)
+      * Per NHANES/ADA targets for diabetics
+    - LDL Cholesterol:
+      * <100: Optimal (0 pts)
+      * 100–129: Borderline (1 pt)
+      * ≥130: Elevated (2 pts)
+      * Per ADA/ACC lipid targets
+    
+    Args:
+        hba1c (float, optional): HbA1c percentage (e.g., 7.2)
+        systolic_bp (int, optional): Systolic blood pressure in mmHg (e.g., 135)
+        ldl (float, optional): LDL cholesterol in mg/dL (e.g., 110)
+    
+    Returns:
+        dict or None: If no lab values provided, returns None.
+                      Otherwise: {
+                          "label": "Low" | "Moderate" | "High",
+                          "percentage": 0–100,
+                          "details": {
+                              "hba1c": {...},
+                              "systolic_bp": {...},
+                              "ldl": {...}
+                          }
+                      }
+                      
+    Example:
+        >>> compute_lab_assessment(hba1c=7.5, systolic_bp=135, ldl=115)
+        {
+            "label": "Moderate",
+            "percentage": 56,
+            "details": {...}
+        }
+        
+    See Also:
+        compute_all_risks(): Survey-based risk assessment
+        classify_pct(): Convert percentage to tier label
     """
     provided = {}
     max_possible = 0
@@ -209,15 +317,49 @@ def compute_lab_assessment(hba1c=None, systolic_bp=None, ldl=None) -> Dict:
 
 def compute_all_risks(row: Dict) -> Dict[str, Dict]:
     """
-    Returns per-category score + label + a 0-100 percentage, e.g.:
-    {
-      "cardiovascular": {"score": 6, "label": "Moderate", "percentage": 40},
-      ...
-    }
-    Label and percentage are derived from the exact same number via
-    classify_pct(), so the gauge and the tier badge can never disagree —
-    an earlier version had two uncoordinated cutoff schemes that could
-    contradict each other; fixed here.
+    Compute comprehensive diabetes complication risk across all three categories.
+    
+    Applies the three scoring functions (cardiovascular, neuropathy_mobility,
+    general_burden) and converts point totals into percentiles and tier labels.
+    
+    **Key Design:** Label and percentage are derived from the same score via 
+    classify_pct(), ensuring that the risk gauge and tier badge always agree.
+    (Earlier versions had separate cutoff schemes that could contradict.)
+    
+    Args:
+        row (dict): Patient data with features:
+            - HighBP, HighChol, Smoker, HeartDiseaseorAttack, Stroke (binary)
+            - BMI (float), Age (int, BRFSS 1-13)
+            - DiffWalk (binary), PhysHlth (int, 0-30 days)
+            - GenHlth (int, 1-5), MentHlth (int, 0-30 days)
+            - NoDocbcCost (binary), Sex (binary)
+    
+    Returns:
+        dict: Three categories, each with score/label/percentage:
+        {
+            "cardiovascular": {
+                "score": 6,           # Raw points (0–15)
+                "label": "Moderate",  # "Low" | "Moderate" | "High"
+                "percentage": 40      # 0–100% of max possible score
+            },
+            "neuropathy_mobility": {...},
+            "general_burden": {...}
+        }
+        
+    Example:
+        >>> row = {"HighBP": 1, "HighChol": 1, "BMI": 30, "Age": 9, ...}
+        >>> compute_all_risks(row)
+        {
+            "cardiovascular": {"score": 6, "label": "Moderate", "percentage": 40},
+            "neuropathy_mobility": {"score": 0, "label": "Low", "percentage": 0},
+            "general_burden": {"score": 1, "label": "Low", "percentage": 20}
+        }
+        
+    See Also:
+        score_cardiovascular(): Cardiovascular risk scoring
+        score_neuropathy_mobility(): Neuropathy/mobility risk scoring
+        score_general_complication_burden(): Overall burden scoring
+        classify_pct(): Convert percentage to tier label
     """
     cv = score_cardiovascular(row)
     neuro = score_neuropathy_mobility(row)

@@ -23,6 +23,9 @@ import json
 import uuid
 import joblib
 import pandas as pd
+import logging
+import logging.handlers
+from dotenv import load_dotenv
 from flask import Flask, render_template, request, redirect, url_for, session
 from flask_wtf.csrf import CSRFProtect, CSRFError
 from flask_limiter import Limiter
@@ -35,6 +38,43 @@ from field_labels import describe_patient
 import database
 
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
+load_dotenv(os.path.join(BASE_DIR, ".env"))
+
+DEFAULT_SECRET_KEY = "dev-secret-key-change-me"
+DEFAULT_DEBUG = False
+
+SECRET_KEY = os.getenv("SECRET_KEY", DEFAULT_SECRET_KEY)
+DEBUG = os.getenv("DEBUG", str(DEFAULT_DEBUG)).strip().lower() in {"1", "true", "yes", "on"}
+
+# ===== LOGGING CONFIGURATION =====
+log_dir = os.path.join(BASE_DIR, "logs")
+os.makedirs(log_dir, exist_ok=True)
+
+logging.basicConfig(
+    level=logging.INFO,
+    format="%(asctime)s - %(name)s - %(levelname)s - %(message)s",
+    handlers=[
+        logging.handlers.RotatingFileHandler(
+            os.path.join(log_dir, "diabetes_system.log"),
+            maxBytes=10485760,  # 10MB
+            backupCount=5
+        ),
+        logging.StreamHandler()
+    ]
+)
+logger = logging.getLogger(__name__)
+
+# Security warning if default key is still in use
+if SECRET_KEY == DEFAULT_SECRET_KEY:
+    logger.warning(
+        "⚠️  SECURITY WARNING: Using default SECRET_KEY from .env. "
+        "Before production deployment, generate a new key with: "
+        "python -c \"import secrets; print(secrets.token_hex(32))\""
+    )
+
+# Warn if DEBUG mode is enabled
+if DEBUG:
+    logger.warning("⚠️  DEBUG MODE IS ENABLED - Do not use in production!")
 
 app = Flask(__name__)
 # Use an environment secret in deployment. The app also needs CSRF protection
@@ -50,8 +90,12 @@ limiter = Limiter(
     default_limits=["200 per day", "50 per hour"],
     storage_uri="memory://",
 )
+app.config["SECRET_KEY"] = SECRET_KEY
+app.config["DEBUG"] = DEBUG
+app.debug = DEBUG
 
 database.init_db()
+logger.info("Database initialized successfully.")
 
 CATEGORIES = ["cardiovascular", "neuropathy_mobility", "general_burden"]
 FEATURE_COLUMNS = [
@@ -60,22 +104,47 @@ FEATURE_COLUMNS = [
     "NoDocbcCost", "Sex",
 ]
 
+# ===== MODEL LOADING WITH ERROR HANDLING =====
 MODELS = {}
 MODEL_NAMES = {}
+MODELS_AVAILABLE = True
+
 _summary_path = os.path.join(BASE_DIR, "model", "training_summary.json")
 if os.path.exists(_summary_path):
-    with open(_summary_path) as f:
-        _summary = json.load(f)
-        MODEL_NAMES = {cat: _summary[cat]["best_model"] for cat in _summary}
+    try:
+        with open(_summary_path) as f:
+            _summary = json.load(f)
+            MODEL_NAMES = {cat: _summary[cat]["best_model"] for cat in _summary}
+        logger.info(f"Loaded model summary: {MODEL_NAMES}")
+    except Exception as e:
+        logger.error(f"Failed to load training_summary.json: {e}")
+        MODELS_AVAILABLE = False
+else:
+    logger.warning("training_summary.json not found at {_summary_path}")
+    MODELS_AVAILABLE = False
 
 for cat in CATEGORIES:
     path = os.path.join(BASE_DIR, "model", f"{cat}_model.pkl")
     if os.path.exists(path):
-        MODELS[cat] = joblib.load(path)
+        try:
+            MODELS[cat] = joblib.load(path)
+            logger.info(f"Successfully loaded model for '{cat}'")
+        except Exception as e:
+            logger.error(f"Failed to load model for '{cat}': {e}")
+            MODELS_AVAILABLE = False
     else:
-        print(f"WARNING: model file not found for '{cat}' at {path} — "
-              f"run train_model.py first, or check you're launching app.py "
-              f"from the project root.")
+        logger.error(
+            f"Model file not found for '{cat}' at {path}. "
+            f"Run 'python train_model.py' to train and save models."
+        )
+        MODELS_AVAILABLE = False
+
+if not MODELS_AVAILABLE:
+    logger.warning(
+        "⚠️  NOT ALL MODELS LOADED. The application will still run using only "
+        "the rule-matrix for predictions, but model-based predictions will be unavailable. "
+        "Run 'python train_model.py' to generate missing models."
+    )
 
 
 @app.before_request
@@ -126,6 +195,7 @@ def predict():
     patient, lab_values, errors = validate_patient_form(request.form)
 
     if errors:
+        logger.warning(f"Form validation failed: {errors}")
         return render_template(
             "assessment.html",
             errors=errors,
@@ -133,6 +203,7 @@ def predict():
         ), 400
 
     rule_results = compute_all_risks(patient)
+    logger.info(f"Rule matrix computed for patient: {rule_results}")
 
     lab_assessment = compute_lab_assessment(
         hba1c=lab_values.get("LabHbA1c"),
@@ -142,16 +213,23 @@ def predict():
 
     model_results = {}
     model_confidences = {}
-    if MODELS:
-        X = pd.DataFrame([patient])[FEATURE_COLUMNS]
-        for cat in CATEGORIES:
-            if cat in MODELS:
-                model = MODELS[cat]
-                pred = model.predict(X)[0]
-                model_results[cat] = pred
-                if hasattr(model, "predict_proba"):
-                    proba = model.predict_proba(X)[0]
-                    model_confidences[cat] = round(max(proba) * 100, 1)
+    if MODELS and MODELS_AVAILABLE:
+        try:
+            X = pd.DataFrame([patient])[FEATURE_COLUMNS]
+            for cat in CATEGORIES:
+                if cat in MODELS:
+                    model = MODELS[cat]
+                    pred = model.predict(X)[0]
+                    model_results[cat] = pred
+                    if hasattr(model, "predict_proba"):
+                        proba = model.predict_proba(X)[0]
+                        model_confidences[cat] = round(max(proba) * 100, 1)
+            logger.info(f"Model predictions computed: {model_results}")
+        except Exception as e:
+            logger.error(f"Error during model prediction: {e}", exc_info=True)
+            # Continue with rule-matrix results only if models fail
+    elif not MODELS_AVAILABLE:
+        logger.info("Models unavailable; using rule-matrix results only")
 
     assessment_id = database.save_assessment(
         session_id=session["session_id"],
@@ -277,6 +355,7 @@ def handle_csrf_error(e):
 
 @app.errorhandler(Exception)
 def handle_unexpected_error(e):
+    logger.error(f"Unexpected error: {type(e).__name__}: {str(e)}", exc_info=True)
     return render_template(
         "assessment.html",
         errors=["Something went wrong processing that request. Please check your inputs and try again."],
@@ -285,4 +364,9 @@ def handle_unexpected_error(e):
 
 
 if __name__ == "__main__":
-    app.run(debug=False)
+    logger.info("="*60)
+    logger.info("Starting Diabetes Complication Prediction System")
+    logger.info(f"Debug mode: {DEBUG}")
+    logger.info(f"Models available: {MODELS_AVAILABLE}")
+    logger.info("="*60)
+    app.run(debug=DEBUG)

@@ -1,0 +1,192 @@
+2026-08-31 21:25:50,181 - werkzeug - WARNING -  * Debugger is active!
+2026-08-31 21:25:50,190 - werkzeug - INFO -  * Debugger PIN: 293-571-933
+2026-08-31 21:25:59,303 - werkzeug - INFO -  * Detected change in 'C:\\xampp\\htdocs\\diabetes-check\\app.py', reloading
+2026-08-31 21:26:02,424 - __main__ - INFO - Database initialized successfully.
+2026-08-31 21:26:02,425 - __main__ - INFO - Loaded model summary: {'cardiovascular': 'Random Forest', 'neuropathy_mobility': 'Decision Tree', 'general_burden': 'Decision Tree'}
+2026-08-31 21:26:05,399 - __main__ - INFO - Successfully loaded model for 'cardiovascular'
+2026-08-31 21:26:05,435 - __main__ - INFO - Successfully loaded model for 'neuropathy_mobility'
+2026-08-31 21:26:05,483 - __main__ - INFO - Successfully loaded model for 'general_burden'
+2026-08-31 21:26:05,580 - werkzeug - WARNING -  * Debugger is active!
+2026-08-31 21:26:05,605 - werkzeug - INFO -  * Debugger PIN: 293-571-933
+2026-08-31 21:26:17,846 - werkzeug - INFO -  * Detected change in 'C:\\xampp\\htdocs\\diabetes-check\\app.py', reloading
+2026-08-31 21:31:38,448 - __main__ - INFO - Database initialized successfully.
+2026-08-31 21:31:38,449 - __main__ - INFO - Loaded model summary: {'cardiovascular': 'Random Forest', 'neuropathy_mobility': 'Decision Tree', 'general_burden': 'Decision Tree'}
+2026-08-31 21:31:41,518 - __main__ - INFO - Successfully loaded model for 'cardiovascular'
+2026-08-31 21:31:41,523 - __main__ - INFO - Successfully loaded model for 'neuropathy_mobility'
+2026-08-31 21:31:41,526 - __main__ - INFO - Successfully loaded model for 'general_burden'
+2026-08-31 21:31:41,537 - __main__ - INFO - ============================================================
+2026-08-31 21:31:41,537 - __main__ - INFO - Starting Diabetes Complication Prediction System
+2026-08-31 21:31:41,538 - __main__ - INFO - Debug mode: False
+2026-08-31 21:31:41,539 - __main__ - INFO - Models available: True
+2026-08-31 21:31:41,540 - __main__ - INFO - ============================================================
+2026-08-31 21:31:41,568 - werkzeug - INFO - [31m[1mWARNING: This is a development server. Do not use it in a production deployment. Use a production WSGI server instead.[0m
+ * Running on http://127.0.0.1:5000
+2026-08-31 21:31:41,570 - werkzeug - INFO - [33mPress CTRL+C to quit[0m
+2026-08-31 21:36:20,366 - __main__ - INFO - Database initialized successfully.
+2026-08-31 21:36:20,368 - __main__ - INFO - Loaded model summary: {'cardiovascular': 'Random Forest', 'neuropathy_mobility': 'Decision Tree', 'general_burden': 'Decision Tree'}
+2026-08-31 21:36:24,731 - __main__ - INFO - Successfully loaded model for 'cardiovascular'
+2026-08-31 21:36:24,734 - __main__ - INFO - Successfully loaded model for 'neuropathy_mobility'
+2026-08-31 21:36:24,743 - __main__ - INFO - Successfully loaded model for 'general_burden'
+2026-08-31 21:36:24,760 - __main__ - INFO - ============================================================
+2026-08-31 21:36:24,761 - __main__ - INFO - Starting Diabetes Complication Prediction System
+2026-08-31 21:36:24,762 - __main__ - INFO - Debug mode: False
+2026-08-31 21:36:24,763 - __main__ - INFO - Models available: True
+2026-08-31 21:36:24,764 - __main__ - INFO - ============================================================
+2026-08-31 21:36:24,803 - werkzeug - INFO - [31m[1mWARNING: This is a development server. Do not use it in a production deployment. Use a production WSGI server instead.[0m
+ * Running on http://127.0.0.1:5000
+2026-08-31 21:36:24,803 - werkzeug - INFO - [33mPress CTRL+C to quit[0m
+2026-08-31 21:36:51,355 - werkzeug - INFO - 127.0.0.1 - - [31/Aug/2026 21:36:51] "GET / HTTP/1.1" 200 -
+2026-08-31 21:36:51,505 - werkzeug - INFO - 127.0.0.1 - - [31/Aug/2026 21:36:51] "[36mGET /static/logo.png HTTP/1.1[0m" 304 -
+2026-08-31 21:36:51,878 - __main__ - ERROR - Unexpected error: NotFound: 404 Not Found: The requested URL was not found on the server. If you entered the URL manually please check your spelling and try again.
+Traceback (most recent call last):
+  File "C:\Users\User\AppData\Local\Python\pythoncore-3.14-64\Lib\site-packages\flask\app.py", line 917, in full_dispatch_request
+    rv = self.dispatch_request()
+  File "C:\Users\User\AppData\Local\Python\pythoncore-3.14-64\Lib\site-packages\flask\app.py", line 891, in dispatch_request
+    self.raise_routing_exception(req)
+    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^
+  File "C:\Users\User\AppData\Local\Python\pythoncore-3.14-64\Lib\site-packages\flask\app.py", line 500, in raise_routing_exception
+    raise request.routing_exception  # type: ignore[misc]
+    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\User\AppData\Local\Python\pythoncore-3.14-64\Lib\site-packages\flask\ctx.py", line 362, in match_request
+    result = self.url_adapter.match(return_rule=True)  # type: ignore
+  File "C:\Users\User\AppData\Local\Python\pythoncore-3.14-64\Lib\site-packages\werkzeug\routing\map.py", line 629, in match
+    raise NotFound() from None
+werkzeug.exceptions.NotFound: 404 Not Found: The requested URL was not found on the server. If you entered the URL manually please check your spelling and try again.
+2026-08-31 21:36:51,974 - werkzeug - INFO - 127.0.0.1 - - [31/Aug/2026 21:36:51] "[35m[1mGET /favicon.ico HTTP/1.1[0m" 500 -
+2026-08-31 21:38:24,581 - werkzeug - INFO - 127.0.0.1 - - [31/Aug/2026 21:38:24] "GET /assessment HTTP/1.1" 200 -
+2026-08-31 21:38:24,610 - werkzeug - INFO - 127.0.0.1 - - [31/Aug/2026 21:38:24] "[36mGET /static/logo.png HTTP/1.1[0m" 304 -
+2026-08-31 21:38:25,250 - __main__ - ERROR - Unexpected error: NotFound: 404 Not Found: The requested URL was not found on the server. If you entered the URL manually please check your spelling and try again.
+Traceback (most recent call last):
+  File "C:\Users\User\AppData\Local\Python\pythoncore-3.14-64\Lib\site-packages\flask\app.py", line 917, in full_dispatch_request
+    rv = self.dispatch_request()
+  File "C:\Users\User\AppData\Local\Python\pythoncore-3.14-64\Lib\site-packages\flask\app.py", line 891, in dispatch_request
+    self.raise_routing_exception(req)
+    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^
+  File "C:\Users\User\AppData\Local\Python\pythoncore-3.14-64\Lib\site-packages\flask\app.py", line 500, in raise_routing_exception
+    raise request.routing_exception  # type: ignore[misc]
+    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\User\AppData\Local\Python\pythoncore-3.14-64\Lib\site-packages\flask\ctx.py", line 362, in match_request
+    result = self.url_adapter.match(return_rule=True)  # type: ignore
+  File "C:\Users\User\AppData\Local\Python\pythoncore-3.14-64\Lib\site-packages\werkzeug\routing\map.py", line 629, in match
+    raise NotFound() from None
+werkzeug.exceptions.NotFound: 404 Not Found: The requested URL was not found on the server. If you entered the URL manually please check your spelling and try again.
+2026-08-31 21:38:25,255 - werkzeug - INFO - 127.0.0.1 - - [31/Aug/2026 21:38:25] "[35m[1mGET /favicon.ico HTTP/1.1[0m" 500 -
+2026-08-31 21:38:27,976 - werkzeug - INFO - 127.0.0.1 - - [31/Aug/2026 21:38:27] "GET /history HTTP/1.1" 200 -
+2026-08-31 21:38:28,012 - werkzeug - INFO - 127.0.0.1 - - [31/Aug/2026 21:38:28] "[36mGET /static/logo.png HTTP/1.1[0m" 304 -
+2026-08-31 21:38:28,358 - __main__ - ERROR - Unexpected error: NotFound: 404 Not Found: The requested URL was not found on the server. If you entered the URL manually please check your spelling and try again.
+Traceback (most recent call last):
+  File "C:\Users\User\AppData\Local\Python\pythoncore-3.14-64\Lib\site-packages\flask\app.py", line 917, in full_dispatch_request
+    rv = self.dispatch_request()
+  File "C:\Users\User\AppData\Local\Python\pythoncore-3.14-64\Lib\site-packages\flask\app.py", line 891, in dispatch_request
+    self.raise_routing_exception(req)
+    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^
+  File "C:\Users\User\AppData\Local\Python\pythoncore-3.14-64\Lib\site-packages\flask\app.py", line 500, in raise_routing_exception
+    raise request.routing_exception  # type: ignore[misc]
+    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\User\AppData\Local\Python\pythoncore-3.14-64\Lib\site-packages\flask\ctx.py", line 362, in match_request
+    result = self.url_adapter.match(return_rule=True)  # type: ignore
+  File "C:\Users\User\AppData\Local\Python\pythoncore-3.14-64\Lib\site-packages\werkzeug\routing\map.py", line 629, in match
+    raise NotFound() from None
+werkzeug.exceptions.NotFound: 404 Not Found: The requested URL was not found on the server. If you entered the URL manually please check your spelling and try again.
+2026-08-31 21:38:28,367 - werkzeug - INFO - 127.0.0.1 - - [31/Aug/2026 21:38:28] "[35m[1mGET /favicon.ico HTTP/1.1[0m" 500 -
+2026-08-31 21:38:30,465 - werkzeug - INFO - 127.0.0.1 - - [31/Aug/2026 21:38:30] "GET /about HTTP/1.1" 200 -
+2026-08-31 21:38:30,491 - werkzeug - INFO - 127.0.0.1 - - [31/Aug/2026 21:38:30] "[36mGET /static/logo.png HTTP/1.1[0m" 304 -
+2026-08-31 21:38:31,097 - __main__ - ERROR - Unexpected error: NotFound: 404 Not Found: The requested URL was not found on the server. If you entered the URL manually please check your spelling and try again.
+Traceback (most recent call last):
+  File "C:\Users\User\AppData\Local\Python\pythoncore-3.14-64\Lib\site-packages\flask\app.py", line 917, in full_dispatch_request
+    rv = self.dispatch_request()
+  File "C:\Users\User\AppData\Local\Python\pythoncore-3.14-64\Lib\site-packages\flask\app.py", line 891, in dispatch_request
+    self.raise_routing_exception(req)
+    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^
+  File "C:\Users\User\AppData\Local\Python\pythoncore-3.14-64\Lib\site-packages\flask\app.py", line 500, in raise_routing_exception
+    raise request.routing_exception  # type: ignore[misc]
+    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\User\AppData\Local\Python\pythoncore-3.14-64\Lib\site-packages\flask\ctx.py", line 362, in match_request
+    result = self.url_adapter.match(return_rule=True)  # type: ignore
+  File "C:\Users\User\AppData\Local\Python\pythoncore-3.14-64\Lib\site-packages\werkzeug\routing\map.py", line 629, in match
+    raise NotFound() from None
+werkzeug.exceptions.NotFound: 404 Not Found: The requested URL was not found on the server. If you entered the URL manually please check your spelling and try again.
+2026-08-31 21:38:31,112 - werkzeug - INFO - 127.0.0.1 - - [31/Aug/2026 21:38:31] "[35m[1mGET /favicon.ico HTTP/1.1[0m" 500 -
+2026-08-31 21:38:34,245 - werkzeug - INFO - 127.0.0.1 - - [31/Aug/2026 21:38:34] "GET / HTTP/1.1" 200 -
+2026-08-31 21:38:34,326 - werkzeug - INFO - 127.0.0.1 - - [31/Aug/2026 21:38:34] "[36mGET /static/logo.png HTTP/1.1[0m" 304 -
+2026-08-31 21:38:34,585 - __main__ - ERROR - Unexpected error: NotFound: 404 Not Found: The requested URL was not found on the server. If you entered the URL manually please check your spelling and try again.
+Traceback (most recent call last):
+  File "C:\Users\User\AppData\Local\Python\pythoncore-3.14-64\Lib\site-packages\flask\app.py", line 917, in full_dispatch_request
+    rv = self.dispatch_request()
+  File "C:\Users\User\AppData\Local\Python\pythoncore-3.14-64\Lib\site-packages\flask\app.py", line 891, in dispatch_request
+    self.raise_routing_exception(req)
+    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^
+  File "C:\Users\User\AppData\Local\Python\pythoncore-3.14-64\Lib\site-packages\flask\app.py", line 500, in raise_routing_exception
+    raise request.routing_exception  # type: ignore[misc]
+    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\User\AppData\Local\Python\pythoncore-3.14-64\Lib\site-packages\flask\ctx.py", line 362, in match_request
+    result = self.url_adapter.match(return_rule=True)  # type: ignore
+  File "C:\Users\User\AppData\Local\Python\pythoncore-3.14-64\Lib\site-packages\werkzeug\routing\map.py", line 629, in match
+    raise NotFound() from None
+werkzeug.exceptions.NotFound: 404 Not Found: The requested URL was not found on the server. If you entered the URL manually please check your spelling and try again.
+2026-08-31 21:38:34,593 - werkzeug - INFO - 127.0.0.1 - - [31/Aug/2026 21:38:34] "[35m[1mGET /favicon.ico HTTP/1.1[0m" 500 -
+2026-08-31 22:16:37,248 - app - INFO - Database initialized successfully.
+2026-08-31 22:16:37,249 - app - INFO - Loaded model summary: {'cardiovascular': 'Random Forest', 'neuropathy_mobility': 'Decision Tree', 'general_burden': 'Decision Tree'}
+2026-08-31 22:16:40,214 - app - INFO - Successfully loaded model for 'cardiovascular'
+2026-08-31 22:16:40,286 - app - INFO - Successfully loaded model for 'neuropathy_mobility'
+2026-08-31 22:16:40,317 - app - INFO - Successfully loaded model for 'general_burden'
+2026-08-31 22:22:34,950 - werkzeug - INFO - 127.0.0.1 - - [31/Aug/2026 22:22:34] "GET / HTTP/1.1" 200 -
+2026-08-31 22:22:34,993 - werkzeug - INFO - 127.0.0.1 - - [31/Aug/2026 22:22:34] "[36mGET /static/logo.png HTTP/1.1[0m" 304 -
+2026-08-31 22:22:35,293 - __main__ - ERROR - Unexpected error: NotFound: 404 Not Found: The requested URL was not found on the server. If you entered the URL manually please check your spelling and try again.
+Traceback (most recent call last):
+  File "C:\Users\User\AppData\Local\Python\pythoncore-3.14-64\Lib\site-packages\flask\app.py", line 917, in full_dispatch_request
+    rv = self.dispatch_request()
+  File "C:\Users\User\AppData\Local\Python\pythoncore-3.14-64\Lib\site-packages\flask\app.py", line 891, in dispatch_request
+    self.raise_routing_exception(req)
+    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^
+  File "C:\Users\User\AppData\Local\Python\pythoncore-3.14-64\Lib\site-packages\flask\app.py", line 500, in raise_routing_exception
+    raise request.routing_exception  # type: ignore[misc]
+    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\User\AppData\Local\Python\pythoncore-3.14-64\Lib\site-packages\flask\ctx.py", line 362, in match_request
+    result = self.url_adapter.match(return_rule=True)  # type: ignore
+  File "C:\Users\User\AppData\Local\Python\pythoncore-3.14-64\Lib\site-packages\werkzeug\routing\map.py", line 629, in match
+    raise NotFound() from None
+werkzeug.exceptions.NotFound: 404 Not Found: The requested URL was not found on the server. If you entered the URL manually please check your spelling and try again.
+2026-08-31 22:22:35,315 - werkzeug - INFO - 127.0.0.1 - - [31/Aug/2026 22:22:35] "[35m[1mGET /favicon.ico HTTP/1.1[0m" 500 -
+2026-08-31 22:22:38,779 - werkzeug - INFO - 127.0.0.1 - - [31/Aug/2026 22:22:38] "GET /assessment HTTP/1.1" 200 -
+2026-08-31 22:22:38,870 - werkzeug - INFO - 127.0.0.1 - - [31/Aug/2026 22:22:38] "[36mGET /static/logo.png HTTP/1.1[0m" 304 -
+2026-08-31 22:22:39,327 - __main__ - ERROR - Unexpected error: NotFound: 404 Not Found: The requested URL was not found on the server. If you entered the URL manually please check your spelling and try again.
+Traceback (most recent call last):
+  File "C:\Users\User\AppData\Local\Python\pythoncore-3.14-64\Lib\site-packages\flask\app.py", line 917, in full_dispatch_request
+    rv = self.dispatch_request()
+  File "C:\Users\User\AppData\Local\Python\pythoncore-3.14-64\Lib\site-packages\flask\app.py", line 891, in dispatch_request
+    self.raise_routing_exception(req)
+    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^
+  File "C:\Users\User\AppData\Local\Python\pythoncore-3.14-64\Lib\site-packages\flask\app.py", line 500, in raise_routing_exception
+    raise request.routing_exception  # type: ignore[misc]
+    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\User\AppData\Local\Python\pythoncore-3.14-64\Lib\site-packages\flask\ctx.py", line 362, in match_request
+    result = self.url_adapter.match(return_rule=True)  # type: ignore
+  File "C:\Users\User\AppData\Local\Python\pythoncore-3.14-64\Lib\site-packages\werkzeug\routing\map.py", line 629, in match
+    raise NotFound() from None
+werkzeug.exceptions.NotFound: 404 Not Found: The requested URL was not found on the server. If you entered the URL manually please check your spelling and try again.
+2026-08-31 22:22:39,338 - werkzeug - INFO - 127.0.0.1 - - [31/Aug/2026 22:22:39] "[35m[1mGET /favicon.ico HTTP/1.1[0m" 500 -
+2026-08-31 22:32:40,519 - werkzeug - INFO - 127.0.0.1 - - [31/Aug/2026 22:32:40] "GET / HTTP/1.1" 200 -
+2026-08-31 22:32:40,834 - werkzeug - INFO - 127.0.0.1 - - [31/Aug/2026 22:32:40] "GET /static/logo.png HTTP/1.1" 200 -
+2026-08-31 22:32:42,971 - __main__ - ERROR - Unexpected error: NotFound: 404 Not Found: The requested URL was not found on the server. If you entered the URL manually please check your spelling and try again.
+Traceback (most recent call last):
+  File "C:\Users\User\AppData\Local\Python\pythoncore-3.14-64\Lib\site-packages\flask\app.py", line 917, in full_dispatch_request
+    rv = self.dispatch_request()
+  File "C:\Users\User\AppData\Local\Python\pythoncore-3.14-64\Lib\site-packages\flask\app.py", line 891, in dispatch_request
+    self.raise_routing_exception(req)
+    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^
+  File "C:\Users\User\AppData\Local\Python\pythoncore-3.14-64\Lib\site-packages\flask\app.py", line 500, in raise_routing_exception
+    raise request.routing_exception  # type: ignore[misc]
+    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\User\AppData\Local\Python\pythoncore-3.14-64\Lib\site-packages\flask\ctx.py", line 362, in match_request
+    result = self.url_adapter.match(return_rule=True)  # type: ignore
+  File "C:\Users\User\AppData\Local\Python\pythoncore-3.14-64\Lib\site-packages\werkzeug\routing\map.py", line 629, in match
+    raise NotFound() from None
+werkzeug.exceptions.NotFound: 404 Not Found: The requested URL was not found on the server. If you entered the URL manually please check your spelling and try again.
+2026-08-31 22:32:42,985 - werkzeug - INFO - 127.0.0.1 - - [31/Aug/2026 22:32:42] "[35m[1mGET /favicon.ico HTTP/1.1[0m" 500 -
+2026-08-31 22:32:59,101 - werkzeug - INFO - 127.0.0.1 - - [31/Aug/2026 22:32:59] "GET /assessment HTTP/1.1" 200 -
+2026-08-31 22:32:59,470 - werkzeug - INFO - 127.0.0.1 - - [31/Aug/2026 22:32:59] "[36mGET /static/logo.png HTTP/1.1[0m" 304 -
+2026-08-31 22:33:02,841 - werkzeug - INFO - 127.0.0.1 - - [31/Aug/2026 22:33:02] "GET /history HTTP/1.1" 200 -
+2026-08-31 22:33:03,204 - werkzeug - INFO - 127.0.0.1 - - [31/Aug/2026 22:33:03] "[36mGET /static/logo.png HTTP/1.1[0m" 304 -
+2026-08-31 22:33:04,745 - werkzeug - INFO - 127.0.0.1 - - [31/Aug/2026 22:33:04] "GET /about HTTP/1.1" 200 -
+2026-08-31 22:33:05,349 - werkzeug - INFO - 127.0.0.1 - - [31/Aug/2026 22:33:05] "[36mGET /static/logo.png HTTP/1.1[0m" 304 -
