@@ -52,6 +52,7 @@
       {% endif %}
 
       <form action="/predict" method="post" novalidate>
+        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}" />
 
         <h3 class="font-semibold text-xs text-slate-500 uppercase tracking-wider mb-4">About You</h3>
         <div class="grid grid-cols-2 gap-4 mb-6">
