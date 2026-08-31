@@ -14,6 +14,8 @@ env/
 # first time they run the app, since app.py creates it if missing.
 diabetes_system.db
 
+.env
+
 # Editor/OS clutter
 .vscode/
 .DS_Store

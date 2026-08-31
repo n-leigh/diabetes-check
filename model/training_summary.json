@@ -2,28 +2,127 @@
   "cardiovascular": {
     "best_model": "Random Forest",
     "accuracy": 0.987,
+    "f1_weighted": 0.987,
+    "cv_accuracy_mean": 0.9876,
+    "cv_accuracy_std": 0.0019,
     "all_models_compared": {
-      "Decision Tree": 0.919,
-      "Logistic Regression": 0.9276,
-      "Random Forest": 0.987
+      "Decision Tree": {
+        "test_accuracy": 0.919,
+        "f1_weighted": 0.9188,
+        "cv_mean": 0.9216,
+        "cv_std": 0.0029
+      },
+      "Logistic Regression": {
+        "test_accuracy": 0.9276,
+        "f1_weighted": 0.9275,
+        "cv_mean": 0.9336,
+        "cv_std": 0.0013
+      },
+      "Random Forest": {
+        "test_accuracy": 0.987,
+        "f1_weighted": 0.987,
+        "cv_mean": 0.9876,
+        "cv_std": 0.0019
+      }
+    },
+    "feature_importances": {
+      "HighBP": 0.2048,
+      "HighChol": 0.1661,
+      "Smoker": 0.0394,
+      "HeartDiseaseorAttack": 0.3169,
+      "Stroke": 0.1079,
+      "BMI": 0.0699,
+      "Age": 0.0677,
+      "DiffWalk": 0.0087,
+      "PhysHlth": 0.0042,
+      "GenHlth": 0.0083,
+      "MentHlth": 0.003,
+      "NoDocbcCost": 0.0009,
+      "Sex": 0.0023
     }
   },
   "neuropathy_mobility": {
     "best_model": "Decision Tree",
     "accuracy": 1.0,
+    "f1_weighted": 1.0,
+    "cv_accuracy_mean": 1.0,
+    "cv_accuracy_std": 0.0,
     "all_models_compared": {
-      "Decision Tree": 1.0,
-      "Logistic Regression": 0.9376,
-      "Random Forest": 0.9963
+      "Decision Tree": {
+        "test_accuracy": 1.0,
+        "f1_weighted": 1.0,
+        "cv_mean": 1.0,
+        "cv_std": 0.0
+      },
+      "Logistic Regression": {
+        "test_accuracy": 0.9376,
+        "f1_weighted": 0.9361,
+        "cv_mean": 0.9326,
+        "cv_std": 0.0025
+      },
+      "Random Forest": {
+        "test_accuracy": 0.9963,
+        "f1_weighted": 0.9963,
+        "cv_mean": 0.9959,
+        "cv_std": 0.0009
+      }
+    },
+    "feature_importances": {
+      "HighBP": 0.0,
+      "HighChol": 0.0,
+      "Smoker": 0.0,
+      "HeartDiseaseorAttack": 0.0,
+      "Stroke": 0.0,
+      "BMI": 0.1071,
+      "Age": 0.0916,
+      "DiffWalk": 0.5691,
+      "PhysHlth": 0.2321,
+      "GenHlth": 0.0,
+      "MentHlth": 0.0,
+      "NoDocbcCost": 0.0,
+      "Sex": 0.0
     }
   },
   "general_burden": {
     "best_model": "Decision Tree",
     "accuracy": 1.0,
+    "f1_weighted": 1.0,
+    "cv_accuracy_mean": 1.0,
+    "cv_accuracy_std": 0.0001,
     "all_models_compared": {
-      "Decision Tree": 1.0,
-      "Logistic Regression": 0.969,
-      "Random Forest": 1.0
+      "Decision Tree": {
+        "test_accuracy": 1.0,
+        "f1_weighted": 1.0,
+        "cv_mean": 1.0,
+        "cv_std": 0.0001
+      },
+      "Logistic Regression": {
+        "test_accuracy": 0.969,
+        "f1_weighted": 0.9689,
+        "cv_mean": 0.9692,
+        "cv_std": 0.0013
+      },
+      "Random Forest": {
+        "test_accuracy": 1.0,
+        "f1_weighted": 1.0,
+        "cv_mean": 1.0,
+        "cv_std": 0.0
+      }
+    },
+    "feature_importances": {
+      "HighBP": 0.0,
+      "HighChol": 0.0,
+      "Smoker": 0.0,
+      "HeartDiseaseorAttack": 0.0,
+      "Stroke": 0.0,
+      "BMI": 0.0,
+      "Age": 0.0,
+      "DiffWalk": 0.0,
+      "PhysHlth": 0.0,
+      "GenHlth": 0.5548,
+      "MentHlth": 0.258,
+      "NoDocbcCost": 0.1873,
+      "Sex": 0.0
     }
   }
 }

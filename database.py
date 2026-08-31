@@ -31,7 +31,10 @@ writing a real migration for.
 import sqlite3
 import json
 import os
+import logging
 from datetime import datetime, timezone
+
+logger = logging.getLogger(__name__)
 
 DB_PATH = os.path.join(os.path.dirname(os.path.abspath(__file__)), "diabetes_system.db")
 SCHEMA_VERSION = 3
@@ -49,6 +52,7 @@ def init_db():
     current_version = conn.execute("PRAGMA user_version").fetchone()[0]
 
     if current_version != SCHEMA_VERSION:
+        logger.info(f"Schema version mismatch ({current_version} != {SCHEMA_VERSION}). Recreating tables...")
         for table in ("feedback", "lab_assessments", "risk_results", "assessments"):
             conn.execute(f"DROP TABLE IF EXISTS {table}")
 
@@ -94,6 +98,9 @@ def init_db():
         """)
         conn.execute(f"PRAGMA user_version = {SCHEMA_VERSION}")
         conn.commit()
+        logger.info(f"Database schema initialized at version {SCHEMA_VERSION}")
+    else:
+        logger.debug(f"Database schema up to date (version {SCHEMA_VERSION})")
 
     conn.close()
 
@@ -147,6 +154,7 @@ def save_assessment(session_id: str, patient: dict, rule_results: dict,
 
     conn.commit()
     conn.close()
+    logger.info(f"Assessment saved: ID={assessment_id}, session={session_id}, categories={list(rule_results.keys())}")
     return assessment_id
 
 
