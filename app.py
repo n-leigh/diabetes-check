@@ -9,6 +9,13 @@ trained classifier's prediction (data-driven) for each complication
 category, and persists every assessment to SQLite. Each visitor gets an
 anonymous session cookie so their History page only ever shows their own
 assessments — not everyone's.
+
+Security notes:
+- Authentication is not implemented (session-only, local demo)
+- Rate limiting via Flask-Limiter on /predict route
+- CSRF protection on all POST forms
+- HTTP security headers enabled
+- SECRET_KEY required from environment for non-dev use
 """
 
 import os
@@ -20,6 +27,9 @@ import logging
 import logging.handlers
 from dotenv import load_dotenv
 from flask import Flask, render_template, request, redirect, url_for, session
+from flask_wtf.csrf import CSRFProtect, CSRFError
+from flask_limiter import Limiter
+from flask_limiter.util import get_remote_address
 
 from rule_matrix import compute_all_risks, compute_lab_assessment, RULE_VERSION
 from recommendations import build_recommendations
@@ -67,6 +77,19 @@ if DEBUG:
     logger.warning("⚠️  DEBUG MODE IS ENABLED - Do not use in production!")
 
 app = Flask(__name__)
+# Use an environment secret in deployment. The app also needs CSRF protection
+# for every POST form submission.
+app.config["SECRET_KEY"] = os.environ.get("SECRET_KEY", "diabeates-dev-secret-replace-before-any-real-deployment")
+app.config["WTF_CSRF_TIME_LIMIT"] = None
+csrf = CSRFProtect(app)
+
+# Rate limiting: 30 requests per minute per IP address
+limiter = Limiter(
+    app=app,
+    key_func=get_remote_address,
+    default_limits=["200 per day", "50 per hour"],
+    storage_uri="memory://",
+)
 app.config["SECRET_KEY"] = SECRET_KEY
 app.config["DEBUG"] = DEBUG
 app.debug = DEBUG
@@ -131,6 +154,26 @@ def ensure_session_id():
         session.permanent = True
 
 
+@app.after_request
+def add_security_headers(response):
+    response.headers["X-Frame-Options"] = "SAMEORIGIN"
+    response.headers["X-Content-Type-Options"] = "nosniff"
+    response.headers["X-XSS-Protection"] = "1; mode=block"
+    response.headers["Referrer-Policy"] = "strict-origin-when-cross-origin"
+    response.headers["Content-Security-Policy"] = (
+        "default-src 'self'; "
+        "script-src 'self' 'unsafe-inline' 'unsafe-eval' data: https:; "
+        "style-src 'self' 'unsafe-inline' https:; "
+        "img-src 'self' data: https:; "
+        "font-src 'self' data: https:; "
+        "connect-src 'self'; "
+        "frame-ancestors 'self'; "
+        "object-src 'none'; "
+        "base-uri 'self';"
+    )
+    return response
+
+
 @app.route("/", methods=["GET"])
 def index():
     return render_template("home.html")
@@ -147,6 +190,7 @@ def about():
 
 
 @app.route("/predict", methods=["POST"])
+@limiter.limit("30 per minute")
 def predict():
     patient, lab_values, errors = validate_patient_form(request.form)
 
@@ -289,6 +333,24 @@ def feedback(assessment_id):
     database.save_feedback(assessment_id, helpful)
 
     return redirect(url_for("history_detail", assessment_id=assessment_id) + "?feedback=thanks")
+
+
+@app.errorhandler(429)
+def handle_rate_limit_exceeded(e):
+    return render_template(
+        "assessment.html",
+        errors=["Too many requests. Please wait a moment and try again."],
+        form_data={},
+    ), 429
+
+
+@app.errorhandler(CSRFError)
+def handle_csrf_error(e):
+    return render_template(
+        "assessment.html",
+        errors=["Your session expired or the form token was invalid. Please try again."],
+        form_data={},
+    ), 400
 
 
 @app.errorhandler(Exception)

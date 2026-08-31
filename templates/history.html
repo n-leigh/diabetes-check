@@ -75,6 +75,7 @@
                 <a href="/history/{{ r.id }}/print" target="_blank" class="text-slate-400 hover:text-slate-600 font-medium text-xs ml-3">Print</a>
 
                 <form action="/history/{{ r.id }}/archive" method="post" class="inline">
+                  <input type="hidden" name="csrf_token" value="{{ csrf_token() }}" />
                   <input type="hidden" name="archived" value="{{ '0' if show_archived else '1' }}">
                   <input type="hidden" name="from" value="{{ 'archived' if show_archived else 'active' }}">
                   <button type="submit" class="text-slate-400 hover:text-slate-600 font-medium text-xs ml-3">
@@ -84,6 +85,7 @@
 
                 <form action="/history/{{ r.id }}/delete" method="post" class="inline"
                       onsubmit="return confirm('Permanently delete this assessment? This can\'t be undone.');">
+                  <input type="hidden" name="csrf_token" value="{{ csrf_token() }}" />
                   <input type="hidden" name="from" value="{{ 'archived' if show_archived else 'active' }}">
                   <button type="submit" class="text-red-400 hover:text-red-600 font-medium text-xs ml-3">
                     Delete

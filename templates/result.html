@@ -158,12 +158,14 @@
       <p class="text-sm font-medium text-slate-700">Was this assessment helpful?</p>
       <div class="flex gap-2">
         <form action="/feedback/{{ assessment_id }}" method="post">
+          <input type="hidden" name="csrf_token" value="{{ csrf_token() }}" />
           <input type="hidden" name="helpful" value="yes">
           <button type="submit" class="px-4 py-2 rounded-lg border border-slate-200 text-sm font-medium text-slate-600 hover:bg-teal-50 hover:border-teal-300 hover:text-teal-700 transition-all">
             👍 Yes
           </button>
         </form>
         <form action="/feedback/{{ assessment_id }}" method="post">
+          <input type="hidden" name="csrf_token" value="{{ csrf_token() }}" />
           <input type="hidden" name="helpful" value="no">
           <button type="submit" class="px-4 py-2 rounded-lg border border-slate-200 text-sm font-medium text-slate-600 hover:bg-red-50 hover:border-red-300 hover:text-red-700 transition-all">
             👎 No
