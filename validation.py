@@ -38,7 +38,54 @@ SELECT_FIELDS = {
 
 
 def validate_patient_form(form) -> tuple[dict, dict, list[str]]:
-    """Returns (patient_dict, lab_values_dict, errors_list)."""
+    """
+    Server-side validation for patient assessment form submission.
+    
+    **Important:** All form inputs are validated on the server, regardless 
+    of client-side checks. Browser validation is trivially bypassed (devtools, 
+    disabled JS, direct POST), so this function is the authoritative check.
+    
+    Validates:
+    1. Required numeric fields (BMI, Age, health ratings)
+    2. Optional lab fields (HbA1c, BP, LDL) — blank is OK
+    3. Checkbox fields (binary 0/1)
+    4. Select fields (allowed values only)
+    
+    Args:
+        form (dict-like): Form submission data (e.g., Flask request.form)
+        
+    Returns:
+        tuple: (patient_dict, lab_values_dict, errors_list)
+            - patient_dict (dict): Validated patient features; empty if errors
+            - lab_values_dict (dict): Validated lab values; empty if none provided
+            - errors_list (list[str]): User-friendly error messages; empty if valid
+            
+    Example (valid):
+        >>> form = {'BMI': '27.5', 'Age': '8', 'GenHlth': '3', ...}
+        >>> patient, labs, errors = validate_patient_form(form)
+        >>> if not errors:
+        ...     predictions = app.predict(patient, labs)
+        
+    Example (invalid):
+        >>> form = {'BMI': 'abc', 'Age': '20'}  # 'abc' is not a number, Age out of range
+        >>> patient, labs, errors = validate_patient_form(form)
+        >>> errors
+        ['BMI must be a number.', 'Age must be between 1 and 13.']
+        >>> patient  # Empty dict; don't use
+        {}
+        
+    Implementation:
+    - Required fields: Must be present and in valid range
+    - Optional fields: Absent or blank = skipped; if present, validated
+    - Checkboxes: Absent = 0, present = 1
+    - Selects: Must be in allowed_values
+    
+    See Also:
+        FIELD_RULES: Defines required numeric fields and ranges
+        OPTIONAL_LAB_FIELD_RULES: Defines optional lab fields
+        CHECKBOX_FIELDS: List of checkbox field names
+        SELECT_FIELDS: Dict of select field names and allowed values
+    """
     patient = {}
     errors = []
 

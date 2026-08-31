@@ -31,7 +31,38 @@ CHECKBOX_LABELS = {
 
 
 def describe_patient(patient: dict) -> dict:
-    """Returns a display-friendly version of the raw patient dict."""
+    """
+    Convert raw BRFSS-coded patient data to human-readable format.
+    
+    Translates coded values (age band 1-13, health rating 1-5, etc.) into
+    display-friendly text for use in result pages and printable summaries.
+    
+    Args:
+        patient (dict): Raw patient data dict with keys:
+            - BMI (float)
+            - Age (int, BRFSS band 1-13)
+            - GenHlth (int, 1-5 scale)
+            - Sex (int, 0=Female, 1=Male)
+            - PhysHlth (int, days 0-30)
+            - MentHlth (int, days 0-30)
+            - HighBP, HighChol, Smoker, etc. (int, 0/1)
+    
+    Returns:
+        dict: Display-friendly version with keys:
+            - BMI (float, unchanged)
+            - Age (str, e.g., "55–59")
+            - GenHlth (str, e.g., "Good")
+            - Sex (str, "Male" or "Female")
+            - PhysHlth (int, unchanged)
+            - MentHlth (int, unchanged)
+            - risk_factors (list, e.g., ["High blood pressure", "Smoker"])
+    
+    Example:
+        >>> raw = {'BMI': 27.5, 'Age': 8, 'GenHlth': 3, 'Sex': 0, 'HighBP': 1, ...}
+        >>> describe_patient(raw)
+        {'BMI': 27.5, 'Age': '55–59', 'GenHlth': 'Good', 'Sex': 'Female', 
+         'risk_factors': ['High blood pressure', ...]}
+    """
     return {
         "BMI": patient.get("BMI"),
         "Age": AGE_RANGES.get(str(patient.get("Age")), "—"),
