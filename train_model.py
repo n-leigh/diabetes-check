@@ -29,7 +29,7 @@ import numpy as np
 import pandas as pd
 import matplotlib.pyplot as plt
 
-from sklearn.model_selection import train_test_split, StratifiedKFold, cross_val_score
+from sklearn.model_selection import train_test_split, StratifiedKFold, cross_val_score, cross_val_predict
 from sklearn.linear_model import LogisticRegression
 from sklearn.ensemble import RandomForestClassifier, GradientBoostingClassifier
 from sklearn.calibration import CalibratedClassifierCV, calibration_curve
@@ -214,11 +214,17 @@ def train_and_evaluate_all():
         test_brier = float(round(brier_score_loss(y_test, y_prob), 4))
         auroc_ci = compute_auroc_ci(y_test, y_prob)
 
-        # High-sensitivity operating point for triage screening
-        fpr, tpr, thresholds = roc_curve(y_test, y_prob)
-        high_sens_idx = np.where(tpr >= 0.85)[0]
-        best_thresh = thresholds[high_sens_idx[0]] if len(high_sens_idx) > 0 else 0.3
+        # Independent Threshold Selection:
+        # Determine the high-sensitivity triage cutoff strictly on training fold predictions (OOF)
+        # to guarantee the holdout test set remains completely independent and untouched.
+        oof_train_probs = cross_val_predict(
+            best_cv["algo"], X_sub_train, y_train, cv=cv, method="predict_proba"
+        )[:, 1]
+        train_fpr, train_tpr, train_thresholds = roc_curve(y_train, oof_train_probs)
+        high_sens_idx = np.where(train_tpr >= 0.85)[0]
+        best_thresh = float(train_thresholds[high_sens_idx[0]]) if len(high_sens_idx) > 0 else 0.3
 
+        # Apply the pre-selected threshold to the untouched holdout test partition
         y_pred_thresh = (y_prob >= best_thresh).astype(int)
         tn, fp, fn, tp = confusion_matrix(y_test, y_pred_thresh).ravel()
 
@@ -227,7 +233,7 @@ def train_and_evaluate_all():
         ppv = float(round(tp / (tp + fp), 4)) if (tp + fp) > 0 else 0.0
         npv = float(round(tn / (tn + fn), 4)) if (tn + fn) > 0 else 0.0
 
-        print(f"--> Test Evaluation: AUROC = {test_auroc:.4f} (95% CI: {auroc_ci[0]}-{auroc_ci[1]}), PR-AUC = {test_pr_auc:.4f}, Brier = {test_brier:.4f}, Sens = {sensitivity:.4f}, NPV = {npv:.4f}")
+        print(f"--> Test Evaluation: AUROC = {test_auroc:.4f} (95% CI: {auroc_ci[0]}-{auroc_ci[1]}), PR-AUC = {test_pr_auc:.4f}, Brier = {test_brier:.4f}, Sens = {sensitivity:.4f}, NPV = {npv:.4f} (Threshold = {best_thresh:.4f} from Train-CV)")
 
         # Save winning model
         out_model_path = os.path.join(MODEL_DIR, f"{cat}_model.pkl")
@@ -263,8 +269,9 @@ def train_and_evaluate_all():
         }
 
         # Plot ROC curve
+        test_fpr, test_tpr, _ = roc_curve(y_test, y_prob)
         ax_roc = axes_roc[idx]
-        ax_roc.plot(fpr, tpr, color="#0d6efd", lw=2, label=f"{best_name}\nAUROC = {test_auroc:.3f}\n95% CI [{auroc_ci[0]}-{auroc_ci[1]}]")
+        ax_roc.plot(test_fpr, test_tpr, color="#0d6efd", lw=2, label=f"{best_name}\nAUROC = {test_auroc:.3f}\n95% CI [{auroc_ci[0]}-{auroc_ci[1]}]")
         ax_roc.plot([0, 1], [0, 1], color="grey", lw=1, linestyle="--", label="Random Chance")
         ax_roc.set_title(f"{cat.replace('_', ' ').title()}\nROC Curve", fontsize=11, fontweight="bold")
         ax_roc.set_xlabel("False Positive Rate (1 - Specificity)")

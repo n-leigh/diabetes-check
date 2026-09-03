@@ -163,7 +163,7 @@ graph TB
 ### 6. **Clinical Data Sources**
 - **nhanes_2017_2018_heart_disease_prediction.csv** - CDC NHANES cardiovascular cohort (N=949)
 - **CKD_NHANES_2021_2023.csv** - CDC NHANES nephropathy/CKD cohort (N=848)
-- **diabetes_dataset.csv** - CDC BRFSS mobility/neuropathy cohort (N=35,346)
+- **diabetes_dataset.csv** - CDC BRFSS diabetic registry (N=35,346 source population; N=5,000 stratified training sample)
 
 ### 7. **Static Assets**
 - CSS stylesheets (Tailwind-based)
