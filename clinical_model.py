@@ -18,7 +18,12 @@ class ClinicalRiskWrapper(BaseEstimator, ClassifierMixin):
         self.feature_subset = feature_subset
         self.low_threshold = low_threshold
         self.high_threshold = high_threshold
-        self.classes_ = np.array(["Low", "Moderate", "High"])
+
+    @property
+    def classes_(self):
+        if hasattr(self.base_estimator, "classes_"):
+            return self.base_estimator.classes_
+        return np.array([0, 1])
 
     def fit(self, X, y):
         X_sub = X[self.feature_subset]

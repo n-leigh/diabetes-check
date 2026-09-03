@@ -117,10 +117,10 @@ graph TB
   - Coordinates between frontend, business logic, and data layers
 
 ### 3. **Business Logic Layer**
-- **rule_matrix.py**
-  - Three scoring functions: `score_cardiovascular()`, `score_neuropathy_mobility()`, `score_general_burden()`
-  - Converts point scores to risk tiers (Low/Moderate/High)
-  - Used for both training data generation and live explanations
+- **rule_matrix.py (Version 2.0-clinical)**
+  - Three guideline-aligned scoring engines: ACC/AHA 10-Yr ASCVD, KDIGO 2024 CKD Staging, and Michigan Neuropathy Screening Instrument (MNSI)
+  - Converts risk factors to clinical risk tiers (Low ≤30%, Moderate 31-60%, High >60%)
+  - Used exclusively for live, transparent clinical decision-support and interpretability (NOT for training label generation)
   
 - **recommendations.py**
   - Converts risk tiers into plain-language guidance
@@ -136,25 +136,34 @@ graph TB
   - Maps fields to display labels
 
 ### 4. **ML Layer**
+- **clinical_data_pipeline.py**
+  - Extracts confirmed diabetic cohorts from CDC NHANES and BRFSS registries
+  - Establishes empirical clinical targets (physician-diagnosed heart disease and laboratory-confirmed KDIGO CKD)
+  
 - **train_model.py**
-  - Trains three independent classifiers (one per complication category)
-  - Splits data: train/test/val sets
-  - Models saved as joblib pickles
+  - Trains calibrated classifiers on authentic clinical cohorts (breaking circular logic)
+  - Evaluates discrimination (AUROC, PR-AUC), calibration (Brier score), and sensitivity
+  - Outputs calibration curves and ROC analysis
+  
+- **clinical_model.py**
+  - Encapsulates trained estimators in `ClinicalRiskWrapper` for reliable pickle serialization
   
 - **model/** directory
   - Trained model files (per category)
-  - training_summary.json - Best model names and metrics
+  - training_summary.json - Best models, AUROC, Brier scores, and calibration metrics
+  - clinical_roc_curves.png & clinical_calibration_curves.png
 
-### 5. **Data Layer** (SQLite)
-- **database.py** - Database abstraction layer
+### 5. **Data Layer** (SQLite with WAL Mode)
+- **database.py** - Database abstraction layer with safe, non-destructive migrations and Write-Ahead Logging
 - **assessments** - Raw patient inputs + session_id + timestamp
-- **risk_results** - Scored results (rule score, label, ML prediction, confidence)
-- **lab_assessments** - Optional lab values (if provided)
+- **risk_results** - Scored results (rule score, label, calibrated ML event probability, AUROC)
+- **lab_assessments** - Optional lab values (HbA1c, Systolic BP, LDL)
 - **feedback** - User feedback signals for model improvement
 
-### 6. **Data Sources**
-- **diabetes_dataset.csv** - Training data (CDC BRFSS survey)
-- **generate_sample_data.py** - Utility for creating test data
+### 6. **Clinical Data Sources**
+- **nhanes_2017_2018_heart_disease_prediction.csv** - CDC NHANES cardiovascular cohort (N=949)
+- **CKD_NHANES_2021_2023.csv** - CDC NHANES nephropathy/CKD cohort (N=848)
+- **diabetes_dataset.csv** - CDC BRFSS mobility/neuropathy cohort (N=35,346)
 
 ### 7. **Static Assets**
 - CSS stylesheets (Tailwind-based)
@@ -184,28 +193,28 @@ Result Rendering (result.html)
 
 ### Model Training Flow
 ```
-Training Data (diabetes_dataset.csv)
+Clinical Cohorts (CDC NHANES 2017-2018, NHANES 2021-2023, BRFSS)
     ↓
-train_model.py Script
+clinical_data_pipeline.py (Cohort Extraction & Ground Truth Staging)
     ↓
-Feature Engineering & Normalization
+train_model.py (5-Fold Stratified Cross-Validation on Train Partition)
     ↓
-Train/Test/Val Split
+Model Selection via CV AUROC (Logistic Regression, Random Forest, Gradient Boosting)
     ↓
-Three Classifiers (CV, Neuropathy, General Burden)
+Final Evaluation on Untouched Holdout Test Set (AUROC, PR-AUC, Brier, Calibration)
     ↓
-Model Serialization (joblib)
+ClinicalRiskWrapper Serialization (joblib)
     ↓
-model/ directory + training_summary.json
+model/ directory + training_summary.json (AUROC, 95% CI, Brier, Curves)
 ```
 
 ## Key Design Decisions
 
-1. **Dual Scoring** - Both rule-based (transparent) and ML-based (predictive) scores for each category
-2. **Session Privacy** - Anonymous session IDs keep each user's history private
-3. **Normalized Schema** - Four-table structure vs. flat JSON for better data organization
-4. **Confidence Scores** - Model predictions include probability scores, not just labels
-5. **Rule-Based Ground Truth** - Rule matrix used for training data generation for consistency
+1. **Dual Decision Support** - Rule-based guideline scoring (ACC/AHA, KDIGO, MNSI) side-by-side with empirical ML risk forecasting
+2. **Empirical Ground Truth** - Ground truth established from physician diagnoses and KDIGO lab staging, breaking circular rule distillation
+3. **Calibrated Probabilities** - Calibrated event risk percentages ($P(\text{event}) \times 100$) rather than raw uncalibrated confidence
+4. **Session Privacy** - Anonymous session IDs keep each user's history private
+5. **Database Reliability** - SQLite Write-Ahead Logging (WAL) and non-destructive schema migrations
 
 ## Database Schema
 
