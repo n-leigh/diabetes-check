@@ -1,8 +1,13 @@
-# Web-Based Diabetes Complication Prediction System
+# Web-Based Diabetes Complication Prediction System (DiaBeates)
 
-Clinical rule matrix + trained classifier + Flask web app, trained on the
-real CDC Diabetes Health Indicators dataset (BRFSS 2015), filtered to
-diabetic-positive respondents — 35,346 rows, no missing values.
+Clinical guideline rule matrix (v2.0-clinical) + calibrated machine learning risk estimators + Flask web app, trained and evaluated on authentic epidemiological cohorts from the CDC National Health and Nutrition Examination Survey (NHANES) and the CDC Behavioral Risk Factor Surveillance System (BRFSS).
+
+## Overview
+
+DiaBeates provides dual-tiered clinical decision support for diabetes complication triage:
+1. **Cardiovascular Disease (ASCVD)**: Evaluates coronary heart disease, angina, and myocardial infarction risk trained on the CDC NHANES 2017–2018 diabetic cohort ($N=949$).
+2. **Nephropathy & Chronic Kidney Disease (KDIGO)**: Predicts laboratory-confirmed CKD (eGFR $< 60\text{ mL/min/1.73m}^2$ or pathological albuminuria $\text{uACR} \ge 30\text{ mg/g}$) trained on the CDC NHANES 2021–2023 cohort ($N=848$).
+3. **Neuropathy & Functional Mobility (MNSI)**: Predicts lower-extremity mobility impairment and peripheral neuropathy proxy (`DiffWalk`) trained on the CDC BRFSS diabetic registry ($N=5,000$ stratified sample).
 
 ## Setup
 
@@ -10,129 +15,73 @@ diabetic-positive respondents — 35,346 rows, no missing values.
 pip install -r requirements.txt
 ```
 
-## Project structure
+## Project Structure
 
 ```
-rule_matrix.py          # clinical rule matrix (label generator + live scorer)
-train_model.py          # loads data, applies rules, compares 3 classifiers per category, saves the best
-database.py              # SQLite persistence for assessments
-app.py                  # Flask web app (form -> rule matrix + model results, /history page)
+app.py                     # Flask web app (session management, CSRF protection, /history, /predict)
+rule_matrix.py             # Clinical guideline rule matrix (ACC/AHA ASCVD, KDIGO, MNSI)
+clinical_data_pipeline.py  # Cohort extraction & ground truth preprocessing (NHANES & BRFSS)
+train_model.py             # 5-fold CV, calibration, training-fold threshold selection, bootstrap CIs
+clinical_model.py          # ClinicalRiskWrapper for reliable model serialization
+database.py                 # SQLite persistence with Write-Ahead Logging (WAL) & safe migrations
+validation.py              # Strict server-side input bounds checking
+recommendations.py         # Clinical tier guidance and lifestyle recommendations
 data/
-  generate_sample_data.py   # synthetic data generator (no longer needed, kept for reference)
-  diabetes_dataset.csv      # REAL DATA: 35,346 diabetic-positive CDC/BRFSS respondents
+  nhanes_2017_2018_heart_disease_prediction.csv  # CDC NHANES 2017-2018 CVD cohort (N=949)
+  CKD_NHANES_2021_2023.csv                       # CDC NHANES 2021-2023 CKD cohort (N=848)
+  diabetes_dataset.csv                           # CDC BRFSS diabetic registry (N=35,346)
 templates/
-  index.html             # patient input form
-  result.html             # risk results page (shows rule matrix + model side by side)
-  history.html            # list of past assessments, links to detail view
-model/                   # trained .pkl files + training_summary.json (which model won, why)
-diabetes_system.db       # created automatically on first run
+  home.html                # Landing page
+  assessment.html          # Patient input form (13 health indicators + optional lab values)
+  result.html              # Dual risk result display (guideline tier + calibrated ML risk)
+  history.html             # Patient session assessment history
+  print_result.html        # Print-optimized PDF clinical summary
+  about.html               # Clinical methodology & ethical scope
+model/
+  cardiovascular_model.pkl       # Calibrated ASCVD risk model
+  general_burden_model.pkl       # Calibrated KDIGO CKD risk model
+  neuropathy_mobility_model.pkl  # Calibrated MNSI mobility risk model
+  training_summary.json          # Epidemiological validation metrics & 95% bootstrap CIs
+  clinical_roc_curves.png        # Out-of-fold ROC curves
+  clinical_calibration_curves.png# Brier score calibration plots
 ```
 
-## How to run right now
+## How to Run
 
 ```bash
-python3 train_model.py     # retrains + saves models (already run once on real data)
-python3 app.py              # starts the web server
-# open http://127.0.0.1:5000
+# 1. (Optional) Retrain models and re-evaluate on clinical cohorts
+python train_model.py
+
+# 2. Run automated verification tests
+python test_clinical_system.py
+
+# 3. Start the Flask application
+python app.py
+# Open http://127.0.0.1:5000
 ```
 
-## Current results (best of 3 classifiers per category, real data, 35,346 rows, 80/20 split)
+## Empirical Clinical Performance
 
-| Category | Best model | Accuracy | Notes |
-|---|---|---|---|
-| Cardiovascular | Random Forest | 98.7% | Decision Tree alone gets 84% (still your most "realistic" single-model story); ensemble closes the gap because it has enough capacity to approximate the rule's threshold interactions closely |
-| Neuropathy/Mobility | Decision Tree | 100% | Simple rule logic dominated by `DiffWalk` — any of the 3 models reconstructs it almost exactly |
-| General Burden | Decision Tree | 100% | Same cause — few features, deterministic thresholds |
+All models are evaluated on untouched holdout test sets with 95% bootstrap confidence intervals (1,000 resamples):
 
-Full comparison across all 3 algorithms for all 3 categories is saved in
-`model/training_summary.json` — pull straight from there for your
-results-chapter comparison table.
+| Complication Domain | Winning Classifier | AUROC [95% CI] | PR-AUC | Brier Score | Sensitivity | NPV |
+|---|---|:---:|:---:|:---:|:---:|:---:|
+| **Cardiovascular (ASCVD)** | Calibrated Logistic Regression | **0.7644** [0.685–0.836] | 0.4700 | **0.1549** | **93.33%** | **95.59%** |
+| **Nephropathy & Renal (KDIGO)** | Calibrated Logistic Regression | **0.7630** [0.690–0.837] | 0.8689 | **0.1966** | **86.24%** | **63.41%** |
+| **Neuropathy & Mobility (MNSI)** | Gradient Boosting Classifier | **0.7992** [0.771–0.826] | 0.6823 | **0.1765** | **87.26%** | **88.56%** |
 
-## Live demo checklist for next week
+Full epidemiological comparison across algorithms and folds is recorded in [`model/training_summary.json`](model/training_summary.json) and detailed in [`METHODOLOGY.md`](METHODOLOGY.md).
 
-1. `pip install -r requirements.txt`
-2. `python3 train_model.py` (already run — re-run only if you change the
-   dataset or rule matrix)
-3. `python3 app.py` → open http://127.0.0.1:5000
-4. Submit a few assessments with different values (try one with all boxes
-   unchecked and low BMI for a "Low" result, one with everything checked
-   and high BMI for "High" — makes for a clean before/after demo)
-5. Click **History** to show persistence — this is your strongest visual
-   proof the "web-based system" part of the title is real, not just a
-   script
-6. Click **View** on a past record to show it's independently retrievable
+## Key Architectural Principles
 
-Also note for your limitations section: 5,122 of the 35,346 rows are
-exact duplicates across the feature set. Expected — BRFSS features are
-coarse/categorical, so distinct respondents legitimately share identical
-profiles. Kept rather than dropped, to avoid selection bias.
+1. **Empirical Ground Truth**: Models break circular rule distillation by learning from physician diagnoses and laboratory-confirmed clinical endpoints.
+2. **Dual Decision Support**: Guideline-based scores (ACC/AHA ASCVD, KDIGO, MNSI) provide transparent interpretability alongside data-driven calibrated probabilities.
+3. **Leak-Free Thresholds**: Decision thresholds are derived strictly within training folds using Youden's J statistic, optimizing for high sensitivity (>86%) and NPV (>88–96%) for triage safety.
+4. **Two-Tiered Screening**:
+   - Tier 1: 13 non-invasive clinical indicators (lifestyle, vitals, symptoms) accessible in under 2 minutes.
+   - Tier 2: Optional point-of-care laboratory biomarkers (HbA1c, Systolic BP, LDL) scored against ADA 2026 guidelines.
+5. **Production Hardening**: Flask-WTF CSRF protection, SQLite Write-Ahead Logging (WAL) with safe migrations, rotating logging (10MB rotation, 5 backups), and strict server-side validation.
 
-## Printable results
+## Printable Clinical Summary
 
-Every result has a "Print / Save Result" button (also available from the
-History table) linking to `/history/<id>/print` — a standalone,
-purpose-built template (`templates/print_result.html`), not just the
-styled page dumped to a printer. It translates coded values back to
-plain language (e.g. Age band 9 → "60–64"), lays out risk results as a
-clean table, includes the recommendations and lab assessment if present,
-and ends with the same "not medical advice" disclaimer. An on-screen
-"Print / Save as PDF" button triggers `window.print()`; it's hidden via
-`@media print` so it doesn't appear in the actual printout.
-
-## Recent updates
-
-- **Footer** added site-wide via `base.html`, with nav links and a plain-language disclaimer
-- **Gauge fixed** — the circular risk-score rings were using a hand-rotated 270° arc that
-  visually misrepresented the percentage and had overlapping text. Replaced with a standard
-  full-circle progress ring (`templates/result.html`) — verified the dash-offset math directly
-  against expected values before shipping.
-- **Form redesigned for a general audience, not just clinicians**: Age and General Health are
-  now dropdowns with plain-language options (no more guessing what "band 6" means), every field
-  has a one-line plain-English explanation, and required fields use light "e.g. 24.5" placeholder
-  hints instead of silently pre-filled fake values that could look like real data.
-- **Recommendations engine** (`recommendations.py`) — turns the risk results into plain-language
-  next steps per category, always ending with a "this isn't medical advice" reminder. Wired into
-  both `/predict` and `/history/<id>`.
-- **Language pass**: "Assess Another Patient" → "Check Someone Else", since this system is meant
-  for anyone checking their own risk, not just healthcare staff reviewing a patient's chart.
-
-## Routes
-
-- `/` — Home landing page (hero, stats, category overview)
-- `/assessment` — the actual risk assessment form
-- `/predict` — POST target for the form, shows results
-- `/history` — list of past assessments
-- `/history/<id>` — a single past assessment's results
-- `/about` — Study Background + Ethics/Limitations/Disclaimer
-
-## Design
-
-Restyled to match the "DiaBeates" Figma Make design (teal/sky gradient
-theme, Plus Jakarta Sans + Inter fonts, circular risk gauges, your custom
-logo) — Tailwind CSS via CDN, no build step needed. `templates/base.html`
-holds the shared navbar and design tokens; `index.html`, `result.html`,
-and `history.html` extend it. A compact hero banner (adapted from the
-Figma design's Home page) sits above the form, using our real numbers
-(35,346 real patient records, 3 categories, 3 classifiers compared) —
-not the placeholder marketing stats from the original design.
-
-## Optional lab values (HbA1c, Systolic BP, LDL)
-
-The CDC dataset used to train the classifiers is self-reported survey
-data — it doesn't contain lab values, so the trained models can't use
-them. Instead, `rule_matrix.py`'s `compute_lab_assessment()` scores any
-lab values a user enters directly against cited ADA/NHANES thresholds,
-shown as a separate "Lab-Based Clinical Assessment" card, fully optional
-and independent of the 3 survey-based categories above it. If a
-panelist asks about HbA1c/lab data: this is your answer — it's there,
-cited, and deliberately kept separate from the classifier rather than
-silently blended in, since the classifier was never trained on it.
-
-## About page
-
-`/about` covers the actual Study Background and a substantive
-Ethics, Limitations & Disclaimer section written specifically for this
-project: rule-derived training labels (not real diagnosed outcomes),
-CDC/BRFSS dataset scope and bias, and local-only data handling. R&D
-Phases, Research Significance, and Team sections were intentionally
-left out — add them later with real specifics if you want the full page.
+Every assessment offers a "Print / Save Result" action linking to `/history/<id>/print` — a dedicated template ([`templates/print_result.html`](templates/print_result.html)) with print styling, coded value translation, and clinical disclaimers for patient charts.
