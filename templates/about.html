@@ -30,40 +30,29 @@
           <h2 class="font-display text-3xl font-extrabold text-slate-900 mb-4">What DiaBeates does</h2>
           <div class="space-y-4 text-slate-500 text-base leading-relaxed">
             <p>
-              Diabetes can progress quietly, and many complications become more difficult to manage when
-              they are identified too late. DiaBeates is designed to make that first step easier by
-              translating routine health information into a practical risk assessment.
+              Diabetes can progress quietly, and major microvascular and macrovascular complications become significantly harder to manage when identified late. DiaBeates translates routine patient indicators and optional point-of-care laboratory findings into actionable risk assessments.
             </p>
             <p>
-              DiaBeates was built to assess risk in two ways at once: a transparent, clinically-cited
-              <strong>rule matrix</strong> and a <strong>trained classification model</strong>, shown
-              side by side to support earlier follow-up and better-informed discussion with clinicians.
+              DiaBeates employs a <strong>Dual-Engine Clinical Architecture</strong>: an evidence-grounded <strong>Clinical Rule Matrix (Version 2.0-clinical)</strong> running concurrently alongside <strong>calibrated machine learning models</strong> trained on authentic CDC clinical cohorts, presented side by side for transparent evaluation.
             </p>
             <p>
-              Early screening matters because small changes in blood pressure, cholesterol, lifestyle,
-              mobility, and overall health burden can signal elevated risk before significant illness
-              develops. DiaBeates supports informed decision-making by turning those signals into a clear,
-              explainable summary that is easy to understand and discuss with a healthcare professional.
+              Early risk identification matters because incremental elevations in blood pressure, atherogenic lipids, glycemic load, and mobility friction signal progressive organ damage before irreversible complications occur.
             </p>
           </div>
         </div>
         <div class="space-y-4">
           <div class="rounded-2xl border p-5 bg-teal-50 border-teal-200">
-            <span class="text-xs font-semibold px-2.5 py-0.5 rounded-full bg-white border border-teal-200 text-teal-600">Transparent Risk Logic</span>
-            <h3 class="font-display font-bold text-base mb-2 mt-3 text-teal-600">Structured clinical rules</h3>
+            <span class="text-xs font-semibold px-2.5 py-0.5 rounded-full bg-white border border-teal-200 text-teal-600">Transparent Rule Logic</span>
+            <h3 class="font-display font-bold text-base mb-2 mt-3 text-teal-700">Clinical Rule Matrix (v2.0)</h3>
             <p class="text-sm text-slate-600 leading-relaxed">
-              Encodes established risk factors (hypertension, cholesterol, smoking, mobility
-              difficulty, general health burden) into a transparent point system, cited to ADA
-              Standards of Care and NHANES threshold research. Every score is explainable, no black box.
+              Grounds risk scoring directly in published clinical consensus: <strong>ACC/AHA 10-Year ASCVD</strong> &amp; UKPDS for cardiovascular disease, <strong>KDIGO 2024</strong> for diabetic nephropathy, and the <strong>Michigan Neuropathy Screening Instrument (MNSI)</strong> for peripheral neuropathy.
             </p>
           </div>
           <div class="rounded-2xl border p-5 bg-sky-50 border-sky-200">
             <span class="text-xs font-semibold px-2.5 py-0.5 rounded-full bg-white border border-sky-200 text-sky-600">Predictive Modeling</span>
-            <h3 class="font-display font-bold text-base mb-2 mt-3 text-sky-600">Statistical classification</h3>
+            <h3 class="font-display font-bold text-base mb-2 mt-3 text-sky-700">Calibrated ML Classifiers</h3>
             <p class="text-sm text-slate-600 leading-relaxed">
-              In addition to rule-based assessment, the system applies statistical classification models to
-              detect patterns in the submitted health indicators and generate a category prediction for
-              comparison with the rule-matrix result.
+              Trained on authentic <strong>CDC NHANES</strong> and <strong>BRFSS</strong> diabetic cohorts with diagnosed complications. Models output calibrated risk probabilities alongside discrimination metrics (<strong>AUROC</strong>) and calibration error (<strong>Brier Score</strong>).
             </p>
           </div>
         </div>
@@ -73,33 +62,30 @@
 
   <section class="py-16 px-4 bg-slate-50 border-t border-slate-100">
     <div class="max-w-5xl mx-auto">
-      <h2 class="font-display text-3xl font-extrabold text-slate-900 mb-8 text-center">Built for clarity, transparency, and action</h2>
+      <h2 class="font-display text-3xl font-extrabold text-slate-900 mb-8 text-center">Built for clarity, transparency, and clinical action</h2>
 
       <div class="grid md:grid-cols-3 gap-6">
         <div class="bg-white border border-slate-200 rounded-2xl p-6 shadow-sm">
           <div class="w-10 h-10 rounded-full bg-teal-100 flex items-center justify-center mb-4 text-teal-700 font-bold">01</div>
-          <h3 class="font-display font-bold text-slate-800 mb-2">Complete-data validation</h3>
+          <h3 class="font-display font-bold text-slate-800 mb-2">Dual-Engine Verification</h3>
           <p class="text-sm text-slate-600 leading-relaxed">
-            Every assessment is checked for required inputs and valid values before analysis so the
-            screening estimate uses complete, usable information.
+            Every category pairs explainable rule scores with calibrated ML probabilities, eliminating black-box uncertainty and enabling clinical scrutiny.
           </p>
         </div>
 
         <div class="bg-white border border-slate-200 rounded-2xl p-6 shadow-sm">
           <div class="w-10 h-10 rounded-full bg-sky-100 flex items-center justify-center mb-4 text-sky-700 font-bold">02</div>
-          <h3 class="font-display font-bold text-slate-800 mb-2">Personalized guidance</h3>
+          <h3 class="font-display font-bold text-slate-800 mb-2">Point-of-Care Lab Precision</h3>
           <p class="text-sm text-slate-600 leading-relaxed">
-            Results are paired with practical health guidance designed to help users understand what the
-            risk level may mean and which habits or follow-up steps deserve attention.
+            Optional input for HbA1c, systolic blood pressure, and LDL cholesterol evaluated against ADA Standards of Care and KDIGO guideline thresholds.
           </p>
         </div>
 
         <div class="bg-white border border-slate-200 rounded-2xl p-6 shadow-sm">
           <div class="w-10 h-10 rounded-full bg-amber-100 flex items-center justify-center mb-4 text-amber-700 font-bold">03</div>
-          <h3 class="font-display font-bold text-slate-800 mb-2">Referral advisories</h3>
+          <h3 class="font-display font-bold text-slate-800 mb-2">Guideline Action Steps</h3>
           <p class="text-sm text-slate-600 leading-relaxed">
-            For higher-risk cases, the system can suggest when a physician review may be appropriate,
-            helping users act sooner when elevated risk warrants medical attention.
+            Personalized next steps, lifestyle priorities, and physician referral alerts triggered when risk tiers indicate timely clinical evaluation is needed.
           </p>
         </div>
       </div>
@@ -108,7 +94,7 @@
 
   <section class="py-16 px-4 bg-white border-t border-slate-100">
     <div class="max-w-4xl mx-auto">
-      <h2 class="font-display text-3xl font-extrabold text-slate-900 mb-8 text-center">Ethics, Limitations, and Disclaimer</h2>
+      <h2 class="font-display text-3xl font-extrabold text-slate-900 mb-8 text-center">Ethics, Limitations, and Clinical Scope</h2>
 
       <div class="space-y-4">
 
@@ -117,47 +103,31 @@
             <path fill-rule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clip-rule="evenodd"/>
           </svg>
           <div>
-            <h3 class="font-display font-bold text-amber-800 mb-2">Not a diagnostic tool</h3>
+            <h3 class="font-display font-bold text-amber-800 mb-2">Preliminary screening tool — not a diagnostic device</h3>
             <p class="text-sm text-amber-700 leading-relaxed">
-              DiaBeates is an academic case study built to demonstrate classification modeling on a
-              healthcare screening problem, it is not a certified or clinically validated medical
-              device. Risk levels shown are statistical estimates, not diagnoses. Results should never
-              replace evaluation by a licensed healthcare provider, and no treatment decision should be
-              made on this tool's output alone.
+              DiaBeates is an educational clinical decision support platform designed to facilitate early risk awareness and informed patient-clinician discussion. It is not a certified medical device. Risk levels are statistical projections, not definitive diagnoses. Results should never replace formal clinical evaluation, and no treatment or prescription adjustments should be made based on this tool alone.
             </p>
           </div>
         </div>
 
         <div class="bg-slate-50 border border-slate-200 rounded-2xl p-6">
-          <h3 class="font-display font-bold text-slate-800 mb-2">Ground truth comes from rules, not diagnosed outcomes</h3>
+          <h3 class="font-display font-bold text-slate-800 mb-2">Authentic clinical cohorts &amp; epidemiological training</h3>
           <p class="text-sm text-slate-600 leading-relaxed">
-            The classifiers were trained on labels generated by our own rule matrix, not on
-            confirmed clinical diagnoses of complications. This means the model's job is to learn to
-            approximate the rule matrix efficiently, not to discover new medical patterns. Two of the
-            three categories reach near-perfect accuracy for exactly this reason: their underlying
-            rules are simple enough that a classifier can reconstruct them almost exactly. This is
-            expected and disclosed here rather than presented as a stronger result than it is.
+            Machine learning models are trained on authentic cohorts: the <strong>CDC NHANES 2017–2018</strong> diabetic cohort with diagnosed cardiovascular disease (N=949), the <strong>CDC NHANES 2021–2023</strong> cohort with laboratory-confirmed CKD staging (N=848), and the <strong>CDC BRFSS</strong> diabetic cohort for functional mobility and neuropathy indicators (N=35,346). Models undergo probability calibration (CalibratedClassifierCV) and are evaluated via discrimination (AUROC) and calibration reliability (Brier score).
           </p>
         </div>
 
         <div class="bg-slate-50 border border-slate-200 rounded-2xl p-6">
-          <h3 class="font-display font-bold text-slate-800 mb-2">Dataset scope</h3>
+          <h3 class="font-display font-bold text-slate-800 mb-2">Population generalizability</h3>
           <p class="text-sm text-slate-600 leading-relaxed">
-            Training data comes from the CDC's BRFSS survey, self-reported health data from U.S.
-            respondents, not lab-confirmed clinical records. Findings may not generalize to
-            populations, healthcare systems, or reporting norms outside that context. The optional
-            lab-values layer (HbA1c, blood pressure, LDL) is scored against cited clinical thresholds,
-            but has not itself been clinically validated as a predictive tool.
+            The underlying cohorts represent adult populations within the United States. Risk coefficients and baseline event rates may differ across international populations, varied genetic predispositions, and distinct healthcare delivery models.
           </p>
         </div>
 
         <div class="bg-slate-50 border border-slate-200 rounded-2xl p-6">
-          <h3 class="font-display font-bold text-slate-800 mb-2">Data handling</h3>
+          <h3 class="font-display font-bold text-slate-800 mb-2">Data security, privacy, and session isolation</h3>
           <p class="text-sm text-slate-600 leading-relaxed">
-            Assessments entered into this system are stored locally in the app's own database for
-            demonstration purposes (e.g. the History page). No real patient data, consent process, or
-            production-grade privacy safeguards are involved, this system is not intended for
-            deployment with real patient records without further ethical review and safeguards.
+            Assessments are scoped to anonymous client sessions and stored locally using SQLite with Write-Ahead Logging (WAL). All submissions are protected by CSRF validation and application rate limits. Users have full control over their assessment history, with complete capabilities to archive, restore, and delete records.
           </p>
         </div>
 

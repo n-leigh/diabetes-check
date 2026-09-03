@@ -38,63 +38,59 @@ SCHEMA_VERSION = 3
 
 
 def get_connection():
-    conn = sqlite3.connect(DB_PATH)
+    conn = sqlite3.connect(DB_PATH, timeout=10.0)
     conn.row_factory = sqlite3.Row
     conn.execute("PRAGMA foreign_keys = ON")
+    conn.execute("PRAGMA journal_mode = WAL")
+    conn.execute("PRAGMA busy_timeout = 5000")
     return conn
 
 
 def init_db():
     conn = get_connection()
-    current_version = conn.execute("PRAGMA user_version").fetchone()[0]
 
-    if current_version != SCHEMA_VERSION:
-        for table in ("feedback", "lab_assessments", "risk_results", "assessments"):
-            conn.execute(f"DROP TABLE IF EXISTS {table}")
-
-        conn.execute("""
-            CREATE TABLE assessments (
-                id INTEGER PRIMARY KEY AUTOINCREMENT,
-                session_id TEXT NOT NULL,
-                created_at TEXT NOT NULL,
-                rule_matrix_version TEXT NOT NULL,
-                archived INTEGER NOT NULL DEFAULT 0,
-                bmi REAL, age_band INTEGER, gen_hlth INTEGER, sex INTEGER,
-                phys_hlth INTEGER, ment_hlth INTEGER,
-                high_bp INTEGER, high_chol INTEGER, smoker INTEGER,
-                heart_disease INTEGER, stroke INTEGER, diff_walk INTEGER,
-                no_doc_cost INTEGER
-            )
-        """)
-        conn.execute("""
-            CREATE TABLE risk_results (
-                id INTEGER PRIMARY KEY AUTOINCREMENT,
-                assessment_id INTEGER NOT NULL REFERENCES assessments(id),
-                category TEXT NOT NULL,
-                rule_score INTEGER, rule_percentage INTEGER, rule_label TEXT,
-                model_name TEXT, model_label TEXT, model_confidence REAL
-            )
-        """)
-        conn.execute("""
-            CREATE TABLE lab_assessments (
-                id INTEGER PRIMARY KEY AUTOINCREMENT,
-                assessment_id INTEGER NOT NULL REFERENCES assessments(id),
-                hba1c REAL, systolic_bp INTEGER, ldl INTEGER,
-                label TEXT, percentage INTEGER
-            )
-        """)
-        conn.execute("""
-            CREATE TABLE feedback (
-                id INTEGER PRIMARY KEY AUTOINCREMENT,
-                assessment_id INTEGER NOT NULL REFERENCES assessments(id),
-                created_at TEXT NOT NULL,
-                helpful INTEGER NOT NULL,
-                comment TEXT
-            )
-        """)
-        conn.execute(f"PRAGMA user_version = {SCHEMA_VERSION}")
-        conn.commit()
-
+    conn.execute("""
+        CREATE TABLE IF NOT EXISTS assessments (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            session_id TEXT NOT NULL,
+            created_at TEXT NOT NULL,
+            rule_matrix_version TEXT NOT NULL,
+            archived INTEGER NOT NULL DEFAULT 0,
+            bmi REAL, age_band INTEGER, gen_hlth INTEGER, sex INTEGER,
+            phys_hlth INTEGER, ment_hlth INTEGER,
+            high_bp INTEGER, high_chol INTEGER, smoker INTEGER,
+            heart_disease INTEGER, stroke INTEGER, diff_walk INTEGER,
+            no_doc_cost INTEGER
+        )
+    """)
+    conn.execute("""
+        CREATE TABLE IF NOT EXISTS risk_results (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            assessment_id INTEGER NOT NULL REFERENCES assessments(id),
+            category TEXT NOT NULL,
+            rule_score INTEGER, rule_percentage INTEGER, rule_label TEXT,
+            model_name TEXT, model_label TEXT, model_confidence REAL
+        )
+    """)
+    conn.execute("""
+        CREATE TABLE IF NOT EXISTS lab_assessments (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            assessment_id INTEGER NOT NULL REFERENCES assessments(id),
+            hba1c REAL, systolic_bp INTEGER, ldl INTEGER,
+            label TEXT, percentage INTEGER
+        )
+    """)
+    conn.execute("""
+        CREATE TABLE IF NOT EXISTS feedback (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            assessment_id INTEGER NOT NULL REFERENCES assessments(id),
+            created_at TEXT NOT NULL,
+            helpful INTEGER NOT NULL,
+            comment TEXT
+        )
+    """)
+    conn.execute(f"PRAGMA user_version = {SCHEMA_VERSION}")
+    conn.commit()
     conn.close()
 
 

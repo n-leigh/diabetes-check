@@ -1,29 +1,130 @@
 {
   "cardiovascular": {
-    "best_model": "Random Forest",
-    "accuracy": 0.987,
-    "all_models_compared": {
-      "Decision Tree": 0.919,
-      "Logistic Regression": 0.9276,
-      "Random Forest": 0.987
-    }
-  },
-  "neuropathy_mobility": {
-    "best_model": "Decision Tree",
-    "accuracy": 1.0,
-    "all_models_compared": {
-      "Decision Tree": 1.0,
-      "Logistic Regression": 0.9376,
-      "Random Forest": 0.9963
+    "title": "Cardiovascular Complications (NHANES CVD Cohort)",
+    "best_model": "Calibrated Logistic Regression",
+    "auroc": 0.7593,
+    "pr_auc": 0.4584,
+    "brier_score": 0.1555,
+    "sensitivity": 0.8667,
+    "specificity": 0.5586,
+    "negative_predictive_value": 0.931,
+    "positive_predictive_value": 0.3786,
+    "high_risk_threshold": 0.2011,
+    "features_used": [
+      "HighBP",
+      "HighChol",
+      "Smoker",
+      "Stroke",
+      "Age",
+      "Sex"
+    ],
+    "models_compared": {
+      "Calibrated Logistic Regression": {
+        "auroc": 0.7593,
+        "pr_auc": 0.4584,
+        "brier_score": 0.1555,
+        "sensitivity": 0.8667,
+        "specificity": 0.5586
+      },
+      "Calibrated Random Forest": {
+        "auroc": 0.698,
+        "pr_auc": 0.379,
+        "brier_score": 0.1681,
+        "sensitivity": 0.8667,
+        "specificity": 0.4966
+      },
+      "Gradient Boosting Classifier": {
+        "auroc": 0.6989,
+        "pr_auc": 0.3654,
+        "brier_score": 0.1692,
+        "sensitivity": 0.8667,
+        "specificity": 0.4
+      }
     }
   },
   "general_burden": {
-    "best_model": "Decision Tree",
-    "accuracy": 1.0,
-    "all_models_compared": {
-      "Decision Tree": 1.0,
-      "Logistic Regression": 0.969,
-      "Random Forest": 1.0
+    "title": "Nephropathy & Renal Staging (NHANES CKD Cohort)",
+    "best_model": "Calibrated Logistic Regression",
+    "auroc": 0.7738,
+    "pr_auc": 0.8741,
+    "brier_score": 0.1934,
+    "sensitivity": 0.8532,
+    "specificity": 0.459,
+    "negative_predictive_value": 0.6364,
+    "positive_predictive_value": 0.7381,
+    "high_risk_threshold": 0.5482,
+    "features_used": [
+      "HighBP",
+      "Smoker",
+      "BMI",
+      "Age",
+      "Sex"
+    ],
+    "models_compared": {
+      "Calibrated Logistic Regression": {
+        "auroc": 0.7738,
+        "pr_auc": 0.8741,
+        "brier_score": 0.1934,
+        "sensitivity": 0.8532,
+        "specificity": 0.459
+      },
+      "Calibrated Random Forest": {
+        "auroc": 0.7591,
+        "pr_auc": 0.8555,
+        "brier_score": 0.1933,
+        "sensitivity": 0.8532,
+        "specificity": 0.4262
+      },
+      "Gradient Boosting Classifier": {
+        "auroc": 0.7113,
+        "pr_auc": 0.825,
+        "brier_score": 0.2049,
+        "sensitivity": 0.8807,
+        "specificity": 0.1967
+      }
+    }
+  },
+  "neuropathy_mobility": {
+    "title": "Neuropathy & Mobility Impairment (CDC Diabetic Cohort)",
+    "best_model": "Gradient Boosting Classifier",
+    "auroc": 0.7992,
+    "pr_auc": 0.6823,
+    "brier_score": 0.1765,
+    "sensitivity": 0.8509,
+    "specificity": 0.5975,
+    "negative_predictive_value": 0.8727,
+    "positive_predictive_value": 0.5528,
+    "high_risk_threshold": 0.2489,
+    "features_used": [
+      "BMI",
+      "Age",
+      "PhysHlth",
+      "GenHlth",
+      "Smoker",
+      "HighBP"
+    ],
+    "models_compared": {
+      "Calibrated Logistic Regression": {
+        "auroc": 0.7931,
+        "pr_auc": 0.684,
+        "brier_score": 0.1786,
+        "sensitivity": 0.8537,
+        "specificity": 0.5753
+      },
+      "Calibrated Random Forest": {
+        "auroc": 0.7963,
+        "pr_auc": 0.6742,
+        "brier_score": 0.179,
+        "sensitivity": 0.8537,
+        "specificity": 0.5975
+      },
+      "Gradient Boosting Classifier": {
+        "auroc": 0.7992,
+        "pr_auc": 0.6823,
+        "brier_score": 0.1765,
+        "sensitivity": 0.8509,
+        "specificity": 0.5975
+      }
     }
   }
 }

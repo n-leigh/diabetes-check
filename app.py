@@ -1,23 +1,35 @@
 """
 app.py — Web-Based Diabetes Complication Prediction System
 
+Combines:
+1. Dual-Engine Clinical Architecture:
+   - Transparent, evidence-based clinical rule matrix (Version 2.0-clinical: ACC/AHA, KDIGO 2024, MNSI)
+   - Calibrated machine learning models trained on authentic CDC NHANES diabetic cohorts
+2. Production Hardening & Reliability:
+   - CSRF protection on all POST forms via Flask-WTF
+   - Rate limiting via Flask-Limiter
+   - Environment secret configuration (.env)
+   - Rotating file application logger (logs/diabetes_system.log)
+   - Safe, non-destructive SQLite database migrations with WAL mode
+
 Run: python3 app.py
 Then open http://127.0.0.1:5000
-
-Shows BOTH the rule-matrix score (transparent, explainable) and the
-trained classifier's prediction (data-driven) for each complication
-category, and persists every assessment to SQLite. Each visitor gets an
-anonymous session cookie so their History page only ever shows their own
-assessments — not everyone's.
 """
 
 import os
 import json
 import uuid
+import logging
+import logging.handlers
+from dotenv import load_dotenv
 import joblib
 import pandas as pd
 from flask import Flask, render_template, request, redirect, url_for, session
+from flask_wtf.csrf import CSRFProtect, CSRFError
+from flask_limiter import Limiter
+from flask_limiter.util import get_remote_address
 
+import clinical_model
 from rule_matrix import compute_all_risks, compute_lab_assessment, RULE_VERSION
 from recommendations import build_recommendations
 from validation import validate_patient_form
@@ -25,13 +37,48 @@ from field_labels import describe_patient
 import database
 
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
+load_dotenv(os.path.join(BASE_DIR, ".env"))
+
+# ===== LOGGING CONFIGURATION =====
+log_dir = os.path.join(BASE_DIR, "logs")
+os.makedirs(log_dir, exist_ok=True)
+
+logging.basicConfig(
+    level=logging.INFO,
+    format="%(asctime)s - %(name)s - %(levelname)s - %(message)s",
+    handlers=[
+        logging.handlers.RotatingFileHandler(
+            os.path.join(log_dir, "diabetes_system.log"),
+            maxBytes=10485760,  # 10MB
+            backupCount=5
+        ),
+        logging.StreamHandler()
+    ]
+)
+logger = logging.getLogger("DiaBeates")
+
+DEFAULT_SECRET_KEY = "diabeates-dev-secret-replace-before-any-real-deployment"
+SECRET_KEY = os.getenv("SECRET_KEY", DEFAULT_SECRET_KEY)
+DEBUG = os.getenv("DEBUG", "False").strip().lower() in {"1", "true", "yes", "on"}
+
+if SECRET_KEY == DEFAULT_SECRET_KEY:
+    logger.warning("SECURITY WARNING: Using default secret key. Set SECRET_KEY in .env for production.")
 
 app = Flask(__name__)
-# Fixed for local/demo use so sessions survive a server restart during a
-# demo. Replace with a real secret (e.g. from an environment variable)
-# before any actual public deployment.
-app.secret_key = "diabeates-dev-secret-replace-before-any-real-deployment"
+app.config["SECRET_KEY"] = SECRET_KEY
+app.config["WTF_CSRF_TIME_LIMIT"] = None
+app.config["TEMPLATES_AUTO_RELOAD"] = True
+csrf = CSRFProtect(app)
+
+limiter = Limiter(
+    app=app,
+    key_func=get_remote_address,
+    default_limits=["300 per day", "100 per hour"],
+    storage_uri="memory://",
+)
+
 database.init_db()
+logger.info("Database initialized successfully with non-destructive WAL mode.")
 
 CATEGORIES = ["cardiovascular", "neuropathy_mobility", "general_burden"]
 FEATURE_COLUMNS = [
@@ -42,20 +89,27 @@ FEATURE_COLUMNS = [
 
 MODELS = {}
 MODEL_NAMES = {}
+CLINICAL_METRICS = {}
 _summary_path = os.path.join(BASE_DIR, "model", "training_summary.json")
 if os.path.exists(_summary_path):
-    with open(_summary_path) as f:
-        _summary = json.load(f)
-        MODEL_NAMES = {cat: _summary[cat]["best_model"] for cat in _summary}
+    try:
+        with open(_summary_path) as f:
+            _summary = json.load(f)
+            MODEL_NAMES = {cat: _summary[cat]["best_model"] for cat in _summary}
+            CLINICAL_METRICS = _summary
+        logger.info(f"Loaded clinical models summary: {list(MODEL_NAMES.keys())}")
+    except Exception as e:
+        logger.error(f"Failed to load training_summary.json: {e}")
 
 for cat in CATEGORIES:
     path = os.path.join(BASE_DIR, "model", f"{cat}_model.pkl")
     if os.path.exists(path):
-        MODELS[cat] = joblib.load(path)
+        try:
+            MODELS[cat] = joblib.load(path)
+        except Exception as e:
+            logger.error(f"Error loading model for {cat}: {e}")
     else:
-        print(f"WARNING: model file not found for '{cat}' at {path} — "
-              f"run train_model.py first, or check you're launching app.py "
-              f"from the project root.")
+        logger.warning(f"Model file not found for '{cat}' at {path}")
 
 
 @app.before_request
@@ -81,6 +135,7 @@ def about():
 
 
 @app.route("/predict", methods=["POST"])
+@limiter.limit("20 per minute")
 def predict():
     patient, lab_values, errors = validate_patient_form(request.form)
 
@@ -110,7 +165,8 @@ def predict():
                 model_results[cat] = pred
                 if hasattr(model, "predict_proba"):
                     proba = model.predict_proba(X)[0]
-                    model_confidences[cat] = round(max(proba) * 100, 1)
+                    risk_pct = round(proba[1] * 100, 1) if len(proba) == 2 else round(max(proba) * 100, 1)
+                    model_confidences[cat] = risk_pct
 
     assessment_id = database.save_assessment(
         session_id=session["session_id"],
@@ -132,6 +188,7 @@ def predict():
         model_results=model_results,
         model_confidences=model_confidences,
         model_names=MODEL_NAMES,
+        clinical_metrics=CLINICAL_METRICS,
         categories=CATEGORIES,
         lab_assessment=lab_assessment,
         recommendations=recommendations,
@@ -173,6 +230,7 @@ def history_detail(assessment_id):
         model_results=record["model_results"],
         model_confidences=record.get("model_confidences", {}),
         model_names=record.get("model_names") or MODEL_NAMES,
+        clinical_metrics=CLINICAL_METRICS,
         categories=CATEGORIES,
         lab_assessment=record.get("lab_assessment"),
         recommendations=build_recommendations(record["rule_results"], record.get("lab_assessment")),
@@ -204,26 +262,34 @@ def print_result(assessment_id):
 
 @app.route("/feedback/<int:assessment_id>", methods=["POST"])
 def feedback(assessment_id):
-    # Confirm this assessment belongs to the current session before
-    # logging feedback against it — same ownership check as viewing.
     record = database.get_assessment(assessment_id, session_id=session["session_id"])
     if not record:
         return redirect(url_for("history"))
 
     helpful = request.form.get("helpful") == "yes"
     database.save_feedback(assessment_id, helpful)
-
     return redirect(url_for("history_detail", assessment_id=assessment_id) + "?feedback=thanks")
+
+
+@app.errorhandler(CSRFError)
+def handle_csrf_error(e):
+    logger.warning(f"CSRF validation failed: {e.description}")
+    return render_template(
+        "assessment.html",
+        errors=["Security validation failed (CSRF token missing or expired). Please resubmit."],
+        form_data={},
+    ), 400
 
 
 @app.errorhandler(Exception)
 def handle_unexpected_error(e):
+    logger.exception(f"Unexpected server error: {e}")
     return render_template(
         "assessment.html",
-        errors=["Something went wrong processing that request. Please check your inputs and try again."],
+        errors=["An error occurred while processing your assessment. Please check your inputs and try again."],
         form_data={},
     ), 500
 
 
 if __name__ == "__main__":
-    app.run(debug=True)
+    app.run(debug=DEBUG)

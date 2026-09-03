@@ -28,8 +28,14 @@
   <div class="max-w-2xl mx-auto">
 
     <div class="text-center mb-8">
+      <div class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold bg-teal-50 text-teal-700 border border-teal-200 mb-3 shadow-xs">
+        <svg class="w-3.5 h-3.5 text-teal-600" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+          <path stroke-linecap="round" stroke-linejoin="round" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+        </svg>
+        Clinical Engine v2.0-clinical &bull; ACC/AHA &bull; KDIGO 2024 &bull; MNSI
+      </div>
       <h1 class="font-display text-3xl font-extrabold text-slate-900 mb-2">Diabetes Complication Risk Assessment</h1>
-      <p class="text-slate-500 text-sm">No medical background needed, just answer what you can. Anything you're unsure of, your doctor can help fill in.</p>
+      <p class="text-slate-500 text-sm">No medical background needed, just answer what you can. Enter optional lab readings for enhanced point-of-care precision.</p>
     </div>
 
     <div class="animated-border-card">
@@ -52,6 +58,7 @@
       {% endif %}
 
       <form action="/predict" method="post" novalidate>
+        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}" />
 
         <h3 class="font-semibold text-xs text-slate-500 uppercase tracking-wider mb-4">About You</h3>
         <div class="grid grid-cols-2 gap-4 mb-6">
@@ -145,7 +152,7 @@
         <h3 class="font-semibold text-xs text-slate-500 uppercase tracking-wider mb-1">Health & Risk Factors</h3>
         <p class="text-xs text-slate-400 mb-4">
           Check anything that applies to you. Not sure about one? Leave it unchecked.
-          {{ info_tooltip('These binary clinical risk factors match the CDC BRFSS survey indicators used by our scoring rule matrix and trained classifiers.', align='left') }}
+          {{ info_tooltip('These clinical risk factors match the CDC epidemiological survey and NHANES indicators used by our v2.0 scoring rule matrix and calibrated classifiers.', align='left') }}
         </p>
         <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 mb-8">
           {% set checkboxes = [
@@ -186,10 +193,16 @@
           {% endfor %}
         </div>
 
-        <h3 class="font-semibold text-xs text-slate-500 uppercase tracking-wider mb-1">Lab Values (Optional)</h3>
-        <p class="text-xs text-slate-400 mb-4">
-          Have recent lab results? Adding them gives a more precise assessment. Don't have them handy? Just skip this, you'll still get a full result from the fields above.
-          {{ info_tooltip('Lab values provide an optional clinical layer scored directly against cited ADA and NHANES clinical guideline thresholds.', align='left') }}
+        <div class="flex items-center gap-2 mb-1.5 flex-wrap">
+          <h3 class="font-semibold text-xs text-slate-600 uppercase tracking-wider">Clinical Lab Values</h3>
+          <span class="bg-teal-50 text-teal-700 border border-teal-200 text-[11px] font-semibold px-2.5 py-0.5 rounded-full shadow-xs">
+            Optional — Point-of-Care Guideline Precision
+          </span>
+        </div>
+        <p class="text-xs text-slate-500 mb-4 leading-relaxed">
+          <strong class="text-slate-700">Have recent bloodwork?</strong> Entering your lab results activates point-of-care clinical evaluation against ADA &amp; KDIGO guidelines. 
+          <span class="text-slate-400">Don't have them handy? You can leave these blank and still receive a complete risk forecast powered by our calibrated CDC models.</span>
+          {{ info_tooltip('Lab values provide an optional clinical precision layer scored directly against ADA and KDIGO clinical guideline thresholds.', align='left') }}
         </p>
         <div class="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-8">
           <div class="space-y-1.5">
@@ -199,8 +212,8 @@
                    placeholder="e.g. 7.2"
                    class="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 text-sm text-slate-800 bg-white placeholder-slate-400/60 focus:outline-none focus:ring-2 focus:ring-teal-400/50 focus:border-teal-400 transition-all">
             <p class="text-xs text-slate-400 leading-snug">
-              A blood test showing your average blood sugar over ~3 months.
-              {{ info_tooltip('The gold standard for long-term glycemic control (ADA benchmarks: <6.5% controlled, 6.5–8.0% suboptimal, >8.0% elevated risk for microvascular damage).', align='left') }}
+              A blood test showing average blood sugar over ~3 months.
+              {{ info_tooltip('ADA Standards of Care benchmarks: <6.5% optimal, 6.5–8.0% suboptimal, >8.0% high risk for microvascular damage.', align='left') }}
             </p>
           </div>
           <div class="space-y-1.5">
@@ -210,8 +223,8 @@
                    placeholder="e.g. 138"
                    class="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 text-sm text-slate-800 bg-white placeholder-slate-400/60 focus:outline-none focus:ring-2 focus:ring-teal-400/50 focus:border-teal-400 transition-all">
             <p class="text-xs text-slate-400 leading-snug">
-              The top (higher) number in a blood pressure reading, e.g. the 138 in 138/85.
-              {{ info_tooltip('Systolic blood pressure above 127–140 mmHg accelerates kidney and cardiovascular damage progression in diabetic patients based on NHANES/ADA studies.', align='left') }}
+              The top number in a blood pressure reading, e.g. the 138 in 138/85.
+              {{ info_tooltip('KDIGO 2024 and ADA clinical benchmarks: <120 mmHg optimal, 120–139 mmHg elevated, ≥140 mmHg stage 2 hypertension / high vascular injury risk.', align='left') }}
             </p>
           </div>
           <div class="space-y-1.5">
@@ -221,8 +234,8 @@
                    placeholder="e.g. 130"
                    class="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 text-sm text-slate-800 bg-white placeholder-slate-400/60 focus:outline-none focus:ring-2 focus:ring-teal-400/50 focus:border-teal-400 transition-all">
             <p class="text-xs text-slate-400 leading-snug">
-              Sometimes called "bad cholesterol", found on a cholesterol blood test.
-              {{ info_tooltip('Elevated LDL cholesterol (≥100 or ≥130 mg/dL) indicates circulating atherogenic particles that contribute directly to arterial narrowing.', align='right') }}
+              Circulating atherogenic lipid particles ("bad cholesterol").
+              {{ info_tooltip('ACC/AHA lipid target guidelines: <100 mg/dL optimal, 100–129 mg/dL borderline, ≥130 mg/dL elevated atherogenic risk.', align='right') }}
             </p>
           </div>
         </div>
@@ -238,7 +251,7 @@
     </div>
 
     <p class="text-xs text-center text-slate-400 mt-4">
-      Results combine a clinically-cited rule matrix with a trained classification model to provide transparent risk projections. For educational and informational purposes only, not a diagnosis or substitute for professional medical advice.
+      Results combine an evidence-aligned rule matrix (v2.0-clinical: ACC/AHA, KDIGO 2024, MNSI) with calibrated ML models trained on CDC cohorts to provide transparent risk projections. For educational and informational purposes only, not a diagnosis or substitute for professional medical advice.
     </p>
   </div>
 </div>

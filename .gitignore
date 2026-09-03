@@ -18,3 +18,5 @@ diabetes_system.db
 .vscode/
 .DS_Store
 Thumbs.db
+.env
+logs/
