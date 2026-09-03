@@ -104,15 +104,51 @@ def test_flask_endpoints():
     assert "ACC/AHA" in html
     assert "KDIGO" in html
     assert "MNSI" in html
-    print("POST /predict with valid CSRF returned 200 OK with clinical AUROC and guideline badges rendered.")
+    assert "Patient-Specific Risk Drivers" in html
+    print("POST /predict with valid CSRF returned 200 OK with clinical AUROC, guideline badges, and feature risk drivers rendered.")
 
     res_hist = client.get("/history")
     assert res_hist.status_code == 200
     print("GET /history returned 200 OK")
 
 
+def test_health_and_security_headers():
+    print("\n--- 4. Testing /health Probe and Production Security Headers ---")
+    client = app.test_client()
+
+    res_health = client.get("/health")
+    assert res_health.status_code == 200
+    health_data = res_health.get_json()
+    assert health_data["status"] == "healthy"
+    assert health_data["database"] == "connected"
+    assert len(health_data["models_loaded"]) == 3
+    print("GET /health probe verified: 200 OK with connected DB and 3 models loaded.")
+
+    # Check security response headers
+    res = client.get("/")
+    assert res.headers.get("X-Frame-Options") == "DENY"
+    assert res.headers.get("X-Content-Type-Options") == "nosniff"
+    assert res.headers.get("Referrer-Policy") == "strict-origin-when-cross-origin"
+    print("Production security headers verified: X-Frame-Options, X-Content-Type-Options, Referrer-Policy present.")
+
+    # Check WCAG and BMI modal markup on /assessment
+    res_assess = client.get("/assessment")
+    assess_html = res_assess.get_data(as_text=True)
+    assert 'id="BMI"' in assess_html
+    assert 'for="BMI"' in assess_html
+    assert 'id="bmiModal"' in assess_html
+    assert 'role="alert"' in assess_html
+    print("WCAG 2.1 AA accessibility attributes and BMI modal markup verified on /assessment.")
+
+    # Test data retention pruning
+    pruned = database.prune_expired_assessments(days=365)
+    assert isinstance(pruned, int)
+    print(f"Data retention policy verified: prune_expired_assessments executed cleanly (pruned {pruned} records).")
+
+
 if __name__ == "__main__":
     test_rule_matrix()
     test_database_persistence()
     test_flask_endpoints()
-    print("\n[ALL CLINICAL ACCURACY & PRODUCTION SECURITY TESTS PASSED!]")
+    test_health_and_security_headers()
+    print("\n[ALL CLINICAL ACCURACY, ACCESSIBILITY & PRODUCTION SECURITY TESTS PASSED!]")

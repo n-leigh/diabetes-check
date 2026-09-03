@@ -265,3 +265,27 @@ def delete_assessment(assessment_id: int, session_id: str) -> bool:
     conn.commit()
     conn.close()
     return True
+
+
+def prune_expired_assessments(days: int = 90) -> int:
+    """Permanently deletes assessments older than `days` days and their child records.
+    Returns the count of deleted assessment records to comply with GDPR storage limitation
+    and HIPAA minimal retention policies."""
+    conn = get_connection()
+    rows = conn.execute(
+        "SELECT id FROM assessments WHERE created_at < datetime('now', ?)",
+        (f"-{days} days",)
+    ).fetchall()
+    if not rows:
+        conn.close()
+        return 0
+    ids = [r["id"] for r in rows]
+    placeholders = ",".join("?" for _ in ids)
+    conn.execute(f"DELETE FROM feedback WHERE assessment_id IN ({placeholders})", ids)
+    conn.execute(f"DELETE FROM lab_assessments WHERE assessment_id IN ({placeholders})", ids)
+    conn.execute(f"DELETE FROM risk_results WHERE assessment_id IN ({placeholders})", ids)
+    cur = conn.execute(f"DELETE FROM assessments WHERE id IN ({placeholders})", ids)
+    deleted_count = cur.rowcount
+    conn.commit()
+    conn.close()
+    return deleted_count

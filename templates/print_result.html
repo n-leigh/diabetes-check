@@ -180,6 +180,26 @@
     </table>
   </section>
 
+  {% if patient_drivers %}
+  <section>
+    <h2 class="section-title">Key Clinical Risk Drivers (Individual Feature Attribution)</h2>
+    <div style="display:grid; grid-template-columns:1fr 1fr 1fr; gap:12px; font-size:12px;">
+      {% for cat in categories %}
+      <div style="background:#f8fafc; border:1px solid #e2e8f0; border-radius:8px; padding:10px;">
+        <div style="font-weight:700; color:#334155; margin-bottom:6px; font-size:11px; text-transform:uppercase;">
+          {% if cat == 'cardiovascular' %}Cardiovascular{% elif cat == 'general_burden' %}Nephropathy{% else %}Neuropathy{% endif %}
+        </div>
+        <ul style="margin:0; padding-left:14px; color:#475569; font-size:11px;">
+          {% for d in patient_drivers.get(cat, []) %}
+          <li style="margin-bottom:4px;"><strong>{{ d.factor }}</strong> ({{ d.impact }}): {{ d.detail }}</li>
+          {% endfor %}
+        </ul>
+      </div>
+      {% endfor %}
+    </div>
+  </section>
+  {% endif %}
+
   {% if lab_assessment %}
   <section>
     <h2 class="section-title">Lab-Based Assessment (Point-of-Care Guidelines)</h2>

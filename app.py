@@ -62,13 +62,32 @@ SECRET_KEY = os.getenv("SECRET_KEY", DEFAULT_SECRET_KEY)
 DEBUG = os.getenv("DEBUG", "False").strip().lower() in {"1", "true", "yes", "on"}
 
 if SECRET_KEY == DEFAULT_SECRET_KEY:
-    logger.warning("SECURITY WARNING: Using default secret key. Set SECRET_KEY in .env for production.")
+    if not DEBUG:
+        logger.error("CRITICAL SECURITY ERROR: Production deployment (DEBUG=False) is using DEFAULT_SECRET_KEY! Update .env immediately.")
+    else:
+        logger.warning("SECURITY WARNING: Using default secret key. Set SECRET_KEY in .env for production.")
 
 app = Flask(__name__)
-app.config["SECRET_KEY"] = SECRET_KEY
-app.config["WTF_CSRF_TIME_LIMIT"] = None
-app.config["TEMPLATES_AUTO_RELOAD"] = True
+app.config.update(
+    SECRET_KEY=SECRET_KEY,
+    WTF_CSRF_TIME_LIMIT=None,
+    TEMPLATES_AUTO_RELOAD=True,
+    SESSION_COOKIE_HTTPONLY=True,
+    SESSION_COOKIE_SAMESITE="Lax",
+    SESSION_COOKIE_SECURE=not DEBUG,
+    PERMANENT_SESSION_LIFETIME=86400,
+)
 csrf = CSRFProtect(app)
+
+@app.after_request
+def set_security_headers(response):
+    response.headers["X-Frame-Options"] = "DENY"
+    response.headers["X-Content-Type-Options"] = "nosniff"
+    response.headers["Referrer-Policy"] = "strict-origin-when-cross-origin"
+    response.headers["Permissions-Policy"] = "geolocation=(), microphone=(), camera=()"
+    if not DEBUG:
+        response.headers["Strict-Transport-Security"] = "max-age=31536000; includeSubDomains"
+    return response
 
 limiter = Limiter(
     app=app,
@@ -134,6 +153,207 @@ def about():
     return render_template("about.html")
 
 
+@app.route("/health", methods=["GET"])
+@limiter.exempt
+def health():
+    db_ok = True
+    try:
+        conn = database.get_connection()
+        conn.execute("SELECT 1").fetchone()
+        conn.close()
+    except Exception as e:
+        logger.error(f"Health check DB probe failed: {e}")
+        db_ok = False
+
+    models_loaded = list(MODELS.keys())
+    healthy = db_ok and len(models_loaded) == len(CATEGORIES)
+    status_code = 200 if healthy else 503
+    return {
+        "status": "healthy" if healthy else "degraded",
+        "database": "connected" if db_ok else "unreachable",
+        "models_loaded": models_loaded,
+        "models_expected": CATEGORIES,
+        "rule_version": RULE_VERSION,
+    }, status_code
+
+
+def explain_patient_risk(patient: dict) -> dict:
+    """
+    Computes patient-specific clinical risk drivers for each complication domain,
+    identifying the specific lifestyle, biometric, and clinical history factors
+    that elevate this individual's risk score.
+    """
+    drivers = {"cardiovascular": [], "general_burden": [], "neuropathy_mobility": []}
+
+    # Cardiovascular drivers (ACC/AHA)
+    if patient.get("HeartDiseaseorAttack") == 1:
+        drivers["cardiovascular"].append({
+            "factor": "Prior Heart Attack / CAD",
+            "impact": "High",
+            "badge": "bg-red-100 text-red-700 border-red-200",
+            "detail": "Secondary prevention risk multiplier (established coronary disease)."
+        })
+    if patient.get("Stroke") == 1:
+        drivers["cardiovascular"].append({
+            "factor": "Prior Stroke",
+            "impact": "High",
+            "badge": "bg-red-100 text-red-700 border-red-200",
+            "detail": "Prior cerebrovascular event indicates advanced systemic arterial disease."
+        })
+    if patient.get("HighBP") == 1:
+        drivers["cardiovascular"].append({
+            "factor": "Hypertension (High BP)",
+            "impact": "Moderate",
+            "badge": "bg-amber-100 text-amber-800 border-amber-200",
+            "detail": "Increases systemic vascular afterload and arterial wall shear stress."
+        })
+    if patient.get("Smoker") == 1:
+        drivers["cardiovascular"].append({
+            "factor": "Active Smoking History",
+            "impact": "Moderate",
+            "badge": "bg-amber-100 text-amber-800 border-amber-200",
+            "detail": "Accelerates atherogenesis and endothelial dysfunction in diabetes."
+        })
+    if patient.get("HighChol") == 1:
+        drivers["cardiovascular"].append({
+            "factor": "High Cholesterol / Dyslipidemia",
+            "impact": "Moderate",
+            "badge": "bg-amber-100 text-amber-800 border-amber-200",
+            "detail": "Promotes atherogenic arterial lipid accumulation."
+        })
+    bmi = patient.get("BMI", 0)
+    if bmi >= 30:
+        drivers["cardiovascular"].append({
+            "factor": f"Obesity (BMI {bmi})",
+            "impact": "Moderate",
+            "badge": "bg-amber-100 text-amber-800 border-amber-200",
+            "detail": "Elevates metabolic load, insulin resistance, and cardiac workload."
+        })
+    elif bmi >= 25:
+        drivers["cardiovascular"].append({
+            "factor": f"Overweight (BMI {bmi})",
+            "impact": "Mild",
+            "badge": "bg-slate-100 text-slate-700 border-slate-200",
+            "detail": "Mild elevated metabolic and cardiovascular strain."
+        })
+    age_band = patient.get("Age", 0)
+    if age_band >= 9:
+        drivers["cardiovascular"].append({
+            "factor": "Age ≥60 years",
+            "impact": "Moderate",
+            "badge": "bg-amber-100 text-amber-800 border-amber-200",
+            "detail": "Cumulative arterial stiffness and lifetime vascular exposure."
+        })
+    elif age_band >= 6:
+        drivers["cardiovascular"].append({
+            "factor": "Age 45–59 years",
+            "impact": "Mild",
+            "badge": "bg-slate-100 text-slate-700 border-slate-200",
+            "detail": "Moderate cardiovascular age-related risk progression."
+        })
+
+    # Nephropathy / Chronic Kidney Disease drivers (KDIGO)
+    if patient.get("HighBP") == 1:
+        drivers["general_burden"].append({
+            "factor": "Hypertension (High BP)",
+            "impact": "High",
+            "badge": "bg-red-100 text-red-700 border-red-200",
+            "detail": "Primary hemodynamic risk driver for glomerular hyperfiltration and renal decline."
+        })
+    gen_hlth = patient.get("GenHlth", 1)
+    if gen_hlth >= 4:
+        drivers["general_burden"].append({
+            "factor": "Fair / Poor General Health",
+            "impact": "High",
+            "badge": "bg-amber-100 text-amber-800 border-amber-200",
+            "detail": "Reflects multisystem burden and chronic vascular strain."
+        })
+    if bmi >= 30:
+        drivers["general_burden"].append({
+            "factor": f"Elevated BMI ({bmi})",
+            "impact": "Moderate",
+            "badge": "bg-amber-100 text-amber-800 border-amber-200",
+            "detail": "Associated with obesity-related glomerulopathy and hyperfiltration."
+        })
+    if patient.get("Smoker") == 1:
+        drivers["general_burden"].append({
+            "factor": "Active Smoking History",
+            "impact": "Moderate",
+            "badge": "bg-amber-100 text-amber-800 border-amber-200",
+            "detail": "Accelerates microvascular renal arteriosclerosis."
+        })
+    if patient.get("MentHlth", 0) >= 15:
+        drivers["general_burden"].append({
+            "factor": "Frequent Mental Distress",
+            "impact": "Mild",
+            "badge": "bg-slate-100 text-slate-700 border-slate-200",
+            "detail": "Linked to increased systemic stress and lower treatment adherence."
+        })
+    if patient.get("NoDocbcCost") == 1:
+        drivers["general_burden"].append({
+            "factor": "Medical Care Cost Barrier",
+            "impact": "Mild",
+            "badge": "bg-slate-100 text-slate-700 border-slate-200",
+            "detail": "Signals risk of delayed laboratory screening and surveillance."
+        })
+
+    # Neuropathy & Mobility drivers (MNSI)
+    if patient.get("DiffWalk") == 1:
+        drivers["neuropathy_mobility"].append({
+            "factor": "Difficulty Walking / Climbing Stairs",
+            "impact": "High",
+            "badge": "bg-red-100 text-red-700 border-red-200",
+            "detail": "Cardinal functional sign of lower-extremity peripheral diabetic neuropathy."
+        })
+    phys_hlth = patient.get("PhysHlth", 0)
+    if phys_hlth >= 15:
+        drivers["neuropathy_mobility"].append({
+            "factor": f"Severe Physical Deficit ({phys_hlth} days/mo)",
+            "impact": "High",
+            "badge": "bg-red-100 text-red-700 border-red-200",
+            "detail": "Persistent disability and reduced lower-extremity physical function."
+        })
+    elif phys_hlth >= 5:
+        drivers["neuropathy_mobility"].append({
+            "factor": f"Physical Health Deficit ({phys_hlth} days/mo)",
+            "impact": "Moderate",
+            "badge": "bg-amber-100 text-amber-800 border-amber-200",
+            "detail": "Early functional limitations impacting daily mobility."
+        })
+    if gen_hlth >= 4:
+        drivers["neuropathy_mobility"].append({
+            "factor": "Fair / Poor Health Rating",
+            "impact": "Moderate",
+            "badge": "bg-amber-100 text-amber-800 border-amber-200",
+            "detail": "Systemic frailty indicator associated with neuropathy severity."
+        })
+    if patient.get("Smoker") == 1:
+        drivers["neuropathy_mobility"].append({
+            "factor": "Active Smoking History",
+            "impact": "Moderate",
+            "badge": "bg-amber-100 text-amber-800 border-amber-200",
+            "detail": "Ischemia to vasa nervorum (microscopic peripheral nerve capillary supply)."
+        })
+    if age_band >= 9:
+        drivers["neuropathy_mobility"].append({
+            "factor": "Age ≥60 years",
+            "impact": "Mild",
+            "badge": "bg-slate-100 text-slate-700 border-slate-200",
+            "detail": "Age-related peripheral nerve conduction reduction."
+        })
+
+    for cat in drivers:
+        if not drivers[cat]:
+            drivers[cat].append({
+                "factor": "No Elevated Risk Factors Identified",
+                "impact": "Protective",
+                "badge": "bg-emerald-100 text-emerald-800 border-emerald-200",
+                "detail": "Reported indicators reflect baseline glycemic and preventative control."
+            })
+
+    return drivers
+
+
 @app.route("/predict", methods=["POST"])
 @limiter.limit("20 per minute")
 def predict():
@@ -180,6 +400,7 @@ def predict():
     )
 
     recommendations = build_recommendations(rule_results, lab_assessment)
+    patient_drivers = explain_patient_risk(patient)
 
     return render_template(
         "result.html",
@@ -192,6 +413,7 @@ def predict():
         categories=CATEGORIES,
         lab_assessment=lab_assessment,
         recommendations=recommendations,
+        patient_drivers=patient_drivers,
         assessment_id=assessment_id,
     )
 
@@ -223,6 +445,7 @@ def history_detail(assessment_id):
     record = database.get_assessment(assessment_id, session_id=session["session_id"])
     if not record:
         return redirect(url_for("history"))
+    patient_drivers = explain_patient_risk(record["patient"])
     return render_template(
         "result.html",
         patient=record["patient"],
@@ -234,6 +457,7 @@ def history_detail(assessment_id):
         categories=CATEGORIES,
         lab_assessment=record.get("lab_assessment"),
         recommendations=build_recommendations(record["rule_results"], record.get("lab_assessment")),
+        patient_drivers=patient_drivers,
         viewing_past=True,
         created_at=record["created_at"],
         assessment_id=assessment_id,
@@ -245,6 +469,7 @@ def print_result(assessment_id):
     record = database.get_assessment(assessment_id, session_id=session["session_id"])
     if not record:
         return redirect(url_for("history"))
+    patient_drivers = explain_patient_risk(record["patient"])
     return render_template(
         "print_result.html",
         assessment_id=assessment_id,
@@ -257,6 +482,7 @@ def print_result(assessment_id):
         categories=CATEGORIES,
         lab_assessment=record.get("lab_assessment"),
         recommendations=build_recommendations(record["rule_results"], record.get("lab_assessment")),
+        patient_drivers=patient_drivers,
     )
 
 

@@ -42,12 +42,12 @@
       <div class="card-inner p-6 sm:p-8">
 
       {% if errors %}
-      <div class="mb-6 bg-red-50 border border-red-200 rounded-xl p-4 flex items-start gap-3">
-        <svg width="20" height="20" viewBox="0 0 20 20" fill="currentColor" class="text-red-500 shrink-0 mt-0.5">
+      <div role="alert" aria-live="assertive" class="mb-6 bg-red-50 border border-red-200 rounded-xl p-4 flex items-start gap-3">
+        <svg width="20" height="20" viewBox="0 0 20 20" fill="currentColor" class="text-red-500 shrink-0 mt-0.5" aria-hidden="true">
           <path fill-rule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clip-rule="evenodd"/>
         </svg>
         <div class="text-sm text-red-700">
-          <strong>Please fix the following:</strong>
+          <strong class="font-semibold">Please fix the following:</strong>
           <ul class="mt-1 list-disc list-inside space-y-0.5">
             {% for e in errors %}
             <li>{{ e }}</li>
@@ -64,20 +64,31 @@
         <div class="grid grid-cols-2 gap-4 mb-6">
 
           <div class="space-y-1.5 col-span-2 sm:col-span-1">
-            <label class="block text-sm font-semibold text-slate-700 font-display">BMI (Body Mass Index) <span class="text-red-500">*</span></label>
-            <input type="number" step="0.1" min="10" max="80" name="BMI"
+            <div class="flex items-center justify-between">
+              <label for="BMI" class="block text-sm font-semibold text-slate-700 font-display">
+                BMI (Body Mass Index) <span class="text-red-500">*</span>
+              </label>
+              <button type="button" id="openBmiCalcBtn" aria-haspopup="dialog" aria-controls="bmiModal"
+                      class="inline-flex items-center gap-1.5 text-xs font-semibold text-teal-700 hover:text-teal-800 bg-teal-50 hover:bg-teal-100 border border-teal-200/90 px-2.5 py-1 rounded-lg transition-colors focus:outline-none focus:ring-2 focus:ring-teal-400/50 cursor-pointer">
+                <svg class="w-3.5 h-3.5 text-teal-600 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" aria-hidden="true">
+                  <path stroke-linecap="round" stroke-linejoin="round" d="M9 7h6m0 10v-3m-3 3h.01M9 17h.01M9 14h.01M12 14h.01M15 11h.01M12 11h.01M9 11h.01M7 21h10a2 2 0 002-2V5a2 2 0 00-2-2H7a2 2 0 00-2 2v14a2 2 0 002 2z" />
+                </svg>
+                Calculate BMI
+              </button>
+            </div>
+            <input type="number" step="0.1" min="10" max="80" name="BMI" id="BMI" aria-describedby="bmi-help"
                    value="{{ form_data.get('BMI', '') if form_data else '' }}"
                    placeholder="e.g. 24.5"
                    class="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 text-sm text-slate-800 bg-white placeholder-slate-400/60 focus:outline-none focus:ring-2 focus:ring-teal-400/50 focus:border-teal-400 transition-all" required>
-            <p class="text-xs text-slate-400 leading-snug">
+            <p id="bmi-help" class="text-xs text-slate-400 leading-snug">
               Don't know it? It's weight (kg) ÷ height (m)², or ask your doctor at your last checkup.
               {{ info_tooltip('BMI is used in our cardiovascular and mobility risk models. Higher BMI (≥25 or ≥30) indicates elevated vascular resistance, metabolic load, and joint stress.', align='left') }}
             </p>
           </div>
 
           <div class="space-y-1.5 col-span-2 sm:col-span-1">
-            <label class="block text-sm font-semibold text-slate-700 font-display">Age range <span class="text-red-500">*</span></label>
-            <select name="Age" required
+            <label for="Age" class="block text-sm font-semibold text-slate-700 font-display">Age range <span class="text-red-500">*</span></label>
+            <select name="Age" id="Age" aria-describedby="age-help" required
                     class="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 text-sm text-slate-800 bg-white cursor-pointer focus:outline-none focus:ring-2 focus:ring-teal-400/50 focus:border-teal-400 transition-all">
               <option value="" disabled {{ 'selected' if not (form_data and form_data.get('Age')) }}>Select your age range</option>
               {% set age_ranges = [
@@ -89,15 +100,15 @@
               <option value="{{ val }}" {{ 'selected' if form_data and form_data.get('Age') == val }}>{{ label_text }}</option>
               {% endfor %}
             </select>
-            <p class="text-xs text-slate-400 leading-snug">
+            <p id="age-help" class="text-xs text-slate-400 leading-snug">
               Just pick the range you fall into.
               {{ info_tooltip('Age is a major risk multiplier in our cardiovascular and neuropathy models. Complication risks increase with longer cumulative exposure to vascular and glycemic strain.', align='left') }}
             </p>
           </div>
 
           <div class="space-y-1.5 col-span-2 sm:col-span-1">
-            <label class="block text-sm font-semibold text-slate-700 font-display">How would you rate your general health? <span class="text-red-500">*</span></label>
-            <select name="GenHlth" required
+            <label for="GenHlth" class="block text-sm font-semibold text-slate-700 font-display">How would you rate your general health? <span class="text-red-500">*</span></label>
+            <select name="GenHlth" id="GenHlth" aria-describedby="genhlth-help" required
                     class="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 text-sm text-slate-800 bg-white cursor-pointer focus:outline-none focus:ring-2 focus:ring-teal-400/50 focus:border-teal-400 transition-all">
               <option value="" disabled {{ 'selected' if not (form_data and form_data.get('GenHlth')) }}>Select one</option>
               {% set health_ratings = [('1','Excellent'), ('2','Very good'), ('3','Good'), ('4','Fair'), ('5','Poor')] %}
@@ -105,47 +116,66 @@
               <option value="{{ val }}" {{ 'selected' if form_data and form_data.get('GenHlth') == val }}>{{ label_text }}</option>
               {% endfor %}
             </select>
-            <p class="text-xs text-slate-400 leading-snug">
+            <p id="genhlth-help" class="text-xs text-slate-400 leading-snug">
               Your own honest sense of it, no test needed.
               {{ info_tooltip('Self-reported health is a proven clinical proxy for overall physiological resilience and multi-system complication burden in CDC BRFSS epidemiological models.', align='left') }}
             </p>
           </div>
 
           <div class="space-y-1.5 col-span-2 sm:col-span-1">
-            <label class="block text-sm font-semibold text-slate-700 font-display">Sex</label>
-            <select name="Sex"
+            <label for="Sex" class="block text-sm font-semibold text-slate-700 font-display">Sex <span class="text-red-500">*</span></label>
+            <select name="Sex" id="Sex" aria-describedby="sex-help" required
                     class="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 text-sm text-slate-800 bg-white cursor-pointer focus:outline-none focus:ring-2 focus:ring-teal-400/50 focus:border-teal-400 transition-all">
-              <option value="0" {{ 'selected' if form_data and form_data.get('Sex') == '0' }}>Female</option>
-              <option value="1" {{ 'selected' if form_data and form_data.get('Sex') == '1' }}>Male</option>
+              <option value="" disabled {{ 'selected' if not (form_data and form_data.get('Sex') in ['0', '1', 0, 1]) }}>Select your sex</option>
+              <option value="0" {{ 'selected' if form_data and form_data.get('Sex')|string == '0' }}>Female</option>
+              <option value="1" {{ 'selected' if form_data and form_data.get('Sex')|string == '1' }}>Male</option>
             </select>
-            <p class="text-xs text-slate-400 leading-snug">
-              Used because risk patterns can differ by sex.
+            <p id="sex-help" class="text-xs text-slate-400 leading-snug">
+              Biological sex assigned at birth (used by epidemiological risk models).
               {{ info_tooltip('Used by our trained classification models to adjust for baseline epidemiological differences in complication presentation and risk profiles.', align='left') }}
             </p>
           </div>
 
           <div class="space-y-1.5 col-span-2 sm:col-span-1">
-            <label class="block text-sm font-semibold text-slate-700 font-display">Days of poor physical health <span class="text-red-500">*</span></label>
-            <input type="number" min="0" max="30" name="PhysHlth"
+            <label for="PhysHlth" class="block text-sm font-semibold text-slate-700 font-display">Days of poor physical health <span class="text-red-500">*</span></label>
+            <input type="number" min="0" max="30" name="PhysHlth" id="PhysHlth" aria-describedby="physhlth-help physhlth-warning"
                    value="{{ form_data.get('PhysHlth', '') if form_data else '' }}"
                    placeholder="e.g. 3"
                    class="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 text-sm text-slate-800 bg-white placeholder-slate-400/60 focus:outline-none focus:ring-2 focus:ring-teal-400/50 focus:border-teal-400 transition-all" required>
-            <p class="text-xs text-slate-400 leading-snug">
+            <p id="physhlth-help" class="text-xs text-slate-400 leading-snug">
               Out of the last 30 days, physical illness or injury. Enter 0 if none.
               {{ info_tooltip('Frequent physical illness days (≥5 or ≥15 days/month) directly feed into our neuropathy and mobility risk model as an indicator of functional limitation.', align='left') }}
             </p>
+            <div id="physhlth-warning" role="status" aria-live="polite" class="hidden mt-1.5 p-2 rounded-lg bg-amber-50 border border-amber-200 text-xs text-amber-800 flex items-start gap-1.5 transition-all">
+              <svg class="w-4 h-4 text-amber-600 shrink-0 mt-0.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" aria-hidden="true">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+              </svg>
+              <div>
+                <strong>Notice:</strong> This question evaluates the past 30 days, so the maximum valid count is <strong>30</strong>. Values above 30 cannot be processed.
+                <button type="button" id="capPhysHlthBtn" class="ml-1 font-semibold underline text-amber-900 hover:text-amber-700 cursor-pointer">Cap to 30</button>
+              </div>
+            </div>
           </div>
 
           <div class="space-y-1.5 col-span-2 sm:col-span-1">
-            <label class="block text-sm font-semibold text-slate-700 font-display">Days of poor mental health <span class="text-red-500">*</span></label>
-            <input type="number" min="0" max="30" name="MentHlth"
+            <label for="MentHlth" class="block text-sm font-semibold text-slate-700 font-display">Days of poor mental health <span class="text-red-500">*</span></label>
+            <input type="number" min="0" max="30" name="MentHlth" id="MentHlth" aria-describedby="menthlth-help menthlth-warning"
                    value="{{ form_data.get('MentHlth', '') if form_data else '' }}"
                    placeholder="e.g. 3"
                    class="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 text-sm text-slate-800 bg-white placeholder-slate-400/60 focus:outline-none focus:ring-2 focus:ring-teal-400/50 focus:border-teal-400 transition-all" required>
-            <p class="text-xs text-slate-400 leading-snug">
+            <p id="menthlth-help" class="text-xs text-slate-400 leading-snug">
               Out of the last 30 days, stress, depression, emotional struggles. Enter 0 if none.
               {{ info_tooltip('Chronic mental distress (≥15 days/month) feeds into the general complication burden score, reflecting diabetes distress and self-management strain.', align='left') }}
             </p>
+            <div id="menthlth-warning" role="status" aria-live="polite" class="hidden mt-1.5 p-2 rounded-lg bg-amber-50 border border-amber-200 text-xs text-amber-800 flex items-start gap-1.5 transition-all">
+              <svg class="w-4 h-4 text-amber-600 shrink-0 mt-0.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" aria-hidden="true">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+              </svg>
+              <div>
+                <strong>Notice:</strong> This question evaluates the past 30 days, so the maximum valid count is <strong>30</strong>. Values above 30 cannot be processed.
+                <button type="button" id="capMentHlthBtn" class="ml-1 font-semibold underline text-amber-900 hover:text-amber-700 cursor-pointer">Cap to 30</button>
+              </div>
+            </div>
           </div>
         </div>
 
@@ -165,20 +195,20 @@
             ('NoDocbcCost', 'Skipped care due to cost', 'Financial barriers increase complication risk through delayed screening and missed preventive care.'),
           ] %}
           {% for field, cb_label, cb_info in checkboxes %}
-          <label class="flex items-center justify-between gap-2 px-3.5 py-2.5 rounded-xl border border-slate-200 text-sm text-slate-700 cursor-pointer hover:bg-slate-50 has-[:checked]:bg-teal-50 has-[:checked]:border-teal-300 transition-all select-none">
+          <label for="{{ field }}" class="flex items-center justify-between gap-2 px-3.5 py-2.5 rounded-xl border border-slate-200 text-sm text-slate-700 cursor-pointer hover:bg-slate-50 has-[:checked]:bg-teal-50 has-[:checked]:border-teal-300 transition-all select-none">
             <div class="flex items-center gap-2.5 min-w-0">
-              <input type="checkbox" value="1" name="{{ field }}" class="w-4 h-4 rounded border-slate-300 text-teal-600 focus:ring-teal-400/50 shrink-0"
+              <input type="checkbox" id="{{ field }}" value="1" name="{{ field }}" aria-describedby="{{ field }}-help" class="w-4 h-4 rounded border-slate-300 text-teal-600 focus:ring-teal-400/50 shrink-0"
                      {{ 'checked' if form_data and form_data.get(field) }}>
               <span class="text-xs sm:text-sm">{{ cb_label }}</span>
             </div>
             <span class="relative group/info shrink-0 ml-1 inline-flex items-center" onclick="event.stopPropagation();">
-              <button type="button" class="inline-flex items-center justify-center w-4 h-4 rounded-full bg-slate-100 hover:bg-teal-100 text-slate-400 hover:text-teal-700 transition-colors focus:outline-none focus:ring-2 focus:ring-teal-400/50 cursor-help select-none" aria-label="Why this is asked" tabindex="0">
+              <button type="button" class="inline-flex items-center justify-center w-4 h-4 rounded-full bg-slate-100 hover:bg-teal-100 text-slate-400 hover:text-teal-700 transition-colors focus:outline-none focus:ring-2 focus:ring-teal-400/50 cursor-help select-none" aria-label="Why this is asked: {{ cb_label }}" tabindex="0">
                 <svg class="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5" aria-hidden="true">
                   <circle cx="12" cy="12" r="9" />
                   <path stroke-linecap="round" d="M12 11v5m0-8h.01" />
                 </svg>
               </button>
-              <span class="pointer-events-none group-hover/info:pointer-events-auto group-focus-within/info:pointer-events-auto opacity-0 group-hover/info:opacity-100 group-focus-within/info:opacity-100 transition-all duration-200 absolute bottom-full right-0 mb-2 w-56 sm:w-64 p-3 bg-slate-900/95 backdrop-blur-md text-slate-200 text-xs rounded-xl shadow-xl border border-slate-700/80 z-30 invisible group-hover/info:visible group-focus-within/info:visible font-normal text-left leading-relaxed">
+              <span id="{{ field }}-help" class="pointer-events-none group-hover/info:pointer-events-auto group-focus-within/info:pointer-events-auto opacity-0 group-hover/info:opacity-100 group-focus-within/info:opacity-100 transition-all duration-200 absolute bottom-full right-0 mb-2 w-56 sm:w-64 p-3 bg-slate-900/95 backdrop-blur-md text-slate-200 text-xs rounded-xl shadow-xl border border-slate-700/80 z-30 invisible group-hover/info:visible group-focus-within/info:visible font-normal text-left leading-relaxed">
                 <span class="flex items-center gap-1.5 text-teal-300 font-semibold mb-1 font-display tracking-tight">
                   <svg class="w-3.5 h-3.5 text-teal-400 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
                     <path stroke-linecap="round" stroke-linejoin="round" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
@@ -196,7 +226,7 @@
         <div class="flex items-center gap-2 mb-1.5 flex-wrap">
           <h3 class="font-semibold text-xs text-slate-600 uppercase tracking-wider">Clinical Lab Values</h3>
           <span class="bg-teal-50 text-teal-700 border border-teal-200 text-[11px] font-semibold px-2.5 py-0.5 rounded-full shadow-xs">
-            Optional — Point-of-Care Guideline Precision
+            Optional, Point-of-Care Guideline Precision
           </span>
         </div>
         <p class="text-xs text-slate-500 mb-4 leading-relaxed">
@@ -206,41 +236,64 @@
         </p>
         <div class="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-8">
           <div class="space-y-1.5">
-            <label class="block text-sm font-semibold text-slate-700 font-display">HbA1c (%)</label>
-            <input type="number" step="0.1" min="3" max="20" name="LabHbA1c"
+            <div class="flex flex-col gap-1">
+              <label for="LabHbA1c" class="block text-sm font-semibold text-slate-700 font-display">
+                HbA1c
+              </label>
+              <span class="inline-flex items-center text-[10.5px] font-medium text-slate-500 bg-slate-100/90 border border-slate-200/80 px-2 py-0.5 rounded-md self-start">
+                (Standard % DCCT/NGSP | Note: 7.0% ≈ 53 mmol/mol IFCC)
+              </span>
+            </div>
+            <input type="number" step="0.1" min="3" max="20" name="LabHbA1c" id="LabHbA1c" aria-describedby="labhba1c-help"
                    value="{{ form_data.get('LabHbA1c', '') if form_data else '' }}"
                    placeholder="e.g. 7.2"
                    class="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 text-sm text-slate-800 bg-white placeholder-slate-400/60 focus:outline-none focus:ring-2 focus:ring-teal-400/50 focus:border-teal-400 transition-all">
-            <p class="text-xs text-slate-400 leading-snug">
+            <p id="labhba1c-help" class="text-xs text-slate-400 leading-snug">
               A blood test showing average blood sugar over ~3 months.
               {{ info_tooltip('ADA Standards of Care benchmarks: <6.5% optimal, 6.5–8.0% suboptimal, >8.0% high risk for microvascular damage.', align='left') }}
             </p>
           </div>
+
           <div class="space-y-1.5">
-            <label class="block text-sm font-semibold text-slate-700 font-display">Systolic BP (mmHg)</label>
-            <input type="number" min="60" max="250" name="LabSystolicBP"
+            <div class="flex flex-col gap-1">
+              <label for="LabSystolicBP" class="block text-sm font-semibold text-slate-700 font-display">
+                Systolic BP
+              </label>
+              <span class="inline-flex items-center text-[10.5px] font-medium text-slate-500 bg-slate-100/90 border border-slate-200/80 px-2 py-0.5 rounded-md self-start">
+                (mmHg)
+              </span>
+            </div>
+            <input type="number" min="60" max="250" name="LabSystolicBP" id="LabSystolicBP" aria-describedby="labsystolicbp-help"
                    value="{{ form_data.get('LabSystolicBP', '') if form_data else '' }}"
                    placeholder="e.g. 138"
                    class="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 text-sm text-slate-800 bg-white placeholder-slate-400/60 focus:outline-none focus:ring-2 focus:ring-teal-400/50 focus:border-teal-400 transition-all">
-            <p class="text-xs text-slate-400 leading-snug">
+            <p id="labsystolicbp-help" class="text-xs text-slate-400 leading-snug">
               The top number in a blood pressure reading, e.g. the 138 in 138/85.
               {{ info_tooltip('KDIGO 2024 and ADA clinical benchmarks: <120 mmHg optimal, 120–139 mmHg elevated, ≥140 mmHg stage 2 hypertension / high vascular injury risk.', align='left') }}
             </p>
           </div>
+
           <div class="space-y-1.5">
-            <label class="block text-sm font-semibold text-slate-700 font-display">LDL Cholesterol (mg/dL)</label>
-            <input type="number" min="20" max="400" name="LabLDL"
+            <div class="flex flex-col gap-1">
+              <label for="LabLDL" class="block text-sm font-semibold text-slate-700 font-display">
+                LDL Cholesterol
+              </label>
+              <span class="inline-flex items-center text-[10.5px] font-medium text-slate-500 bg-slate-100/90 border border-slate-200/80 px-2 py-0.5 rounded-md self-start">
+                (mg/dL | Note: 100 mg/dL ≈ 2.6 mmol/L)
+              </span>
+            </div>
+            <input type="number" min="20" max="400" name="LabLDL" id="LabLDL" aria-describedby="labldl-help"
                    value="{{ form_data.get('LabLDL', '') if form_data else '' }}"
                    placeholder="e.g. 130"
                    class="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 text-sm text-slate-800 bg-white placeholder-slate-400/60 focus:outline-none focus:ring-2 focus:ring-teal-400/50 focus:border-teal-400 transition-all">
-            <p class="text-xs text-slate-400 leading-snug">
+            <p id="labldl-help" class="text-xs text-slate-400 leading-snug">
               Circulating atherogenic lipid particles ("bad cholesterol").
               {{ info_tooltip('ACC/AHA lipid target guidelines: <100 mg/dL optimal, 100–129 mg/dL borderline, ≥130 mg/dL elevated atherogenic risk.', align='right') }}
             </p>
           </div>
         </div>
 
-        <button type="submit" class="w-full flex items-center justify-center gap-2 px-7 py-3.5 rounded-xl gradient-primary text-white text-sm font-bold hover:opacity-90 transition-opacity shadow-md">
+        <button type="submit" class="w-full flex items-center justify-center gap-2 px-7 py-3.5 rounded-xl gradient-primary text-white text-sm font-bold hover:opacity-90 transition-opacity shadow-md cursor-pointer">
           Get My Results
           <svg width="14" height="14" viewBox="0 0 14 14" fill="none" stroke="white" stroke-width="2"><path d="M5 2l5 5-5 5"/></svg>
         </button>
@@ -255,4 +308,316 @@
     </p>
   </div>
 </div>
+
+<!-- Interactive BMI Calculator Modal -->
+<dialog id="bmiModal" aria-labelledby="bmiModalTitle" aria-modal="true" class="rounded-2xl p-0 border border-slate-200/90 shadow-2xl bg-white max-w-md w-[calc(100%-2rem)] fixed inset-0 m-auto backdrop:bg-slate-900/60 backdrop:backdrop-blur-xs z-50">
+  <div class="p-6">
+    <div class="flex items-center justify-between pb-3 border-b border-slate-100 mb-4">
+      <div class="flex items-center gap-2.5">
+        <div class="w-8 h-8 rounded-lg bg-teal-50 text-teal-600 flex items-center justify-center shrink-0">
+          <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" aria-hidden="true">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M9 7h6m0 10v-3m-3 3h.01M9 17h.01M9 14h.01M12 14h.01M15 11h.01M12 11h.01M9 11h.01M7 21h10a2 2 0 002-2V5a2 2 0 00-2-2H7a2 2 0 00-2 2v14a2 2 0 002 2z" />
+          </svg>
+        </div>
+        <h2 id="bmiModalTitle" class="text-base font-bold text-slate-900 font-display">BMI Calculator</h2>
+      </div>
+      <button type="button" id="closeBmiModalBtn" aria-label="Close BMI Calculator" class="text-slate-400 hover:text-slate-600 p-1.5 rounded-lg hover:bg-slate-100 transition-colors focus:outline-none focus:ring-2 focus:ring-teal-400/50 cursor-pointer">
+        <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" aria-hidden="true">
+          <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" />
+        </svg>
+      </button>
+    </div>
+
+    <!-- Unit switch tabs -->
+    <div class="flex p-1 bg-slate-100 rounded-xl mb-4" role="tablist" aria-label="Measurement units">
+      <button type="button" role="tab" id="tabMetric" aria-selected="true" aria-controls="panelMetric"
+              class="flex-1 py-1.5 px-3 rounded-lg text-xs font-semibold transition-all bg-white text-teal-700 shadow-xs focus:outline-none focus:ring-2 focus:ring-teal-400/50 cursor-pointer">
+        Metric (cm / kg)
+      </button>
+      <button type="button" role="tab" id="tabImperial" aria-selected="false" aria-controls="panelImperial"
+              class="flex-1 py-1.5 px-3 rounded-lg text-xs font-semibold transition-all text-slate-600 hover:text-slate-900 focus:outline-none focus:ring-2 focus:ring-teal-400/50 cursor-pointer">
+        Imperial (ft, in / lbs)
+      </button>
+    </div>
+
+    <!-- Metric Panel -->
+    <div id="panelMetric" role="tabpanel" aria-labelledby="tabMetric" class="space-y-3">
+      <div>
+        <label for="bmiMetricHeight" class="block text-xs font-semibold text-slate-700 mb-1 font-display">Height (cm)</label>
+        <input type="number" id="bmiMetricHeight" min="50" max="250" placeholder="e.g. 175"
+               class="w-full px-3.5 py-2 rounded-xl border border-slate-200 text-sm text-slate-800 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-teal-400/50 focus:border-teal-400 transition-all">
+      </div>
+      <div>
+        <label for="bmiMetricWeight" class="block text-xs font-semibold text-slate-700 mb-1 font-display">Weight (kg)</label>
+        <input type="number" id="bmiMetricWeight" min="20" max="300" step="0.1" placeholder="e.g. 70"
+               class="w-full px-3.5 py-2 rounded-xl border border-slate-200 text-sm text-slate-800 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-teal-400/50 focus:border-teal-400 transition-all">
+      </div>
+    </div>
+
+    <!-- Imperial Panel -->
+    <div id="panelImperial" role="tabpanel" aria-labelledby="tabImperial" class="space-y-3 hidden">
+      <div>
+        <span class="block text-xs font-semibold text-slate-700 mb-1 font-display">Height</span>
+        <div class="grid grid-cols-2 gap-2">
+          <div>
+            <label for="bmiImpFt" class="sr-only">Height Feet</label>
+            <div class="relative">
+              <input type="number" id="bmiImpFt" min="1" max="8" placeholder="5"
+                     class="w-full px-3.5 py-2 pr-8 rounded-xl border border-slate-200 text-sm text-slate-800 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-teal-400/50 focus:border-teal-400 transition-all">
+              <span class="absolute right-3 top-2 text-xs text-slate-400 pointer-events-none">ft</span>
+            </div>
+          </div>
+          <div>
+            <label for="bmiImpIn" class="sr-only">Height Inches</label>
+            <div class="relative">
+              <input type="number" id="bmiImpIn" min="0" max="11" placeholder="9"
+                     class="w-full px-3.5 py-2 pr-8 rounded-xl border border-slate-200 text-sm text-slate-800 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-teal-400/50 focus:border-teal-400 transition-all">
+              <span class="absolute right-3 top-2 text-xs text-slate-400 pointer-events-none">in</span>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div>
+        <label for="bmiImpLbs" class="block text-xs font-semibold text-slate-700 mb-1 font-display">Weight (lbs)</label>
+        <input type="number" id="bmiImpLbs" min="40" max="600" step="0.1" placeholder="e.g. 154"
+               class="w-full px-3.5 py-2 rounded-xl border border-slate-200 text-sm text-slate-800 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-teal-400/50 focus:border-teal-400 transition-all">
+      </div>
+    </div>
+
+    <!-- Live BMI Preview -->
+    <div id="bmiPreviewBox" class="mt-4 p-3 bg-teal-50/70 border border-teal-200/80 rounded-xl text-center hidden">
+      <p class="text-xs text-slate-500 font-medium">Calculated BMI</p>
+      <p id="bmiPreviewNum" class="text-2xl font-extrabold text-teal-700 font-display my-0.5">--</p>
+      <p id="bmiPreviewCategory" class="text-xs font-semibold text-teal-600">--</p>
+    </div>
+
+    <p id="bmiModalError" class="mt-2 text-xs text-red-600 hidden" role="alert"></p>
+
+    <!-- Modal Actions -->
+    <div class="mt-6 flex items-center justify-end gap-2.5 pt-3 border-t border-slate-100">
+      <button type="button" id="cancelBmiBtn" class="px-4 py-2 text-xs font-semibold text-slate-600 hover:text-slate-800 bg-slate-100 hover:bg-slate-200 rounded-xl transition-colors focus:outline-none focus:ring-2 focus:ring-slate-300 cursor-pointer">
+        Cancel
+      </button>
+      <button type="button" id="applyBmiBtn" class="px-5 py-2 text-xs font-bold text-white gradient-primary rounded-xl hover:opacity-95 transition-opacity shadow-xs focus:outline-none focus:ring-2 focus:ring-teal-400/50 cursor-pointer">
+        Apply BMI
+      </button>
+    </div>
+  </div>
+</dialog>
+
+<script>
+  (function() {
+    const modal = document.getElementById('bmiModal');
+    const openBtn = document.getElementById('openBmiCalcBtn');
+    const closeBtn = document.getElementById('closeBmiModalBtn');
+    const cancelBtn = document.getElementById('cancelBmiBtn');
+    const applyBtn = document.getElementById('applyBmiBtn');
+
+    const tabMetric = document.getElementById('tabMetric');
+    const tabImperial = document.getElementById('tabImperial');
+    const panelMetric = document.getElementById('panelMetric');
+    const panelImperial = document.getElementById('panelImperial');
+
+    const metricHeight = document.getElementById('bmiMetricHeight');
+    const metricWeight = document.getElementById('bmiMetricWeight');
+    const impFt = document.getElementById('bmiImpFt');
+    const impIn = document.getElementById('bmiImpIn');
+    const impLbs = document.getElementById('bmiImpLbs');
+
+    const previewBox = document.getElementById('bmiPreviewBox');
+    const previewNum = document.getElementById('bmiPreviewNum');
+    const previewCat = document.getElementById('bmiPreviewCategory');
+    const errorMsg = document.getElementById('bmiModalError');
+
+    const targetBmiInput = document.getElementById('BMI');
+
+    let currentUnit = 'metric';
+
+    function setTab(unit) {
+      currentUnit = unit;
+      if (unit === 'metric') {
+        tabMetric.setAttribute('aria-selected', 'true');
+        tabMetric.classList.add('bg-white', 'text-teal-700', 'shadow-xs');
+        tabMetric.classList.remove('text-slate-600');
+
+        tabImperial.setAttribute('aria-selected', 'false');
+        tabImperial.classList.remove('bg-white', 'text-teal-700', 'shadow-xs');
+        tabImperial.classList.add('text-slate-600');
+
+        panelMetric.classList.remove('hidden');
+        panelImperial.classList.add('hidden');
+        metricHeight.focus();
+      } else {
+        tabImperial.setAttribute('aria-selected', 'true');
+        tabImperial.classList.add('bg-white', 'text-teal-700', 'shadow-xs');
+        tabImperial.classList.remove('text-slate-600');
+
+        tabMetric.setAttribute('aria-selected', 'false');
+        tabMetric.classList.remove('bg-white', 'text-teal-700', 'shadow-xs');
+        tabMetric.classList.add('text-slate-600');
+
+        panelImperial.classList.remove('hidden');
+        panelMetric.classList.add('hidden');
+        impFt.focus();
+      }
+      updateCalculation();
+    }
+
+    if (tabMetric && tabImperial) {
+      tabMetric.addEventListener('click', () => setTab('metric'));
+      tabImperial.addEventListener('click', () => setTab('imperial'));
+    }
+
+    function calculateBmi() {
+      if (currentUnit === 'metric') {
+        const h = parseFloat(metricHeight.value);
+        const w = parseFloat(metricWeight.value);
+        if (!h || h <= 0 || !w || w <= 0) return null;
+        const hm = h / 100;
+        return w / (hm * hm);
+      } else {
+        const ft = parseFloat(impFt.value) || 0;
+        const inches = parseFloat(impIn.value) || 0;
+        const totalIn = ft * 12 + inches;
+        const lbs = parseFloat(impLbs.value);
+        if (totalIn <= 0 || !lbs || lbs <= 0) return null;
+        const hm = totalIn * 0.0254;
+        const wkg = lbs * 0.45359237;
+        return wkg / (hm * hm);
+      }
+    }
+
+    function getBmiCategory(bmi) {
+      if (bmi < 18.5) return { label: 'Underweight (< 18.5)', color: 'text-amber-600' };
+      if (bmi < 25.0) return { label: 'Normal weight (18.5 – 24.9)', color: 'text-teal-600' };
+      if (bmi < 30.0) return { label: 'Overweight (25.0 – 29.9)', color: 'text-amber-600' };
+      return { label: 'Obese (≥ 30.0)', color: 'text-rose-600' };
+    }
+
+    function updateCalculation() {
+      if (!errorMsg || !previewBox || !previewNum || !previewCat) return;
+      errorMsg.classList.add('hidden');
+      errorMsg.textContent = '';
+      const bmi = calculateBmi();
+      if (bmi !== null && !isNaN(bmi) && isFinite(bmi) && bmi >= 5 && bmi <= 120) {
+        const cat = getBmiCategory(bmi);
+        previewNum.textContent = bmi.toFixed(1);
+        previewCat.textContent = cat.label;
+        previewCat.className = 'text-xs font-semibold ' + cat.color;
+        previewBox.classList.remove('hidden');
+      } else {
+        previewBox.classList.add('hidden');
+      }
+    }
+
+    [metricHeight, metricWeight, impFt, impIn, impLbs].forEach(input => {
+      if (input) {
+        input.addEventListener('input', updateCalculation);
+      }
+    });
+
+    function openModal() {
+      if (!modal) return;
+      if (typeof modal.showModal === 'function') {
+        modal.showModal();
+      } else {
+        modal.setAttribute('open', '');
+      }
+      updateCalculation();
+      if (currentUnit === 'metric' && metricHeight) {
+        metricHeight.focus();
+      } else if (impFt) {
+        impFt.focus();
+      }
+    }
+
+    function closeModal() {
+      if (!modal) return;
+      if (typeof modal.close === 'function') {
+        modal.close();
+      } else {
+        modal.removeAttribute('open');
+      }
+      if (openBtn) {
+        openBtn.focus();
+      }
+    }
+
+    if (openBtn) openBtn.addEventListener('click', openModal);
+    if (closeBtn) closeBtn.addEventListener('click', closeModal);
+    if (cancelBtn) cancelBtn.addEventListener('click', closeModal);
+
+    if (modal) {
+      modal.addEventListener('click', (event) => {
+        if (event.target === modal) {
+          closeModal();
+        }
+      });
+      modal.addEventListener('cancel', () => {
+        if (openBtn) {
+          setTimeout(() => openBtn.focus(), 0);
+        }
+      });
+    }
+
+    if (applyBtn) {
+      applyBtn.addEventListener('click', () => {
+        const bmi = calculateBmi();
+        if (bmi === null || isNaN(bmi) || !isFinite(bmi) || bmi <= 0) {
+          if (errorMsg) {
+            errorMsg.textContent = 'Please enter valid height and weight values.';
+            errorMsg.classList.remove('hidden');
+          }
+          return;
+        }
+        if (targetBmiInput) {
+          targetBmiInput.value = bmi.toFixed(1);
+          targetBmiInput.dispatchEvent(new Event('input', { bubbles: true }));
+          targetBmiInput.dispatchEvent(new Event('change', { bubbles: true }));
+        }
+        closeModal();
+        if (targetBmiInput) {
+          targetBmiInput.focus();
+        }
+      });
+    }
+
+    // Real-time soft warning for 30-day health indicators (PhysHlth & MentHlth)
+    function setupThirtyDayLimitWarning(inputId, warningId, capBtnId) {
+      const input = document.getElementById(inputId);
+      const warning = document.getElementById(warningId);
+      const capBtn = document.getElementById(capBtnId);
+      if (!input || !warning) return;
+
+      function checkValue() {
+        const raw = input.value.trim();
+        const val = parseFloat(raw);
+        if (raw !== '' && !isNaN(val) && val > 30) {
+          warning.classList.remove('hidden');
+          input.classList.add('border-amber-400', 'ring-2', 'ring-amber-400/50');
+        } else {
+          warning.classList.add('hidden');
+          input.classList.remove('border-amber-400', 'ring-2', 'ring-amber-400/50');
+        }
+      }
+
+      input.addEventListener('input', checkValue);
+      input.addEventListener('change', checkValue);
+
+      if (capBtn) {
+        capBtn.addEventListener('click', () => {
+          input.value = 30;
+          checkValue();
+          input.focus();
+        });
+      }
+
+      // Check on initial render if prefilled
+      checkValue();
+    }
+
+    setupThirtyDayLimitWarning('PhysHlth', 'physhlth-warning', 'capPhysHlthBtn');
+    setupThirtyDayLimitWarning('MentHlth', 'menthlth-warning', 'capMentHlthBtn');
+  })();
+</script>
 {% endblock %}
