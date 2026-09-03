@@ -128,7 +128,7 @@
   </div>
 
   <h1 class="title">Diabetes Complication Risk Summary</h1>
-  <p class="subtitle">Generated from DiaBeates Dual-Engine Clinical Architecture (Rule Matrix v2.0-clinical: ACC/AHA, KDIGO 2024, MNSI) and calibrated machine learning models. Keep this for your own records or to share with a healthcare provider.</p>
+  <p class="subtitle">Generated from DiaBeates Dual-Engine Clinical Architecture (Rule Matrix-clinical: ACC/AHA, KDIGO 2024, MNSI) and calibrated machine learning models. Keep this for your own records or to share with a healthcare provider.</p>
 
   <section>
     <h2 class="section-title">Information Provided</h2>
@@ -152,7 +152,7 @@
     <h2 class="section-title">Complication Risk Results</h2>
     <table class="risk-table">
       <thead>
-        <tr><th>Category</th><th>Clinical Rule (v2.0)</th><th>Model Prediction</th><th>Risk Level</th></tr>
+        <tr><th>Category</th><th>Clinical Rule</th><th>Model Prediction</th><th>Risk Level</th></tr>
       </thead>
       <tbody>
         {% for cat in categories %}
@@ -205,7 +205,7 @@
   <div class="disclaimer">
     <strong>Not medical advice.</strong> This summary is generated for educational and preliminary screening
     purposes and is not a certified diagnostic device. Risk levels are clinical projections based on an evidence-aligned
-    rule matrix (v2.0-clinical) and calibrated classification models trained on CDC NHANES and BRFSS clinical cohorts;
+    rule matrix (clinical) and calibrated classification models trained on CDC NHANES and BRFSS clinical cohorts;
     they do not constitute a medical diagnosis. Please share this summary with a licensed healthcare provider for
     interpretation and any decisions about your care.
   </div>
