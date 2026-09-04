@@ -24,12 +24,68 @@ def _highest_tier(*tiers: str) -> str:
 
 def build_recommendations(rule_results: Dict, lab_assessment: Optional[Dict] = None) -> Dict:
     """
+    Generate plain-language clinical recommendations based on risk tiers.
+    
+    Synthesizes risk predictions (from rules and/or models) into actionable
+    guidance for patients. Recommendations are deliberately general-wellness 
+    in tone ("consider talking to a doctor") rather than clinical directives 
+    ("take medication X"), suitable for general public use.
+    
+    Logic:
+    1. Determine overall tier: max of (cardiovascular, neuropathy, burden, lab) tiers
+    2. Generate tier-specific headline
+    3. For each category with Moderate/High risk, add relevant recommendation
+    4. If lab values provided and Moderate/High, suggest bringing results to doctor
+    5. Add baseline wellness reminder (adjusted tone per tier)
+    6. Return all as structured steps
+    
+    Args:
+        rule_results (dict): Output from compute_all_risks(), e.g.:
+            {
+                "cardiovascular": {"label": "Moderate", ...},
+                "neuropathy_mobility": {"label": "Low", ...},
+                "general_burden": {"label": "High", ...}
+            }
+        lab_assessment (dict, optional): Output from compute_lab_assessment(), e.g.:
+            {
+                "label": "Moderate",
+                "percentage": 50,
+                ...
+            }
+            If None, lab assessment is skipped.
+    
     Returns:
-    {
-      "overall_tier": "Moderate",
-      "headline": "...",
-      "items": [ {"title": ..., "description": ...}, ... ]
-    }
+        dict: Recommendation structure:
+        {
+            "overall_tier": "Moderate",  # Highest tier across all categories
+            "headline": "A few areas...",  # Tier-specific headline
+            "steps": [
+                {
+                    "title": "Consider a heart health check-in",
+                    "description": "Ask a healthcare provider about..."
+                },
+                ...
+            ]
+        }
+        
+    Example:
+        >>> results = compute_all_risks({...})
+        >>> recs = build_recommendations(results)
+        >>> print(recs['headline'])
+        "Some results here are worth acting on soon."
+        >>> for step in recs['steps']:
+        ...     print(f"- {step['title']}")
+        
+    Design Notes:
+    - Headings and steps are non-alarming but clear
+    - Each step ends with "talk to a doctor" or equivalent
+    - Lab assessment treated as independent panel (optional)
+    - Always includes baseline wellness reminder
+    - Tone adjusts based on overall_tier (Low vs. High)
+    
+    See Also:
+        compute_all_risks(): Generates rule_results input
+        compute_lab_assessment(): Generates lab_assessment input
     """
     cv_tier = rule_results.get("cardiovascular", {}).get("label", "Low")
     neuro_tier = rule_results.get("neuropathy_mobility", {}).get("label", "Low")

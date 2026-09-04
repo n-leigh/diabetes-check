@@ -300,4 +300,4 @@ def prune_expired_assessments(days: int = 90) -> int:
     deleted_count = cur.rowcount
     conn.commit()
     conn.close()
-    return deleted_count
+    return deleted_count
