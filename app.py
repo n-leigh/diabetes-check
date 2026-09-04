@@ -26,6 +26,9 @@ from zoneinfo import ZoneInfo
 from dotenv import load_dotenv
 import joblib
 import pandas as pd
+import logging
+import logging.handlers
+from dotenv import load_dotenv
 from flask import Flask, render_template, request, redirect, url_for, session
 from flask_wtf.csrf import CSRFProtect, CSRFError
 from flask_limiter import Limiter
@@ -129,6 +132,7 @@ FEATURE_COLUMNS = [
     "NoDocbcCost", "Sex", "DiabetesDuration", "BlurryVision",
 ]
 
+# ===== MODEL LOADING WITH ERROR HANDLING =====
 MODELS = {}
 MODEL_NAMES = {}
 CLINICAL_METRICS = {}
@@ -159,6 +163,26 @@ def ensure_session_id():
     if "session_id" not in session:
         session["session_id"] = str(uuid.uuid4())
         session.permanent = True
+
+
+@app.after_request
+def add_security_headers(response):
+    response.headers["X-Frame-Options"] = "SAMEORIGIN"
+    response.headers["X-Content-Type-Options"] = "nosniff"
+    response.headers["X-XSS-Protection"] = "1; mode=block"
+    response.headers["Referrer-Policy"] = "strict-origin-when-cross-origin"
+    response.headers["Content-Security-Policy"] = (
+        "default-src 'self'; "
+        "script-src 'self' 'unsafe-inline' 'unsafe-eval' data: https:; "
+        "style-src 'self' 'unsafe-inline' https:; "
+        "img-src 'self' data: https:; "
+        "font-src 'self' data: https:; "
+        "connect-src 'self'; "
+        "frame-ancestors 'self'; "
+        "object-src 'none'; "
+        "base-uri 'self';"
+    )
+    return response
 
 
 @app.route("/", methods=["GET"])
@@ -434,6 +458,7 @@ def predict():
     patient, lab_values, errors = validate_patient_form(request.form)
 
     if errors:
+        logger.warning(f"Form validation failed: {errors}")
         return render_template(
             "assessment.html",
             errors=errors,
@@ -441,6 +466,7 @@ def predict():
         ), 400
 
     rule_results = compute_all_risks(patient)
+    logger.info(f"Rule matrix computed for patient: {rule_results}")
 
     lab_assessment = compute_lab_assessment(
         hba1c=lab_values.get("LabHbA1c"),
