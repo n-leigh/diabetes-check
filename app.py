@@ -64,12 +64,24 @@ secret_key_path = os.path.join(BASE_DIR, ".secret_key")
 SECRET_KEY = os.getenv("SECRET_KEY")
 if not SECRET_KEY:
     try:
-        with open(secret_key_path, "x", encoding="utf-8") as secret_file:
-            secret_file.write(secrets.token_hex(32))
-    except FileExistsError:
-        pass
-    with open(secret_key_path, encoding="utf-8") as secret_file:
-        SECRET_KEY = secret_file.read().strip()
+        # Create a persisted key if missing/empty.
+        if not os.path.exists(secret_key_path) or os.path.getsize(secret_key_path) == 0:
+            with open(secret_key_path, "w", encoding="utf-8") as secret_file:
+                secret_file.write(secrets.token_hex(32))
+            # Best-effort permission hardening on POSIX.
+            try:
+                os.chmod(secret_key_path, 0o600)
+            except OSError:
+                pass
+
+        with open(secret_key_path, encoding="utf-8") as secret_file:
+            SECRET_KEY = secret_file.read().strip()
+    except OSError:
+        # Read-only FS / permission error: fall back to a non-persisted key.
+        SECRET_KEY = secrets.token_hex(32)
+
+if not SECRET_KEY:
+    SECRET_KEY = secrets.token_hex(32)
 DEBUG = os.getenv("DEBUG", "False").strip().lower() in {"1", "true", "yes", "on"}
 SESSION_COOKIE_SECURE = os.getenv("SESSION_COOKIE_SECURE", "False").strip().lower() in {"1", "true", "yes", "on"}
 DISPLAY_TIMEZONE = os.getenv("DISPLAY_TIMEZONE", "Asia/Manila").strip() or "Asia/Manila"
