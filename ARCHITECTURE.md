@@ -6,106 +6,106 @@ DiaBeates is a production-hardened, web-based clinical decision support system f
 ## Architecture Diagram
 
 ```mermaid
-graph TB
-    subgraph Frontend["🖥️ Frontend Layer"]
-        Home["home.html<br/>(Landing Page)"]
-        Assessment["assessment.html<br/>(15 Indicators + BMI Modal)"]
-        Result["result.html<br/>(4 Risk Tiers + Patient Risk Drivers)"]
-        History["history.html<br/>(Sortable History + Archive/Delete)"]
-        PrintResult["print_result.html<br/>(Printable Chart Summary)"]
-        About["about.html<br/>(Documentation)"]
-    end
+flowchart TB
+  User((Patient or reviewer)) --> Browser[Web browser]
 
-    subgraph Deployment["🚀 Deployment & Server Runtime"]
-        Docker["Docker Container<br/>(Dockerfile / Compose)"]
-        WSGI["Waitress WSGI Server<br/>(wsgi.py - 8 Threads)"]
-        Health["/health Endpoint<br/>(Liveness & Readiness Probe)"]
-    end
+  subgraph UI[Presentation layer]
+    Templates[Flask/Jinja templates<br/>home, assessment, result,<br/>history, print, about]
+    Static[Static assets<br/>CSS, JavaScript, logo, media]
+    Templates --- Static
+  end
+  Browser <--> Templates
+  Browser -->|HTTP GET/POST| Runtime
 
-    subgraph WebServer["🌐 Web Application Layer"]
-        Flask["Flask Application<br/>(app.py)"]
-        SecurityHeaders["Security Headers & CSRF<br/>(Flask-WTF / Headers)"]
-        RateLimiter["Rate Limiting<br/>(Flask-Limiter)"]
-    end
+  subgraph Runtime[Production runtime]
+    Container[Docker container<br/>python:3.11-slim, non-root appuser]
+    WSGI[Waitress WSGI<br/>wsgi.py, 8 threads]
+    App[Flask application<br/>app.py]
+    Health[/health probe/]
+    Container --> WSGI --> App
+    App --> Health
+  end
 
-    subgraph BusinessLogic["🧠 Business Logic Layer"]
-        Rules["Rule Matrix Engine<br/>(rule_matrix.py: 4 Domains)"]
-        Recommendations["Recommendations & Drivers<br/>(recommendations.py)"]
-        Validation["Server Validation<br/>(validation.py)"]
-        FieldLabels["Field Translations<br/>(field_labels.py)"]
-    end
+  subgraph Controls[Request controls]
+    Session[Anonymous session ID<br/>HttpOnly, SameSite cookie]
+    CSRF[CSRF protection<br/>Flask-WTF]
+    RateLimit[IP rate limiting<br/>Flask-Limiter]
+    Headers[Security response headers<br/>CSP-related browser controls]
+  end
+  App --> Session
+  App --> CSRF
+  App --> RateLimit
+  App --> Headers
 
-    subgraph MLLayer["🤖 Machine Learning Layer"]
-        TrainModel["Model Training & CV<br/>(train_model.py)"]
-        Wrapper["ClinicalRiskWrapper<br/>(clinical_model.py)"]
-        ModelCache["Serialized Calibrated Models<br/>(model/*.pkl: 4 Estimators)"]
-        Summary["Training Summary & CIs<br/>(training_summary.json)"]
-    end
+  subgraph Assessment[Assessment processing]
+    Validate[validation.py<br/>bounds and required fields]
+    RuleEngine[rule_matrix.py<br/>4 guideline-aligned domains<br/>plus optional lab scoring]
+    MLInference[clinical_model.py<br/>4 loaded calibrated classifiers]
+    Explain[recommendations.py<br/>risk drivers and guidance]
+    Labels[field_labels.py<br/>human-readable patient fields]
+    Validate --> RuleEngine
+    Validate --> MLInference
+    RuleEngine --> Explain
+    RuleEngine --> Labels
+    MLInference --> Explain
+  end
+  App --> Validate
+  Explain --> App
+  Labels --> App
+  App --> Templates
 
-    subgraph DataLayer["💾 Data Persistence Layer"]
-        Database["SQLite with WAL Mode<br/>(database.py)"]
-        DBAssessments["📊 assessments table"]
-        DBResults["📊 risk_results table"]
-        DBLabs["📊 lab_assessments table"]
-        DBFeedback["📊 feedback table"]
-        Retention["Data Pruning Policy<br/>(prune_expired_assessments)"]
-    end
+  subgraph Domains[Clinical risk domains]
+    CVD[Cardiovascular<br/>ACC/AHA and UKPDS]
+    CKD[Nephropathy / CKD<br/>KDIGO 2024]
+    Neuro[Neuropathy / mobility<br/>MNSI-aligned]
+    Retina[Retinopathy / vision<br/>ADA and AAO-aligned]
+    RuleEngine --> CVD
+    RuleEngine --> CKD
+    RuleEngine --> Neuro
+    RuleEngine --> Retina
+    MLInference --> CVD
+    MLInference --> CKD
+    MLInference --> Neuro
+    MLInference --> Retina
+  end
 
-    subgraph DataSources["📁 Authentic Clinical Cohorts"]
-        CVDData["CDC NHANES 2017-2018<br/>(CVD Cohort N=949)"]
-        CKDData["CDC NHANES 2021-2023<br/>(KDIGO CKD Cohort N=848)"]
-        BRFSSData["CDC BRFSS Registry<br/>(Neuropathy Cohort N=5,000)"]
-        RetinoData["CDC NHANES Retinopathy<br/>(Retina Exam Cohort N=797)"]
-    end
+  subgraph Storage[Local persistence]
+    DBAPI[database.py<br/>SQLite, WAL mode, foreign keys]
+    Assessments[(assessments<br/>inputs, session, timestamps)]
+    Results[(risk_results<br/>rule + model outputs)]
+    Labs[(lab_assessments<br/>HbA1c, BP, LDL)]
+    Feedback[(feedback<br/>helpfulness signal)]
+    Retention[Archive, delete,<br/>and retention utilities]
+    DBAPI --> Assessments
+    DBAPI --> Results
+    DBAPI --> Labs
+    DBAPI --> Feedback
+    DBAPI --> Retention
+  end
+  App <--> DBAPI
+  Assessment --> DBAPI
+  Storage --> Templates
 
-    %% Deployment connections
-    Docker --> WSGI
-    WSGI --> Flask
-    Flask --> Health
+  subgraph Training[Offline training and model release]
+    Sources[CDC NHANES and BRFSS<br/>cohort source files]
+    Pipeline[clinical_data_pipeline.py<br/>cohort extraction and normalization]
+    Trainer[train_model.py<br/>split, 5-fold CV, calibration,<br/>metrics and bootstrap CIs]
+    Wrapper[ClinicalRiskWrapper<br/>feature selection and risk tiers]
+    Artifacts[model/*.pkl<br/>training_summary.json<br/>ROC and calibration plots]
+    Sources --> Pipeline --> Trainer --> Wrapper --> Artifacts
+  end
+  Artifacts -->|loaded at app startup| MLInference
 
-    %% Frontend to Web Application
-    Home --> Flask
-    Assessment --> Flask
-    Result --> Flask
-    History --> Flask
-    PrintResult --> Flask
-    About --> Flask
-
-    %% Flask middleware & business logic
-    Flask --> SecurityHeaders
-    Flask --> RateLimiter
-    Flask --> Validation
-    Flask --> Rules
-    Flask --> Recommendations
-    Flask --> FieldLabels
-
-    %% Flask to ML Layer
-    Flask --> ModelCache
-    ModelCache --> Wrapper
-
-    %% Flask to Data Layer
-    Flask --> Database
-    Database --> DBAssessments
-    Database --> DBResults
-    Database --> DBLabs
-    Database --> DBFeedback
-    Database --> Retention
-
-    %% Training pipeline
-    CVDData --> TrainModel
-    CKDData --> TrainModel
-    BRFSSData --> TrainModel
-    RetinoData --> TrainModel
-    TrainModel --> ModelCache
-    TrainModel --> Summary
-
-    style Frontend fill:#e1f5fe
-    style Deployment fill:#e0f2fe
-    style WebServer fill:#fff3e0
-    style BusinessLogic fill:#f3e5f5
-    style MLLayer fill:#e8f5e9
-    style DataLayer fill:#fce4ec
-    style DataSources fill:#ede7f6
+  classDef runtime fill:#fff3e0,stroke:#d97706,color:#1f2937
+  classDef control fill:#fef3c7,stroke:#b45309,color:#1f2937
+  classDef clinical fill:#e8f5e9,stroke:#2e7d32,color:#1f2937
+  classDef data fill:#fce4ec,stroke:#ad1457,color:#1f2937
+  classDef ui fill:#e1f5fe,stroke:#0277bd,color:#1f2937
+  class Container,WSGI,App,Health runtime
+  class Session,CSRF,RateLimit,Headers control
+  class Validate,RuleEngine,MLInference,Explain,Labels,CVD,CKD,Neuro,Retina clinical
+  class DBAPI,Assessments,Results,Labs,Feedback,Retention,Sources,Pipeline,Trainer,Wrapper,Artifacts data
+  class User,Browser,Templates,Static ui
 ```
 
 ## Component Description
