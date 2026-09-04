@@ -29,11 +29,12 @@ OPTIONAL_LAB_FIELD_RULES = [
 
 CHECKBOX_FIELDS = [
     "HighBP", "HighChol", "Smoker", "HeartDiseaseorAttack", "Stroke",
-    "DiffWalk", "NoDocbcCost",
+    "DiffWalk", "NoDocbcCost", "BlurryVision",
 ]
 
 SELECT_FIELDS = {
     "Sex": [0, 1],
+    "DiabetesDuration": [0, 1, 2, 3],
 }
 
 
@@ -111,8 +112,9 @@ def validate_patient_form(form) -> tuple[dict, dict, list[str]]:
             patient[field] = value
 
     for field in CHECKBOX_FIELDS:
-        # checkboxes: absent = unchecked = 0, present = 1
-        patient[field] = 1 if form.get(field) else 0
+        # checkboxes: absent/0/false = unchecked = 0, present/1 = 1
+        val = form.get(field)
+        patient[field] = 1 if val and str(val).strip().lower() not in ("0", "false", "off", "no") else 0
 
     for field, allowed in SELECT_FIELDS.items():
         raw = form.get(field, "")

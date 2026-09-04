@@ -20,3 +20,9 @@ diabetes_system.db
 .vscode/
 .DS_Store
 Thumbs.db
+.env
+logs/
+
+# Raw external datasets (auto-downloaded/cached locally)
+data/raw_retinopathy/
+*.xpt

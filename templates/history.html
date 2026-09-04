@@ -11,13 +11,37 @@
       <p class="text-slate-500 text-sm">{{ records|length }} record{{ 's' if records|length != 1 else '' }} {{ 'archived' if show_archived else 'saved' }} — only visible to you</p>
     </div>
 
-    <div class="flex gap-1 mb-6 bg-white border border-slate-200 rounded-xl p-1 w-fit">
-      <a href="/history" class="px-4 py-1.5 rounded-lg text-sm font-medium transition-colors {{ 'bg-teal-50 text-teal-700' if not show_archived else 'text-slate-500 hover:text-slate-700' }}">
-        Active
-      </a>
-      <a href="/history?view=archived" class="px-4 py-1.5 rounded-lg text-sm font-medium transition-colors {{ 'bg-teal-50 text-teal-700' if show_archived else 'text-slate-500 hover:text-slate-700' }}">
-        Archived
-      </a>
+    <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6">
+      <div class="flex gap-1 bg-white border border-slate-200 rounded-xl p-1 w-fit">
+        <a href="/history{{ '?sort=' + sort_order if sort_order != 'desc' else '' }}" class="px-4 py-1.5 rounded-lg text-sm font-medium transition-colors {{ 'bg-teal-50 text-teal-700' if not show_archived else 'text-slate-500 hover:text-slate-700' }}">
+          Active
+        </a>
+        <a href="/history?view=archived{{ '&sort=' + sort_order if sort_order != 'desc' else '' }}" class="px-4 py-1.5 rounded-lg text-sm font-medium transition-colors {{ 'bg-teal-50 text-teal-700' if show_archived else 'text-slate-500 hover:text-slate-700' }}">
+          Archived
+        </a>
+      </div>
+
+      {% if records %}
+      <div class="flex items-center gap-1.5 bg-white border border-slate-200 rounded-xl p-1 w-fit">
+        <span class="text-xs font-semibold text-slate-400 px-2 uppercase tracking-wider">Sort</span>
+        <a href="/history?{{ 'view=archived&' if show_archived else '' }}sort=desc"
+           class="inline-flex items-center gap-1.5 px-3 py-1 rounded-lg text-xs font-semibold transition-colors {{ 'bg-slate-900 text-white shadow-xs' if sort_order == 'desc' else 'text-slate-600 hover:bg-slate-50' }}"
+           aria-label="Sort newest first" title="Newest assessments first">
+          <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M3 4h13M3 8h9m-9 4h6m4 0l4-4m0 0l4 4m-4-4v12" />
+          </svg>
+          Newest
+        </a>
+        <a href="/history?{{ 'view=archived&' if show_archived else '' }}sort=asc"
+           class="inline-flex items-center gap-1.5 px-3 py-1 rounded-lg text-xs font-semibold transition-colors {{ 'bg-slate-900 text-white shadow-xs' if sort_order == 'asc' else 'text-slate-600 hover:bg-slate-50' }}"
+           aria-label="Sort oldest first" title="Oldest assessments first">
+          <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M3 4h13M3 8h9m-9 4h9m5-4v12m0 0l-4-4m4 4l4-4" />
+          </svg>
+          Oldest
+        </a>
+      </div>
+      {% endif %}
     </div>
 
     {% if not records %}
@@ -41,10 +65,12 @@
           <thead>
             <tr class="border-b border-slate-100 bg-slate-50/50">
               <th class="text-left font-semibold text-slate-500 px-5 py-3">#</th>
-              <th class="text-left font-semibold text-slate-500 px-5 py-3">Date/Time (UTC)</th>
+              <th class="text-left font-semibold text-slate-500 px-5 py-3">Date/Time (PHT)</th>
               <th class="text-left font-semibold text-slate-500 px-5 py-3">BMI</th>
               {% for cat in categories %}
-              <th class="text-left font-semibold text-slate-500 px-5 py-3">{{ cat.replace('_', ' ').title() }}</th>
+              <th class="text-left font-semibold text-slate-500 px-5 py-3">
+                {% if cat == 'cardiovascular' %}Cardiovascular{% elif cat == 'general_burden' %}Nephropathy{% elif cat == 'neuropathy_mobility' %}Neuropathy{% else %}Retinopathy{% endif %}
+              </th>
               {% endfor %}
               <th class="px-5 py-3"></th>
             </tr>
@@ -52,45 +78,81 @@
           <tbody>
             {% for r in records %}
             <tr class="border-b border-slate-50 hover:bg-slate-50/50 transition-colors">
-              <td class="px-5 py-3 text-slate-500">{{ r.id }}</td>
-              <td class="px-5 py-3 text-slate-600">{{ r.created_at }}</td>
+              <td class="px-5 py-3 font-semibold text-slate-700">
+                #{{ r.display_index }}
+              </td>
+              <td class="px-5 py-3 text-slate-600">{{ r.created_at|display_time }}</td>
               <td class="px-5 py-3 text-slate-700 font-medium">{{ r.patient.BMI }}</td>
               {% for cat in categories %}
-              {% set label = r.rule_results[cat].label %}
-              {% if label == 'Low' %}
-                {% set tier_bg, tier_text = '#f0fdf4', '#15803d' %}
-              {% elif label == 'Moderate' %}
-                {% set tier_bg, tier_text = '#fffbeb', '#b45309' %}
-              {% else %}
-                {% set tier_bg, tier_text = '#fef2f2', '#b91c1c' %}
-              {% endif %}
+              {% set res = r.rule_results.get(cat) %}
               <td class="px-5 py-3">
-                <span class="px-2.5 py-0.5 rounded-full text-xs font-semibold" style="background-color: {{ tier_bg }}; color: {{ tier_text }};">
-                  {{ label }}
-                </span>
+                {% if res %}
+                  {% set label = res.label %}
+                  {% if label == 'Low' %}
+                    {% set tier_bg, tier_text = '#f0fdf4', '#15803d' %}
+                  {% elif label == 'Moderate' %}
+                    {% set tier_bg, tier_text = '#fffbeb', '#b45309' %}
+                  {% else %}
+                    {% set tier_bg, tier_text = '#fef2f2', '#b91c1c' %}
+                  {% endif %}
+                  <span class="px-2.5 py-0.5 rounded-full text-xs font-semibold" style="background-color: {{ tier_bg }}; color: {{ tier_text }};">
+                    {{ label }}
+                  </span>
+                {% else %}
+                  <span class="text-slate-400 text-xs">—</span>
+                {% endif %}
               </td>
               {% endfor %}
               <td class="px-5 py-3 whitespace-nowrap">
                 <a href="/history/{{ r.id }}" class="text-teal-600 hover:text-teal-700 font-medium text-xs">View</a>
-                <a href="/history/{{ r.id }}/print" target="_blank" class="text-slate-400 hover:text-slate-600 font-medium text-xs ml-3">Print</a>
+                <a href="/history/{{ r.id }}/print" target="_blank"
+                   class="inline-flex items-center justify-center text-slate-400 hover:text-slate-600 ml-3 focus:outline-none focus:ring-2 focus:ring-teal-400/50 rounded"
+                   aria-label="Print assessment {{ r.display_index }}" title="Print assessment">
+                  <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8" aria-hidden="true">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M6 9V4h12v5M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2M6 14h12v6H6z" />
+                    <path stroke-linecap="round" d="M18 12h.01" />
+                  </svg>
+                </a>
 
                 <form action="/history/{{ r.id }}/archive" method="post" class="inline">
                   <input type="hidden" name="csrf_token" value="{{ csrf_token() }}" />
                   <input type="hidden" name="archived" value="{{ '0' if show_archived else '1' }}">
                   <input type="hidden" name="from" value="{{ 'archived' if show_archived else 'active' }}">
-                  <button type="submit" class="text-slate-400 hover:text-slate-600 font-medium text-xs ml-3">
-                    {{ 'Restore' if show_archived else 'Archive' }}
+                  <button type="submit"
+                          class="inline-flex items-center justify-center text-slate-400 hover:text-slate-600 ml-3 focus:outline-none focus:ring-2 focus:ring-teal-400/50 rounded"
+                          aria-label="{{ 'Restore' if show_archived else 'Archive' }} assessment {{ r.display_index }}"
+                          title="{{ 'Restore assessment' if show_archived else 'Archive assessment' }}">
+                    {% if show_archived %}
+                    <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8" aria-hidden="true">
+                      <path stroke-linecap="round" stroke-linejoin="round" d="M3 7h18v13H3zM3 7l2-4h14l2 4M12 17v-7m0 0-3 3m3-3 3 3" />
+                    </svg>
+                    {% else %}
+                    <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8" aria-hidden="true">
+                      <path stroke-linecap="round" stroke-linejoin="round" d="M3 7h18v13H3zM3 7l2-4h14l2 4M9 12h6" />
+                    </svg>
+                    {% endif %}
                   </button>
                 </form>
 
-                <form action="/history/{{ r.id }}/delete" method="post" class="inline"
-                      onsubmit="return confirm('Permanently delete this assessment? This can\'t be undone.');">
-                  <input type="hidden" name="csrf_token" value="{{ csrf_token() }}" />
-                  <input type="hidden" name="from" value="{{ 'archived' if show_archived else 'active' }}">
-                  <button type="submit" class="text-red-400 hover:text-red-600 font-medium text-xs ml-3">
-                    Delete
-                  </button>
-                </form>
+                <button type="button"
+                        class="js-delete-trigger text-red-400 hover:text-red-600 font-medium text-xs ml-3 transition-colors inline-block cursor-pointer focus:outline-none focus:underline"
+                        data-id="{{ r.id }}"
+                        data-index="{{ r.display_index }}"
+                        data-date="{{ r.created_at|display_time }} PHT"
+                        aria-haspopup="dialog"
+                        aria-expanded="false"
+                        aria-controls="deleteConfirmModal">
+                  Delete
+                </button>
+                <noscript>
+                  <form action="/history/{{ r.id }}/delete" method="post" class="inline">
+                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}" />
+                    <input type="hidden" name="from" value="{{ 'archived' if show_archived else 'active' }}">
+                    <button type="submit" class="text-red-400 hover:text-red-600 font-medium text-xs ml-3">
+                      Delete
+                    </button>
+                  </form>
+                </noscript>
               </td>
             </tr>
             {% endfor %}
@@ -101,4 +163,259 @@
     {% endif %}
   </div>
 </div>
+
+<!-- Custom Confirmation Modal for Assessment Deletion -->
+<div id="deleteConfirmModal"
+     class="delete-modal-backdrop"
+     role="presentation"
+     hidden>
+  <div class="delete-modal-dialog"
+       role="dialog"
+       aria-modal="true"
+       aria-labelledby="deleteModalTitle"
+       aria-describedby="deleteModalDescription"
+       tabindex="-1">
+
+    <!-- Dismiss Button (X) -->
+    <button type="button"
+            id="cancelDeleteXBtn"
+            class="absolute top-4 right-4 p-2 rounded-lg text-slate-400 hover:text-slate-600 hover:bg-slate-100 focus:outline-none focus:ring-2 focus:ring-teal-500 transition-colors"
+            aria-label="Close dialog">
+      <svg class="w-5 h-5" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">
+        <path d="m5 5 10 10M15 5 5 15" />
+      </svg>
+    </button>
+
+    <!-- Dialog Header with SVG Warning Icon -->
+    <div class="flex items-start gap-4">
+      <div class="w-12 h-12 rounded-2xl bg-red-50 border border-red-100 text-red-600 flex items-center justify-center shrink-0 shadow-sm" aria-hidden="true">
+        <!-- SVG Warning / Exclamation Icon -->
+        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+        </svg>
+      </div>
+      <div class="pr-6">
+        <h2 id="deleteModalTitle" class="font-display text-lg sm:text-xl font-bold text-slate-900 leading-tight">
+          Delete Assessment?
+        </h2>
+        <p class="text-xs font-semibold text-red-600 uppercase tracking-wider mt-0.5">
+          Permanent Action
+        </p>
+      </div>
+    </div>
+
+    <!-- Modal Description and Warning Details -->
+    <div id="deleteModalDescription" class="mt-4 text-sm text-slate-600 leading-relaxed space-y-3">
+      <p>
+        Are you sure you want to permanently delete <strong id="deleteTargetLabel" class="text-slate-900 font-semibold">this assessment</strong>?
+      </p>
+      <div class="rounded-xl bg-slate-50 border border-slate-200/80 p-3 text-xs text-slate-600 flex items-start gap-2.5">
+        <svg class="w-4 h-4 text-amber-500 shrink-0 mt-0.5" fill="currentColor" viewBox="0 0 20 20" aria-hidden="true">
+          <path fill-rule="evenodd" d="M8.485 2.495c.673-1.167 2.357-1.167 3.03 0l6.28 10.875c.673 1.167-.17 2.625-1.516 2.625H3.72c-1.347 0-2.189-1.458-1.515-2.625L8.485 2.495zM10 5a.75.75 0 01.75.75v3.5a.75.75 0 01-1.5 0v-3.5A.75.75 0 0110 5zm0 9a1 1 0 100-2 1 1 0 000 2z" clip-rule="evenodd" />
+        </svg>
+        <span>This will permanently remove this record, patient indicators, and clinical complication scores. This action cannot be undone.</span>
+      </div>
+    </div>
+
+    <!-- Delete Confirmation Form with CSRF Protection -->
+    <form id="deleteAssessmentForm" action="" method="post" class="mt-6">
+      <input type="hidden" name="csrf_token" value="{{ csrf_token() }}" />
+      <input type="hidden" name="from" value="{{ 'archived' if show_archived else 'active' }}" />
+
+      <div class="flex flex-col-reverse sm:flex-row sm:justify-end gap-3">
+        <button type="button"
+                id="cancelDeleteBtn"
+                class="px-5 py-2.5 rounded-xl border border-slate-200 text-slate-700 text-sm font-semibold hover:bg-slate-50 hover:text-slate-900 focus:outline-none focus:ring-2 focus:ring-slate-300 transition-colors">
+          Cancel
+        </button>
+        <button type="submit"
+                id="confirmDeleteSubmitBtn"
+                class="px-5 py-2.5 rounded-xl bg-red-600 hover:bg-red-700 active:bg-red-800 text-white text-sm font-semibold shadow-sm hover:shadow focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-2 transition-all inline-flex items-center justify-center gap-2">
+          <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" aria-hidden="true">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+          </svg>
+          <span>Delete Assessment</span>
+        </button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<style>
+  .delete-modal-backdrop {
+    position: fixed;
+    inset: 0;
+    z-index: 10000;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 1rem;
+    background: rgba(6, 49, 84, 0.6);
+    backdrop-filter: blur(6px);
+    -webkit-backdrop-filter: blur(6px);
+    opacity: 0;
+    transition: opacity 200ms cubic-bezier(0.16, 1, 0.3, 1);
+  }
+  .delete-modal-backdrop.is-open {
+    opacity: 1;
+  }
+  .delete-modal-backdrop[hidden] {
+    display: none;
+  }
+  .delete-modal-dialog {
+    position: relative;
+    width: min(100%, 28rem);
+    background: #ffffff;
+    border-radius: 1.25rem;
+    border: 1px solid rgba(226, 232, 240, 0.9);
+    box-shadow: 0 25px 50px -12px rgba(6, 49, 84, 0.25), 0 0 0 1px rgba(6, 49, 84, 0.05);
+    padding: 1.5rem;
+    transform: scale(0.96) translateY(8px);
+    transition: transform 200ms cubic-bezier(0.16, 1, 0.3, 1), opacity 200ms ease-out;
+    opacity: 0;
+  }
+  .delete-modal-backdrop.is-open .delete-modal-dialog {
+    transform: scale(1) translateY(0);
+    opacity: 1;
+  }
+  @media (min-width: 640px) {
+    .delete-modal-dialog {
+      padding: 1.75rem;
+    }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .delete-modal-backdrop,
+    .delete-modal-dialog {
+      transition: none !important;
+      transform: none !important;
+    }
+  }
+</style>
+
+<script>
+  (function () {
+    const modal = document.getElementById('deleteConfirmModal');
+    if (!modal) return;
+
+    const dialog = modal.querySelector('[role="dialog"]');
+    const form = document.getElementById('deleteAssessmentForm');
+    const targetLabel = document.getElementById('deleteTargetLabel');
+    const cancelBtn = document.getElementById('cancelDeleteBtn');
+    const closeXBtn = document.getElementById('cancelDeleteXBtn');
+    const confirmBtn = document.getElementById('confirmDeleteSubmitBtn');
+    const triggers = document.querySelectorAll('.js-delete-trigger');
+
+    let activeTrigger = null;
+    let isClosing = false;
+
+    const openModal = (id, index, date, trigger) => {
+      activeTrigger = trigger;
+      if (trigger) trigger.setAttribute('aria-expanded', 'true');
+
+      // Update form action and contextual display label
+      form.action = `/history/${encodeURIComponent(id)}/delete`;
+      form.setAttribute('action', `/history/${encodeURIComponent(id)}/delete`);
+      if (targetLabel) {
+        targetLabel.textContent = index ? `Assessment #${index}${date ? ' (' + date + ')' : ''}` : 'this assessment';
+      }
+
+      modal.hidden = false;
+      document.body.classList.add('overflow-hidden');
+
+      // Animate in
+      requestAnimationFrame(() => {
+        requestAnimationFrame(() => {
+          modal.classList.add('is-open');
+          cancelBtn.focus();
+        });
+      });
+    };
+
+    const closeModal = () => {
+      if (isClosing || modal.hidden) return;
+      isClosing = true;
+
+      modal.classList.remove('is-open');
+
+      const finalizeClose = () => {
+        modal.hidden = true;
+        document.body.classList.remove('overflow-hidden');
+        isClosing = false;
+        if (activeTrigger) {
+          activeTrigger.setAttribute('aria-expanded', 'false');
+          activeTrigger.focus();
+          activeTrigger = null;
+        }
+      };
+
+      const prefersReducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+      if (prefersReducedMotion) {
+        finalizeClose();
+      } else {
+        setTimeout(finalizeClose, 200);
+      }
+    };
+
+    // Attach click handlers to all delete trigger buttons
+    triggers.forEach(trigger => {
+      trigger.addEventListener('click', (e) => {
+        e.preventDefault();
+        const id = trigger.getAttribute('data-id');
+        const index = trigger.getAttribute('data-index');
+        const date = trigger.getAttribute('data-date');
+        openModal(id, index, date, trigger);
+      });
+    });
+
+    // Close handlers
+    cancelBtn.addEventListener('click', closeModal);
+    closeXBtn.addEventListener('click', closeModal);
+
+    // Click outside dismiss
+    modal.addEventListener('click', (e) => {
+      if (e.target === modal) {
+        closeModal();
+      }
+    });
+
+    // Keyboard ESC & focus trap
+    document.addEventListener('keydown', (e) => {
+      if (modal.hidden) return;
+
+      if (e.key === 'Escape') {
+        e.preventDefault();
+        closeModal();
+        return;
+      }
+
+      if (e.key === 'Tab') {
+        const focusableElements = dialog.querySelectorAll(
+          'button:not([disabled]), [href], input:not([disabled]), select:not([disabled]), textarea:not([disabled]), [tabindex]:not([tabindex="-1"])'
+        );
+        if (focusableElements.length === 0) return;
+
+        const firstEl = focusableElements[0];
+        const lastEl = focusableElements[focusableElements.length - 1];
+
+        if (e.shiftKey) {
+          if (document.activeElement === firstEl) {
+            e.preventDefault();
+            lastEl.focus();
+          }
+        } else {
+          if (document.activeElement === lastEl) {
+            e.preventDefault();
+            firstEl.focus();
+          }
+        }
+      }
+    });
+
+    // Prevent duplicate form submission
+    form.addEventListener('submit', () => {
+      confirmBtn.disabled = true;
+      confirmBtn.classList.add('opacity-75', 'cursor-not-allowed');
+    });
+  })();
+</script>
 {% endblock %}

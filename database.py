@@ -31,77 +31,73 @@ writing a real migration for.
 import sqlite3
 import json
 import os
-import logging
 from datetime import datetime, timezone
-
-logger = logging.getLogger(__name__)
 
 DB_PATH = os.path.join(os.path.dirname(os.path.abspath(__file__)), "diabetes_system.db")
 SCHEMA_VERSION = 3
 
 
 def get_connection():
-    conn = sqlite3.connect(DB_PATH)
+    conn = sqlite3.connect(DB_PATH, timeout=10.0)
     conn.row_factory = sqlite3.Row
     conn.execute("PRAGMA foreign_keys = ON")
+    conn.execute("PRAGMA journal_mode = WAL")
+    conn.execute("PRAGMA busy_timeout = 5000")
     return conn
 
 
 def init_db():
     conn = get_connection()
-    current_version = conn.execute("PRAGMA user_version").fetchone()[0]
 
-    if current_version != SCHEMA_VERSION:
-        logger.info(f"Schema version mismatch ({current_version} != {SCHEMA_VERSION}). Recreating tables...")
-        for table in ("feedback", "lab_assessments", "risk_results", "assessments"):
-            conn.execute(f"DROP TABLE IF EXISTS {table}")
+    conn.execute("""
+        CREATE TABLE IF NOT EXISTS assessments (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            session_id TEXT NOT NULL,
+            created_at TEXT NOT NULL,
+            rule_matrix_version TEXT NOT NULL,
+            archived INTEGER NOT NULL DEFAULT 0,
+            bmi REAL, age_band INTEGER, gen_hlth INTEGER, sex INTEGER,
+            phys_hlth INTEGER, ment_hlth INTEGER,
+            high_bp INTEGER, high_chol INTEGER, smoker INTEGER,
+            heart_disease INTEGER, stroke INTEGER, diff_walk INTEGER,
+            no_doc_cost INTEGER, diabetes_duration INTEGER, blurry_vision INTEGER
+        )
+    """)
 
-        conn.execute("""
-            CREATE TABLE assessments (
-                id INTEGER PRIMARY KEY AUTOINCREMENT,
-                session_id TEXT NOT NULL,
-                created_at TEXT NOT NULL,
-                rule_matrix_version TEXT NOT NULL,
-                archived INTEGER NOT NULL DEFAULT 0,
-                bmi REAL, age_band INTEGER, gen_hlth INTEGER, sex INTEGER,
-                phys_hlth INTEGER, ment_hlth INTEGER,
-                high_bp INTEGER, high_chol INTEGER, smoker INTEGER,
-                heart_disease INTEGER, stroke INTEGER, diff_walk INTEGER,
-                no_doc_cost INTEGER
-            )
-        """)
-        conn.execute("""
-            CREATE TABLE risk_results (
-                id INTEGER PRIMARY KEY AUTOINCREMENT,
-                assessment_id INTEGER NOT NULL REFERENCES assessments(id),
-                category TEXT NOT NULL,
-                rule_score INTEGER, rule_percentage INTEGER, rule_label TEXT,
-                model_name TEXT, model_label TEXT, model_confidence REAL
-            )
-        """)
-        conn.execute("""
-            CREATE TABLE lab_assessments (
-                id INTEGER PRIMARY KEY AUTOINCREMENT,
-                assessment_id INTEGER NOT NULL REFERENCES assessments(id),
-                hba1c REAL, systolic_bp INTEGER, ldl INTEGER,
-                label TEXT, percentage INTEGER
-            )
-        """)
-        conn.execute("""
-            CREATE TABLE feedback (
-                id INTEGER PRIMARY KEY AUTOINCREMENT,
-                assessment_id INTEGER NOT NULL REFERENCES assessments(id),
-                created_at TEXT NOT NULL,
-                helpful INTEGER NOT NULL,
-                comment TEXT
-            )
-        """)
-        conn.execute(f"PRAGMA user_version = {SCHEMA_VERSION}")
-        conn.commit()
-        logger.info(f"Database schema initialized at version {SCHEMA_VERSION}")
-    else:
-        logger.debug(f"Database schema up to date (version {SCHEMA_VERSION})")
-
+    # Safe schema migration for existing sqlite database
+    existing_cols = [r[1] for r in conn.execute("PRAGMA table_info(assessments)").fetchall()]
+    if "diabetes_duration" not in existing_cols:
+        conn.execute("ALTER TABLE assessments ADD COLUMN diabetes_duration INTEGER DEFAULT 0")
+    if "blurry_vision" not in existing_cols:
+        conn.execute("ALTER TABLE assessments ADD COLUMN blurry_vision INTEGER DEFAULT 0")
+    conn.execute("""
+        CREATE TABLE IF NOT EXISTS risk_results (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            assessment_id INTEGER NOT NULL REFERENCES assessments(id),
+            category TEXT NOT NULL,
+            rule_score INTEGER, rule_percentage INTEGER, rule_label TEXT,
+            model_name TEXT, model_label TEXT, model_confidence REAL
+        )
+    """)
+    conn.execute("""
+        CREATE TABLE IF NOT EXISTS lab_assessments (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            assessment_id INTEGER NOT NULL REFERENCES assessments(id),
+            hba1c REAL, systolic_bp INTEGER, ldl INTEGER,
+            label TEXT, percentage INTEGER
+        )
+    """)
+    conn.execute("""
+        CREATE TABLE IF NOT EXISTS feedback (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            assessment_id INTEGER NOT NULL REFERENCES assessments(id),
+            created_at TEXT NOT NULL,
+            helpful INTEGER NOT NULL,
+            comment TEXT
+        )
+    """)
+    conn.execute(f"PRAGMA user_version = {SCHEMA_VERSION}")
+    conn.commit()
     conn.close()
 
 
@@ -116,8 +112,8 @@ def save_assessment(session_id: str, patient: dict, rule_results: dict,
         """INSERT INTO assessments
            (session_id, created_at, rule_matrix_version, bmi, age_band, gen_hlth, sex,
             phys_hlth, ment_hlth, high_bp, high_chol, smoker, heart_disease, stroke,
-            diff_walk, no_doc_cost)
-           VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)""",
+            diff_walk, no_doc_cost, diabetes_duration, blurry_vision)
+           VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)""",
         (
             session_id,
             datetime.now(timezone.utc).isoformat(timespec="seconds"),
@@ -127,6 +123,7 @@ def save_assessment(session_id: str, patient: dict, rule_results: dict,
             patient.get("HighBP", 0), patient.get("HighChol", 0), patient.get("Smoker", 0),
             patient.get("HeartDiseaseorAttack", 0), patient.get("Stroke", 0),
             patient.get("DiffWalk", 0), patient.get("NoDocbcCost", 0),
+            patient.get("DiabetesDuration", 0), patient.get("BlurryVision", 0),
         ),
     )
     assessment_id = cur.lastrowid
@@ -154,7 +151,6 @@ def save_assessment(session_id: str, patient: dict, rule_results: dict,
 
     conn.commit()
     conn.close()
-    logger.info(f"Assessment saved: ID={assessment_id}, session={session_id}, categories={list(rule_results.keys())}")
     return assessment_id
 
 
@@ -177,6 +173,8 @@ def _reconstruct(conn, row) -> dict:
         "HighBP": row["high_bp"], "HighChol": row["high_chol"], "Smoker": row["smoker"],
         "HeartDiseaseorAttack": row["heart_disease"], "Stroke": row["stroke"],
         "DiffWalk": row["diff_walk"], "NoDocbcCost": row["no_doc_cost"],
+        "DiabetesDuration": row["diabetes_duration"] if "diabetes_duration" in row.keys() else 0,
+        "BlurryVision": row["blurry_vision"] if "blurry_vision" in row.keys() else 0,
     }
 
     rule_results = {}
@@ -218,13 +216,15 @@ def _reconstruct(conn, row) -> dict:
     }
 
 
-def get_all_assessments(session_id: str, limit: int = 200, archived: bool = False):
+def get_all_assessments(session_id: str, limit: int = 200, archived: bool = False, sort_order: str = "desc"):
     """archived=False (default) returns active records; archived=True
     returns only archived ones. The two views are always mutually
-    exclusive so nothing is silently duplicated or hidden between them."""
+    exclusive so nothing is silently duplicated or hidden between them.
+    sort_order can be 'asc' (oldest first) or 'desc' (newest first)."""
     conn = get_connection()
+    direction = "ASC" if str(sort_order).strip().lower() == "asc" else "DESC"
     rows = conn.execute(
-        "SELECT * FROM assessments WHERE session_id = ? AND archived = ? ORDER BY id DESC LIMIT ?",
+        f"SELECT * FROM assessments WHERE session_id = ? AND archived = ? ORDER BY id {direction} LIMIT ?",
         (session_id, int(archived), limit),
     ).fetchall()
     result = [_reconstruct(conn, r) for r in rows]
@@ -277,3 +277,27 @@ def delete_assessment(assessment_id: int, session_id: str) -> bool:
     conn.commit()
     conn.close()
     return True
+
+
+def prune_expired_assessments(days: int = 90) -> int:
+    """Permanently deletes assessments older than `days` days and their child records.
+    Returns the count of deleted assessment records to comply with GDPR storage limitation
+    and HIPAA minimal retention policies."""
+    conn = get_connection()
+    rows = conn.execute(
+        "SELECT id FROM assessments WHERE created_at < datetime('now', ?)",
+        (f"-{days} days",)
+    ).fetchall()
+    if not rows:
+        conn.close()
+        return 0
+    ids = [r["id"] for r in rows]
+    placeholders = ",".join("?" for _ in ids)
+    conn.execute(f"DELETE FROM feedback WHERE assessment_id IN ({placeholders})", ids)
+    conn.execute(f"DELETE FROM lab_assessments WHERE assessment_id IN ({placeholders})", ids)
+    conn.execute(f"DELETE FROM risk_results WHERE assessment_id IN ({placeholders})", ids)
+    cur = conn.execute(f"DELETE FROM assessments WHERE id IN ({placeholders})", ids)
+    deleted_count = cur.rowcount
+    conn.commit()
+    conn.close()
+    return deleted_count

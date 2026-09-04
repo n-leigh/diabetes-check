@@ -1,7 +1,7 @@
 # DiaBeates System Architecture
 
 ## Overview
-DiaBeates is a Flask-based diabetes complication risk prediction system that combines rule-based scoring with machine learning models. The architecture follows a layered approach with clear separation of concerns.
+DiaBeates is a production-hardened, web-based clinical decision support system for diabetes complication triage. It combines evidence-based clinical guideline scoring with calibrated machine learning estimators across four microvascular and macrovascular complication domains. The architecture follows a modular, layered design with strict separation of concerns, containerized deployment, and robust security controls.
 
 ## Architecture Diagram
 
@@ -9,54 +9,71 @@ DiaBeates is a Flask-based diabetes complication risk prediction system that com
 graph TB
     subgraph Frontend["🖥️ Frontend Layer"]
         Home["home.html<br/>(Landing Page)"]
-        Assessment["assessment.html<br/>(Input Form)"]
-        Result["result.html<br/>(Risk Display)"]
-        History["history.html<br/>(Session History)"]
+        Assessment["assessment.html<br/>(15 Indicators + BMI Modal)"]
+        Result["result.html<br/>(4 Risk Tiers + Patient Risk Drivers)"]
+        History["history.html<br/>(Sortable History + Archive/Delete)"]
+        PrintResult["print_result.html<br/>(Printable Chart Summary)"]
         About["about.html<br/>(Documentation)"]
     end
 
-    subgraph "🌐 Web Server"
+    subgraph Deployment["🚀 Deployment & Server Runtime"]
+        Docker["Docker Container<br/>(Dockerfile / Compose)"]
+        WSGI["Waitress WSGI Server<br/>(wsgi.py - 8 Threads)"]
+        Health["/health Endpoint<br/>(Liveness & Readiness Probe)"]
+    end
+
+    subgraph WebServer["🌐 Web Application Layer"]
         Flask["Flask Application<br/>(app.py)"]
+        SecurityHeaders["Security Headers & CSRF<br/>(Flask-WTF / Headers)"]
+        RateLimiter["Rate Limiting<br/>(Flask-Limiter)"]
     end
 
-    subgraph "🧠 Business Logic Layer"
-        Rules["Rule Matrix<br/>(rule_matrix.py)"]
-        Recommendations["Recommendations<br/>(recommendations.py)"]
-        Validation["Input Validation<br/>(validation.py)"]
-        FieldLabels["Field Labels<br/>(field_labels.py)"]
+    subgraph BusinessLogic["🧠 Business Logic Layer"]
+        Rules["Rule Matrix Engine<br/>(rule_matrix.py: 4 Domains)"]
+        Recommendations["Recommendations & Drivers<br/>(recommendations.py)"]
+        Validation["Server Validation<br/>(validation.py)"]
+        FieldLabels["Field Translations<br/>(field_labels.py)"]
     end
 
-    subgraph "🤖 ML Layer"
-        TrainModel["Model Training<br/>(train_model.py)"]
-        ModelCache["Trained Models<br/>(model/ directory)"]
-        Summary["Training Summary<br/>(training_summary.json)"]
+    subgraph MLLayer["🤖 Machine Learning Layer"]
+        TrainModel["Model Training & CV<br/>(train_model.py)"]
+        Wrapper["ClinicalRiskWrapper<br/>(clinical_model.py)"]
+        ModelCache["Serialized Calibrated Models<br/>(model/*.pkl: 4 Estimators)"]
+        Summary["Training Summary & CIs<br/>(training_summary.json)"]
     end
 
-    subgraph "💾 Data Layer"
-        Database["SQLite Database<br/>(database.py)"]
+    subgraph DataLayer["💾 Data Persistence Layer"]
+        Database["SQLite with WAL Mode<br/>(database.py)"]
         DBAssessments["📊 assessments table"]
         DBResults["📊 risk_results table"]
         DBLabs["📊 lab_assessments table"]
         DBFeedback["📊 feedback table"]
+        Retention["Data Pruning Policy<br/>(prune_expired_assessments)"]
     end
 
-    subgraph "📁 Data Sources"
-        TrainingData["Training Dataset<br/>(data/diabetes_dataset.csv)"]
-        DataGen["Sample Data Generator<br/>(data/generate_sample_data.py)"]
+    subgraph DataSources["📁 Authentic Clinical Cohorts"]
+        CVDData["CDC NHANES 2017-2018<br/>(CVD Cohort N=949)"]
+        CKDData["CDC NHANES 2021-2023<br/>(KDIGO CKD Cohort N=848)"]
+        BRFSSData["CDC BRFSS Registry<br/>(Neuropathy Cohort N=5,000)"]
+        RetinoData["CDC NHANES Retinopathy<br/>(Retina Exam Cohort N=797)"]
     end
 
-    subgraph "📦 Static Assets"
-        Static["CSS, JS, Images<br/>(static/ directory)"]
-    end
+    %% Deployment connections
+    Docker --> WSGI
+    WSGI --> Flask
+    Flask --> Health
 
-    %% Frontend to Flask
+    %% Frontend to Web Application
     Home --> Flask
     Assessment --> Flask
     Result --> Flask
     History --> Flask
+    PrintResult --> Flask
     About --> Flask
 
-    %% Flask to Business Logic
+    %% Flask middleware & business logic
+    Flask --> SecurityHeaders
+    Flask --> RateLimiter
     Flask --> Validation
     Flask --> Rules
     Flask --> Recommendations
@@ -64,163 +81,162 @@ graph TB
 
     %% Flask to ML Layer
     Flask --> ModelCache
+    ModelCache --> Wrapper
 
-    %% Flask to Database
+    %% Flask to Data Layer
     Flask --> Database
-
-    %% Database Schema
     Database --> DBAssessments
     Database --> DBResults
     Database --> DBLabs
     Database --> DBFeedback
+    Database --> Retention
 
-    %% ML Training
-    TrainingData --> TrainModel
+    %% Training pipeline
+    CVDData --> TrainModel
+    CKDData --> TrainModel
+    BRFSSData --> TrainModel
+    RetinoData --> TrainModel
     TrainModel --> ModelCache
     TrainModel --> Summary
 
-    %% Rules use data schema
-    Rules --> TrainModel
-
-    %% Frontend Assets
-    Static --> Home
-    Static --> Assessment
-    Static --> Result
-    Static --> History
-
-    %% Data Generation
-    DataGen --> TrainingData
-
     style Frontend fill:#e1f5fe
-    style Flask fill:#fff3e0
-    style "🧠 Business Logic Layer" fill:#f3e5f5
-    style "🤖 ML Layer" fill:#e8f5e9
-    style "💾 Data Layer" fill:#fce4ec
-    style "📁 Data Sources" fill:#ede7f6
+    style Deployment fill:#e0f2fe
+    style WebServer fill:#fff3e0
+    style BusinessLogic fill:#f3e5f5
+    style MLLayer fill:#e8f5e9
+    style DataLayer fill:#fce4ec
+    style DataSources fill:#ede7f6
 ```
 
 ## Component Description
 
-### 1. **Frontend Layer** (Templates)
-- **home.html** - Landing page with feature overview and CTA buttons
-- **assessment.html** - Form for patient input (13 health indicators)
-- **result.html** - Risk scores display (rule-based + ML model)
-- **history.html** - Patient's session-specific assessment history
-- **about.html** - Documentation and methodology
-- **base.html** - Base template with navigation
+### 1. **Frontend Layer** (Templates & Modals)
+- **home.html** - Landing page with system overview, complication cards, and clinical CTA pathways.
+- **assessment.html** - Patient input form featuring 15 non-invasive clinical indicators, optional point-of-care laboratory biomarkers, and an accessible, interactive BMI calculator modal with unit conversion.
+- **result.html** - Comprehensive 4-domain risk presentation combining clinical guideline tiers with calibrated empirical ML probabilities, alongside patient-specific risk driver explanations.
+- **history.html** - Longitudinal patient assessment history supporting sortable chronological order (newest/oldest), stable sequential record numbering (`#1`, `#2`, ...), localized Philippine Standard Time (PHT / UTC+8) timestamps, soft archiving, and accessible deletion confirmation modals.
+- **print_result.html** - Dedicated print-optimized PDF summary formatted specifically for clinical charts with coded factor translations and medical disclaimers.
+- **about.html** - Clinical methodology, cohort provenance, algorithmic architecture, and ethical scope.
+- **base.html** - Base layout providing WCAG-compliant navigation, semantic landmark regions, accessible skip links, and alert banners.
 
-### 2. **Web Server** (Flask)
-- **app.py** - Main Flask application
-  - Routes: `/`, `/assessment`, `/result`, `/history`, `/about`
-  - Session management (anonymous session IDs)
-  - Loads trained models at startup
-  - Coordinates between frontend, business logic, and data layers
+### 2. **Deployment & Web Server Layer**
+- **Dockerfile & docker-compose.yml**
+  - Production containerization running on `python:3.11-slim` under an unprivileged `appuser`.
+  - Built-in Docker health check targeting `/health`.
+  - Persistent volume mounts for SQLite database and rotating log files.
+- **wsgi.py**
+  - Multi-threaded production WSGI entrypoint powered by Waitress (`threads=8`, configurable host/port).
+- **app.py**
+  - Main Flask application with route handlers: `/`, `/assessment`, `/predict`, `/history`, `/history/<id>/print`, `/history/<id>/archive`, `/history/<id>/delete`, `/about`, and `/health`.
+  - Enforces Flask-WTF CSRF protection across all modifying endpoints.
+  - Applies strict HTTP security headers (`X-Frame-Options: DENY`, `X-Content-Type-Options: nosniff`, `Referrer-Policy`, `Permissions-Policy`, and `Strict-Transport-Security` in production).
+  - Enforces IP-based rate limiting via Flask-Limiter (`300 per day`, `100 per hour`).
+  - Implements operational `/health` probe verifying database connectivity and model status.
 
 ### 3. **Business Logic Layer**
-- **rule_matrix.py**
-  - Three scoring functions: `score_cardiovascular()`, `score_neuropathy_mobility()`, `score_general_burden()`
-  - Converts point scores to risk tiers (Low/Moderate/High)
-  - Used for both training data generation and live explanations
-  
+- **rule_matrix.py (Version 2.0-clinical)**
+  - Four evidence-based guideline scoring engines:
+    1. **Cardiovascular**: ACC/AHA 10-Yr ASCVD & UKPDS risk factor scoring.
+    2. **Nephropathy**: KDIGO 2024 Chronic Kidney Disease risk staging.
+    3. **Neuropathy**: Michigan Neuropathy Screening Instrument (MNSI) functional mobility mapping.
+    4. **Retinopathy**: American Diabetes Association (ADA) and American Academy of Ophthalmology (AAO) screening criteria.
+  - Converts risk factors to clinical risk tiers: Low ($\le 30\%$), Moderate ($31\% - 60\%$), High ($> 60\%$).
+  - Serves exclusively as an interpretable baseline and explanation layer (never used to generate training labels).
 - **recommendations.py**
-  - Converts risk tiers into plain-language guidance
-  - Generates personalized wellness recommendations
-  - Provides overall risk headline
-  
+  - Generates personalized lifestyle, surveillance, and specialist referral recommendations.
+  - Computes patient-specific risk drivers to explain the exact clinical factors contributing to elevated risk.
 - **validation.py**
-  - Input validation for form submissions
-  - Ensures data integrity before processing
-  
+  - Server-side bounds checking for all 15 clinical indicators and optional laboratory values.
+  - Guarantees data integrity prior to rule execution, inference, or persistence.
 - **field_labels.py**
-  - Human-readable descriptions of patient indicators
-  - Maps fields to display labels
+  - Human-readable descriptions, units, and categorized labels for patient indicators.
 
-### 4. **ML Layer**
+### 4. **Machine Learning Layer**
+- **clinical_data_pipeline.py**
+  - Ingests authentic epidemiological data from CDC NHANES (CVD, CKD, Retinopathy) and CDC BRFSS.
+  - Preprocesses clinical features and encodes gold-standard empirical diagnostic endpoints.
 - **train_model.py**
-  - Trains three independent classifiers (one per complication category)
-  - Splits data: train/test/val sets
-  - Models saved as joblib pickles
-  
-- **model/** directory
-  - Trained model files (per category)
-  - training_summary.json - Best model names and metrics
+  - Trains calibrated machine learning models using 5-fold Stratified Cross-Validation strictly within training partitions.
+  - Evaluates candidate models (Calibrated Logistic Regression, Calibrated Random Forest, Gradient Boosting).
+  - Derives leak-free operating thresholds using Youden's J statistic targeting high sensitivity (>86%) and NPV (>79%–96%).
+  - Computes 95% bootstrap confidence intervals (1,000 resamples) for all discrimination and calibration metrics.
+- **clinical_model.py**
+  - Encapsulates winning estimators in `ClinicalRiskWrapper` to guarantee deterministic, environment-agnostic joblib serialization.
+- **model/ Directory**
+  - `cardiovascular_model.pkl`: Calibrated ASCVD risk estimator.
+  - `general_burden_model.pkl`: Calibrated KDIGO CKD risk estimator.
+  - `neuropathy_mobility_model.pkl`: Calibrated MNSI mobility risk estimator.
+  - `retinopathy_model.pkl`: Calibrated Retinopathy risk estimator.
+  - `training_summary.json`: Detailed epidemiological validation metrics, thresholds, and bootstrap CIs.
+  - `clinical_roc_curves.png` & `clinical_calibration_curves.png`: Diagnostic discrimination and calibration plots.
 
-### 5. **Data Layer** (SQLite)
-- **database.py** - Database abstraction layer
-- **assessments** - Raw patient inputs + session_id + timestamp
-- **risk_results** - Scored results (rule score, label, ML prediction, confidence)
-- **lab_assessments** - Optional lab values (if provided)
-- **feedback** - User feedback signals for model improvement
+### 5. **Data Persistence Layer** (SQLite with WAL Mode)
+- **database.py** - Database abstraction layer featuring non-destructive schema migrations and Write-Ahead Logging.
+  - `assessments` - Raw clinical indicators, diabetes duration, blurry vision, session ID, archive flag, and UTC timestamp.
+  - `risk_results` - Rule-based scores, guideline labels, calibrated ML event probabilities, and AUROC metrics across all 4 domains.
+  - `lab_assessments` - Optional laboratory biomarkers (HbA1c, Systolic BP, LDL).
+  - `feedback` - User feedback for continuous quality monitoring.
+  - `prune_expired_assessments()` - Automated data retention policy pruning assessments older than 90 days.
 
-### 6. **Data Sources**
-- **diabetes_dataset.csv** - Training data (CDC BRFSS survey)
-- **generate_sample_data.py** - Utility for creating test data
+### 6. **Authentic Clinical Data Sources**
+- `nhanes_2017_2018_heart_disease_prediction.csv` - CDC NHANES 2017–2018 CVD diabetic cohort ($N=949$).
+- `CKD_NHANES_2021_2023.csv` - CDC NHANES 2021–2023 nephropathy cohort with laboratory eGFR/uACR ($N=848$).
+- `diabetes_dataset.csv` - CDC BRFSS diabetic registry ($N=35,346$ population, $N=5,000$ stratified sample).
+- `processed_retinopathy_cohort.csv` - CDC NHANES Retinopathy Exam cohort with digital retinal imaging ($N=797$).
 
-### 7. **Static Assets**
-- CSS stylesheets (Tailwind-based)
-- JavaScript for interactivity
-- SVG icons and images
+---
 
-## Data Flow
+## Data Flow Pipelines
 
-### Assessment Submission Flow
+### 1. Assessment Submission Flow
 ```
-User Input (assessment.html)
+Patient Form Submission (assessment.html)
     ↓
-Flask Route Handler (app.py)
+Flask Route Handler (/predict in app.py)
     ↓
-Input Validation (validation.py)
+CSRF & Rate Limit Verification (Flask-WTF + Flask-Limiter)
     ↓
-Rule Matrix Scoring (rule_matrix.py)
+Server-Side Input Validation (validation.py)
     ↓
-ML Model Prediction (trained models)
+Guideline Rule Matrix Scoring (rule_matrix.py: 4 Domains)
     ↓
-Recommendations Generation (recommendations.py)
+Calibrated ML Model Inference (model/*.pkl via ClinicalRiskWrapper)
     ↓
-Database Persistence (database.py → SQLite)
+Patient-Specific Risk Drivers & Recommendations (recommendations.py)
     ↓
-Result Rendering (result.html)
-```
-
-### Model Training Flow
-```
-Training Data (diabetes_dataset.csv)
+Database Persistence (database.py → SQLite WAL)
     ↓
-train_model.py Script
-    ↓
-Feature Engineering & Normalization
-    ↓
-Train/Test/Val Split
-    ↓
-Three Classifiers (CV, Neuropathy, General Burden)
-    ↓
-Model Serialization (joblib)
-    ↓
-model/ directory + training_summary.json
+Presentation Rendering (result.html / print_result.html)
 ```
 
-## Key Design Decisions
+### 2. Clinical Training & Evaluation Flow
+```
+Epidemiological Cohorts (CDC NHANES CVD, CKD, Retinopathy & BRFSS)
+    ↓
+clinical_data_pipeline.py (Cohort Extraction & Ground Truth Encoding)
+    ↓
+Stratified 80/20 Train/Test Partitioning
+    ↓
+5-Fold Stratified Cross-Validation on Training Folds Only
+    ↓
+Model Comparison (Calibrated Logistic Regression vs Random Forest vs Gradient Boosting)
+    ↓
+Platt / Isotonic Calibration (CalibratedClassifierCV)
+    ↓
+Leak-Free Threshold Selection on Training Folds via Youden's J
+    ↓
+Holdout Test Evaluation with 95% Bootstrap Confidence Intervals (1,000 Resamples)
+    ↓
+Serialization via ClinicalRiskWrapper into model/*.pkl
+```
 
-1. **Dual Scoring** - Both rule-based (transparent) and ML-based (predictive) scores for each category
-2. **Session Privacy** - Anonymous session IDs keep each user's history private
-3. **Normalized Schema** - Four-table structure vs. flat JSON for better data organization
-4. **Confidence Scores** - Model predictions include probability scores, not just labels
-5. **Rule-Based Ground Truth** - Rule matrix used for training data generation for consistency
-
-## Database Schema
-
-| Table | Purpose |
-|-------|---------|
-| `assessments` | Raw inputs, session tracking, rule version |
-| `risk_results` | Score outputs (rule + model) for each category |
-| `lab_assessments` | Optional lab value tracking |
-| `feedback` | User feedback for continuous improvement |
+---
 
 ## Technology Stack
 
-- **Backend**: Python 3, Flask
-- **Frontend**: HTML, Tailwind CSS, JavaScript
-- **Database**: SQLite
-- **ML**: scikit-learn (trained classifiers), joblib (serialization)
-- **Data**: pandas
+- **Server Runtime**: Python 3.11, Waitress WSGI, Docker, Docker Compose
+- **Web Framework**: Flask 3.0+, Flask-WTF (CSRF), Flask-Limiter, python-dotenv
+- **Machine Learning**: scikit-learn 1.4+, joblib, pandas, numpy, matplotlib
+- **Database**: SQLite3 (Write-Ahead Logging mode)
+- **Frontend**: HTML5, Tailwind CSS, Vanilla JavaScript (WCAG 2.1 AA compliant)
 

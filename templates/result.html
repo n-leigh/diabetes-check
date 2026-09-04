@@ -9,16 +9,18 @@
     <div class="text-center mb-8">
       <h1 class="font-display text-3xl font-extrabold text-slate-900 mb-2">Complication Risk Results</h1>
       {% if viewing_past %}
-      <p class="text-slate-500 text-sm">Viewing past assessment from {{ created_at }} UTC</p>
+      <p class="text-slate-500 text-sm">Viewing past assessment from {{ created_at|display_time }} PHT</p>
       {% else %}
       <p class="text-slate-500 text-sm">Based on the health indicators you submitted</p>
       {% endif %}
     </div>
 
-    <div class="grid sm:grid-cols-3 gap-5 mb-8">
+    <div class="grid sm:grid-cols-2 lg:grid-cols-4 gap-5 mb-8">
       {% for cat in categories %}
-      {% set pct = rule_results[cat].percentage %}
-      {% set label = rule_results[cat].label %}
+      {% set res = rule_results.get(cat) %}
+      {% if res %}
+      {% set pct = res.percentage %}
+      {% set label = res.label %}
       {% if label == 'Low' %}
         {% set tier_color, tier_bg, tier_text = '#22c55e', '#f0fdf4', '#15803d' %}
       {% elif label == 'Moderate' %}
@@ -43,7 +45,15 @@
         </div>
 
         <p class="text-sm font-semibold text-slate-800 font-display text-center leading-tight mt-2">
-          {{ cat.replace('_', ' ').title() }}
+          {% if cat == 'cardiovascular' %}
+            Cardiovascular (ACC/AHA)
+          {% elif cat == 'general_burden' %}
+            Nephropathy & Renal (KDIGO)
+          {% elif cat == 'neuropathy_mobility' %}
+            Neuropathy & Mobility (MNSI)
+          {% else %}
+            Diabetic Retinopathy (ADA)
+          {% endif %}
         </p>
         <span class="mt-2 px-2.5 py-0.5 rounded-full text-xs font-semibold" style="background-color: {{ tier_bg }}; color: {{ tier_text }};">
           {{ label }} Risk
@@ -51,28 +61,88 @@
 
         <div class="w-full mt-4 pt-4 border-t border-slate-100 text-xs text-slate-500 space-y-1">
           <div class="flex justify-between">
-            <span>Rule matrix</span>
-            <span class="font-semibold text-slate-700">{{ rule_results[cat].score }} pts</span>
+            <span>Rule score</span>
+            <span class="font-semibold text-slate-700">{{ res.score }} pts</span>
           </div>
           {% if model_results.get(cat) %}
           <div class="flex justify-between">
             <span>Model prediction</span>
             <span class="font-semibold text-slate-700">
               {{ model_results[cat] }}
-              {% if model_confidences.get(cat) %}<span class="text-slate-400 font-normal">({{ model_confidences[cat] }}% confidence)</span>{% endif %}
+              {% if model_confidences.get(cat) %}<span class="text-slate-400 font-normal">({{ model_confidences[cat] }}% risk)</span>{% endif %}
             </span>
           </div>
           {% if model_names.get(cat) %}
           <div class="flex justify-between">
-            <span>Model used</span>
+            <span>Classifier</span>
             <span class="font-medium text-slate-500">{{ model_names[cat] }}</span>
           </div>
+          {% endif %}
+          {% if clinical_metrics and clinical_metrics.get(cat) %}
+          <div class="flex justify-between items-center pt-1.5 border-t border-slate-100">
+            <span class="text-slate-400" title="Area Under Receiver Operating Characteristic (Discrimination C-statistic)">Clinical AUROC</span>
+            <span class="font-semibold text-emerald-600">{{ clinical_metrics[cat].auroc }}</span>
+          </div>
+          {% if clinical_metrics[cat].get('brier_score') is not none %}
+          <div class="flex justify-between items-center">
+            <span class="text-slate-400" title="Brier Score (Probability Calibration Error, lower is better)">Brier Score</span>
+            <span class="font-semibold text-teal-700">{{ clinical_metrics[cat].brier_score }}</span>
+          </div>
+          {% endif %}
           {% endif %}
           {% endif %}
         </div>
       </div>
+      {% endif %}
       {% endfor %}
     </div>
+
+    {% if patient_drivers %}
+    <div class="bg-white rounded-2xl border border-slate-200 shadow-sm p-6 mb-8">
+      <div class="flex items-start gap-3 mb-5">
+        <div class="w-9 h-9 rounded-xl bg-teal-50 flex items-center justify-center shrink-0">
+          <svg class="w-5 h-5 text-teal-600" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
+          </svg>
+        </div>
+        <div>
+          <h3 class="font-display text-lg font-bold text-slate-900">Patient-Specific Risk Drivers</h3>
+          <p class="text-xs text-slate-500 mt-0.5">Clinical feature attribution explaining the key biometric, lifestyle, and history factors driving this individual's risk score</p>
+        </div>
+      </div>
+
+      <div class="grid sm:grid-cols-2 lg:grid-cols-4 gap-4">
+        {% for cat in categories %}
+        <div class="bg-slate-50 rounded-xl p-4 border border-slate-100 flex flex-col justify-between">
+          <div>
+            <p class="font-display font-semibold text-xs text-slate-700 uppercase tracking-wider mb-2.5">
+              {% if cat == 'cardiovascular' %}
+                Cardiovascular (ASCVD)
+              {% elif cat == 'general_burden' %}
+                Nephropathy (KDIGO)
+              {% elif cat == 'neuropathy_mobility' %}
+                Neuropathy (MNSI)
+              {% else %}
+                Retinopathy (ADA)
+              {% endif %}
+            </p>
+            <ul class="space-y-2.5">
+              {% for d in patient_drivers.get(cat, []) %}
+              <li class="text-xs">
+                <div class="flex items-center justify-between gap-1 mb-0.5">
+                  <span class="font-semibold text-slate-800">{{ d.factor }}</span>
+                  <span class="text-[10px] font-semibold px-1.5 py-0.5 rounded border {{ d.badge }}">{{ d.impact }}</span>
+                </div>
+                <p class="text-[11px] text-slate-500 leading-snug">{{ d.detail }}</p>
+              </li>
+              {% endfor %}
+            </ul>
+          </div>
+        </div>
+        {% endfor %}
+      </div>
+    </div>
+    {% endif %}
 
     {% if lab_assessment %}
     {% set ll = lab_assessment.label %}
@@ -87,7 +157,7 @@
       <div class="flex items-start justify-between mb-4">
         <div>
           <h3 class="font-display text-lg font-bold text-slate-900">Lab-Based Clinical Assessment</h3>
-          <p class="text-xs text-slate-400 mt-0.5">Scored directly against ADA/NHANES clinical thresholds, independent of the survey-based model above</p>
+          <p class="text-xs text-slate-400 mt-0.5">Scored directly against ADA Standards of Care, KDIGO 2024, and ACC/AHA guideline targets</p>
         </div>
         <span class="px-3 py-1 rounded-full text-xs font-semibold shrink-0" style="background-color: {{ l_bg }}; color: {{ l_text }};">
           {{ ll }} Risk
@@ -95,23 +165,66 @@
       </div>
       <div class="grid sm:grid-cols-3 gap-4">
         {% if lab_assessment.details.hba1c %}
-        <div class="bg-slate-50 rounded-xl p-4">
-          <p class="text-xs text-slate-500 mb-1">HbA1c</p>
-          <p class="text-lg font-bold text-slate-800 font-display">{{ lab_assessment.details.hba1c.value }}%</p>
+        <div class="bg-slate-50 rounded-xl p-4 flex flex-col justify-between">
+          <div>
+            <p class="text-xs text-slate-500 mb-1">HbA1c (Glycemic Control)</p>
+            <p class="text-lg font-bold text-slate-800 font-display">{{ lab_assessment.details.hba1c.value }}%</p>
+          </div>
+          <div class="mt-2">
+            {% if lab_assessment.details.hba1c.points == 0 %}
+            <span class="inline-block px-2 py-0.5 rounded-full text-[11px] font-semibold bg-emerald-50 text-emerald-700 border border-emerald-200">Optimal (&lt;6.5% ADA)</span>
+            {% elif lab_assessment.details.hba1c.points == 1 %}
+            <span class="inline-block px-2 py-0.5 rounded-full text-[11px] font-semibold bg-amber-50 text-amber-700 border border-amber-200">Suboptimal (6.5–8.0% ADA)</span>
+            {% else %}
+            <span class="inline-block px-2 py-0.5 rounded-full text-[11px] font-semibold bg-red-50 text-red-700 border border-red-200">Elevated Risk (&gt;8.0% ADA)</span>
+            {% endif %}
+          </div>
         </div>
         {% endif %}
         {% if lab_assessment.details.systolic_bp %}
-        <div class="bg-slate-50 rounded-xl p-4">
-          <p class="text-xs text-slate-500 mb-1">Systolic BP</p>
-          <p class="text-lg font-bold text-slate-800 font-display">{{ lab_assessment.details.systolic_bp.value }} mmHg</p>
+        <div class="bg-slate-50 rounded-xl p-4 flex flex-col justify-between">
+          <div>
+            <p class="text-xs text-slate-500 mb-1">Systolic Blood Pressure</p>
+            <p class="text-lg font-bold text-slate-800 font-display">{{ lab_assessment.details.systolic_bp.value }} mmHg</p>
+          </div>
+          <div class="mt-2">
+            {% if lab_assessment.details.systolic_bp.points == 0 %}
+            <span class="inline-block px-2 py-0.5 rounded-full text-[11px] font-semibold bg-emerald-50 text-emerald-700 border border-emerald-200">Optimal (&lt;120 KDIGO)</span>
+            {% elif lab_assessment.details.systolic_bp.points == 1 %}
+            <span class="inline-block px-2 py-0.5 rounded-full text-[11px] font-semibold bg-amber-50 text-amber-700 border border-amber-200">Elevated (120–139 KDIGO)</span>
+            {% else %}
+            <span class="inline-block px-2 py-0.5 rounded-full text-[11px] font-semibold bg-red-50 text-red-700 border border-red-200">Stage 2 (&ge;140 KDIGO)</span>
+            {% endif %}
+          </div>
         </div>
         {% endif %}
         {% if lab_assessment.details.ldl %}
-        <div class="bg-slate-50 rounded-xl p-4">
-          <p class="text-xs text-slate-500 mb-1">LDL Cholesterol</p>
-          <p class="text-lg font-bold text-slate-800 font-display">{{ lab_assessment.details.ldl.value }} mg/dL</p>
+        <div class="bg-slate-50 rounded-xl p-4 flex flex-col justify-between">
+          <div>
+            <p class="text-xs text-slate-500 mb-1">LDL Cholesterol</p>
+            <p class="text-lg font-bold text-slate-800 font-display">{{ lab_assessment.details.ldl.value }} mg/dL</p>
+          </div>
+          <div class="mt-2">
+            {% if lab_assessment.details.ldl.points == 0 %}
+            <span class="inline-block px-2 py-0.5 rounded-full text-[11px] font-semibold bg-emerald-50 text-emerald-700 border border-emerald-200">Optimal (&lt;100 ACC/AHA)</span>
+            {% elif lab_assessment.details.ldl.points == 1 %}
+            <span class="inline-block px-2 py-0.5 rounded-full text-[11px] font-semibold bg-amber-50 text-amber-700 border border-amber-200">Borderline (100–129 ACC/AHA)</span>
+            {% else %}
+            <span class="inline-block px-2 py-0.5 rounded-full text-[11px] font-semibold bg-red-50 text-red-700 border border-red-200">Elevated (&ge;130 ACC/AHA)</span>
+            {% endif %}
+          </div>
         </div>
         {% endif %}
+      </div>
+    </div>
+    {% else %}
+    <div class="bg-slate-100/80 border border-slate-200 rounded-2xl p-4 mb-8 flex items-start gap-3 text-xs text-slate-500">
+      <svg class="w-4 h-4 text-teal-600 shrink-0 mt-0.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+        <path stroke-linecap="round" stroke-linejoin="round" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+      </svg>
+      <div>
+        <span class="font-semibold text-slate-700 font-display">Tip for your next doctor's visit:</span>
+        These complication risk tiers were estimated from your reported health indicators and symptoms. When you have recent bloodwork (such as HbA1c, blood pressure readings, or lipid panels), you can enter them for an additional point-of-care evaluation benchmarked against ADA and KDIGO guidelines.
       </div>
     </div>
     {% endif %}
@@ -180,13 +293,13 @@
         <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/>
       </svg>
       <p class="text-sm text-teal-700">
-        Each category shows two independent estimates: a transparent, clinically-cited <strong>rule matrix</strong> score, and a <strong>trained classifier's</strong> prediction learned from 35,346 real patient records. Showing both side by side keeps the system explainable.
+        Each category provides dual-engine clinical decision support: an explainable baseline score anchored in published guidelines (<strong>ACC/AHA 10-Yr ASCVD</strong>, <strong>KDIGO 2024 CKD Staging</strong>, and <strong>MNSI</strong>) alongside <strong>calibrated machine learning models</strong> trained and validated on authentic <strong>CDC NHANES</strong> diabetic clinical cohorts.
       </p>
     </div>
 
     <div class="flex flex-col sm:flex-row gap-3">
       <a href="/assessment" class="flex-1 text-center px-6 py-3 rounded-xl gradient-primary text-white text-sm font-bold hover:opacity-90 transition-opacity shadow-sm">
-        Check Someone Else
+        {{ 'Start New Assessment' if viewing_past else 'Check Someone Else' }}
       </a>
       {% if assessment_id %}
       <a href="/history/{{ assessment_id }}/print" target="_blank" class="flex-1 flex items-center justify-center gap-2 px-6 py-3 rounded-xl border border-slate-200 text-sm font-semibold text-slate-600 hover:bg-slate-50 transition-all">

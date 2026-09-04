@@ -90,9 +90,10 @@ def build_recommendations(rule_results: Dict, lab_assessment: Optional[Dict] = N
     cv_tier = rule_results.get("cardiovascular", {}).get("label", "Low")
     neuro_tier = rule_results.get("neuropathy_mobility", {}).get("label", "Low")
     burden_tier = rule_results.get("general_burden", {}).get("label", "Low")
+    retino_tier = rule_results.get("retinopathy", {}).get("label", "Low")
     lab_tier = lab_assessment["label"] if lab_assessment else None
 
-    overall = _highest_tier(cv_tier, neuro_tier, burden_tier, lab_tier)
+    overall = _highest_tier(cv_tier, neuro_tier, burden_tier, retino_tier, lab_tier)
 
     items: List[Dict] = []
 
@@ -120,6 +121,15 @@ def build_recommendations(rule_results: Dict, lab_assessment: Optional[Dict] = N
             "description": "Numbness, tingling, or new difficulty walking are worth mentioning to a doctor. "
                             "A quick daily check of your feet for cuts or sores, and comfortable, well-fitting "
                             "shoes, are simple habits that help.",
+        })
+
+    # Diabetic Retinopathy / Vision guidance
+    if retino_tier in ("Moderate", "High"):
+        items.append({
+            "title": "Schedule a dilated eye examination",
+            "description": "Diabetic eye changes and macular swelling can develop without noticeable pain. "
+                           "An annual comprehensive dilated eye exam or retinal photography with an optometrist "
+                           "or ophthalmologist is essential for catching early retinopathy before vision is affected.",
         })
 
     # General burden guidance

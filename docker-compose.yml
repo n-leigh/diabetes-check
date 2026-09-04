@@ -1,0 +1,15 @@
+services:
+  diabeates:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: diabeates
+    ports:
+      - "5000:5000"
+    environment:
+      - DEBUG=False
+      - PORT=5000
+    volumes:
+      - ./logs:/app/logs
+      - ./diabetes_system.db:/app/diabetes_system.db
+    restart: unless-stopped
