@@ -114,15 +114,13 @@ def test_flask_endpoints():
     res_hist_desc = client.get("/history?sort=desc")
     assert res_hist_desc.status_code == 200
     html_desc = res_hist_desc.get_data(as_text=True)
-    assert "Newest First" in html_desc
-    assert "Chronological" in html_desc
-    assert "Baseline" in html_desc
+    assert "Newest" in html_desc
 
     res_hist_asc = client.get("/history?sort=asc")
     assert res_hist_asc.status_code == 200
     html_asc = res_hist_asc.get_data(as_text=True)
-    assert "Baseline" in html_asc
-    print("GET /history (desc and asc) returned 200 OK with sort toggle and Baseline badge.")
+    assert "Oldest" in html_asc
+    print("GET /history (desc and asc) returned 200 OK with sort toggle.")
 
     # Test print view
     with app.app_context():

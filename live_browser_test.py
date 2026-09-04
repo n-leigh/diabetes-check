@@ -57,6 +57,8 @@ def run_live_browser_test():
         "GenHlth": "4",        # Fair general health
         "MentHlth": "6",
         "NoDocbcCost": "0",
+        "DiabetesDuration": "2",
+        "BlurryVision": "1",
         "LabHbA1c": "7.6",     # 7.6% (suboptimal)
         "LabSystolicBP": "138",# 138 mmHg (elevated)
         "LabLDL": "120"        # 120 mg/dL (borderline)

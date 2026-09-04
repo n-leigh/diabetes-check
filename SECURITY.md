@@ -1,244 +1,175 @@
-# Security & Configuration Guide
+# Security, Operations & Configuration Guide
 
 ## Overview
 
-This document outlines security measures, configuration requirements, and deployment best practices for the Diabetes Complication Prediction System.
+This document outlines security controls, defensive countermeasures, operational configurations, and deployment architectures implemented for the Diabetes Complication Prediction System (**DiaBeates**).
 
 ---
 
-## Configuration Management
+## Configuration & Environment Management
 
 ### Environment Variables (`.env`)
 
-The `.env` file (created automatically) stores sensitive configuration:
+Application secrets and deployment flags are configured via `.env`:
 
-```
-SECRET_KEY=<random-secure-key>
-DEBUG=false
-```
-
-**Critical Rules:**
-- ✅ `.env` is in `.gitignore` — NEVER commit it to version control
-- ✅ Each deployment environment needs its own `.env`
-- ⚠️ **Before production:** Generate a new SECRET_KEY:
-  ```bash
-  python -c "import secrets; print(secrets.token_hex(32))"
-  ```
-- ⚠️ **Before production:** Set `DEBUG=false`
-
-### Secret Key Management
-
-The `SECRET_KEY` protects Flask session cookies. If it's weak or leaked:
-- Session hijacking becomes trivial
-- Attackers can forge user identities
-- Patient data history becomes accessible to unauthorized users
-
-**Current Status:**
-- ✅ Logging warns if default key is in use
-- ✅ Logging warns if DEBUG mode is enabled
-- ⚠️ **TODO for production:** Implement key rotation strategy
-
----
-
-## Model Loading & Graceful Degradation
-
-### Issue: Missing Model Files
-
-If trained models (`model/*.pkl`) are missing, the app previously warned but still attempted predictions (causing silent failures).
-
-**Fix Implemented:**
-- ✅ Models are now loaded with try-catch error handling
-- ✅ `MODELS_AVAILABLE` flag tracks success/failure
-- ✅ Logs clearly indicate which models failed to load
-- ✅ App gracefully falls back to rule-matrix-only predictions if models are unavailable
-- ✅ Template can check `MODELS_AVAILABLE` to show/hide model predictions
-
-**What to do if models are missing:**
 ```bash
-python train_model.py     # Retrain models from data/diabetes_dataset.csv
+# Flask Session Security Key
+SECRET_KEY=<generate-a-strong-random-hex-key>
+
+# Deployment Mode (set False in production)
+DEBUG=False
+
+# Cookie Security (set True when HTTPS is enabled)
+SESSION_COOKIE_SECURE=True
+
+# Application Port
+PORT=5000
+
+# Display Timezone for Audit and History (default Asia/Manila / PHT)
+DISPLAY_TIMEZONE=Asia/Manila
+```
+
+### Secret Key & Session Hardening
+
+The `SECRET_KEY` cryptographically signs Flask session cookies to protect client-side session states:
+- **Defense in Depth**:
+  - `SESSION_COOKIE_HTTPONLY=True`: Prevents client-side scripts from reading session cookies, thwarting XSS session extraction.
+  - `SESSION_COOKIE_SAMESITE="Lax"`: Mitigates Cross-Site Request Forgery (CSRF) on ambient browser requests.
+  - `SESSION_COOKIE_SECURE`: Conditionally enforces HTTPS-only cookie transmission when running behind TLS.
+  - `PERMANENT_SESSION_LIFETIME=86400`: Caps session lifespan to 24 hours.
+  - **Startup Verification**: The application logs a high-severity alert if `DEFAULT_SECRET_KEY` is detected while `DEBUG=False`.
+
+To generate a cryptographically strong secret:
+```bash
+python -c "import secrets; print(secrets.token_hex(32))"
 ```
 
 ---
 
-## Logging & Audit Trails
+## Defensive Countermeasures & Security Headers
 
-### What's Logged
+### 1. HTTP Security Headers
+Every HTTP response is injected with defensive headers in `app.py`:
+- `X-Frame-Options: DENY`: Blocks clickjacking attacks by forbidding iframe embedding.
+- `X-Content-Type-Options: nosniff`: Prevents MIME-type sniffing vulnerabilities.
+- `Referrer-Policy: strict-origin-when-cross-origin`: Restricts leaking sensitive URL parameters to third parties.
+- `Permissions-Policy: geolocation=(), microphone=(), camera=()`: Disables unneeded browser capabilities.
+- `Strict-Transport-Security: max-age=31536000; includeSubDomains`: Enforces HTTPS for all client communication in production.
 
-Logs are stored in `logs/diabetes_system.log` and also printed to console:
+### 2. Cross-Site Request Forgery (CSRF) Protection
+- Implemented globally via **Flask-WTF** (`CSRFProtect(app)`).
+- Every POST request (`/predict`, `/history/<id>/archive`, `/history/<id>/delete`) requires a valid CSRF token.
+- Invalid or missing tokens trigger HTTP 400 Bad Request responses with audit log entries.
 
-**Startup:**
-- Application initialization status
-- Debug mode enabled/disabled
-- Models available/unavailable
-- Schema version checks
+### 3. Rate Limiting
+- Enforced via **Flask-Limiter** using client remote addresses (`get_remote_address`).
+- Default limit: `300 per day`, `100 per hour` across public routes.
+- Protects clinical triage endpoints against brute-force abuse and Denial of Service (DoS).
 
-**Per-Assessment:**
-- Form validation failures
-- Rule matrix computations
-- Model predictions (with confidence scores)
-- Any prediction errors
+---
 
-**Errors:**
-- Full exception stack traces
-- Validation failures
-- Model inference failures
-- Database errors
+## Production Runtime & Containerization
 
-### Log Rotation
+### 1. Multi-Stage Docker Deployment
+- **Base Image**: `python:3.11-slim` for minimal surface area and vulnerability reduction.
+- **Unprivileged Execution**: Drops privileges to `appuser` (created without home directory and non-root UID).
+- **Environment Isolation**: Bytecode caching disabled (`PYTHONDONTWRITEBYTECODE=1`), unbuffered logging enabled (`PYTHONUNBUFFERED=1`).
+- **Volume Mounts**: Isolated persistent storage for `diabetes_system.db` and `/app/logs`.
 
-Logs are automatically rotated when `diabetes_system.log` exceeds 10MB (5 backup files kept).
+### 2. Multi-Threaded WSGI Server (Waitress)
+- Entrypoint [`wsgi.py`](wsgi.py) replaces development servers with production Waitress:
+```python
+serve(app, host='0.0.0.0', port=5000, threads=8)
+```
+- Provides stable concurrent connection handling without thread starvation.
 
-### Viewing Logs
+### 3. Automated Liveness & Readiness Healthcheck (`/health`)
+- Exposes an operational monitoring endpoint at `/health`.
+- Verifies:
+  1. Database read/write connectivity.
+  2. All 4 clinical risk models (`cardiovascular`, `general_burden`, `neuropathy_mobility`, `retinopathy`) loaded in memory.
+- Integrated into Docker container health probes (`HEALTHCHECK` in `Dockerfile`).
+
+---
+
+## Data Privacy, Storage & Retention
+
+### 1. Anonymous Session Isolation
+- Assessments are keyed to an anonymous UUID string stored in the user's session (`session["session_id"]`).
+- No personally identifiable information (PII) such as patient names, emails, national IDs, or IP addresses are persisted in the assessment database.
+- Database queries enforce strict `session_id` filtering, preventing cross-tenant record leakage.
+
+### 2. Database Reliability (SQLite WAL Mode)
+- Configured with `PRAGMA journal_mode = WAL` (Write-Ahead Logging).
+- Allows concurrent readers while a single writer commits, preventing table locking.
+- Safe, non-destructive schema migrations ensure columns (`diabetes_duration`, `blurry_vision`, `archived`) are added idempotently without data loss.
+
+### 3. Automated Data Retention Pruning
+- Implemented via `prune_expired_assessments(days=90)` in [`database.py`](database.py).
+- Purges stale records and associated risk entries exceeding the retention horizon, complying with data minimization principles.
+
+### 4. Patient Audit Trail & UX
+- Assessment history supports chronological sorting (newest first / oldest first).
+- Stable sequential display numbering (`#1`, `#2`, ...).
+- Timestamps converted to localized Philippine Standard Time (PHT / UTC+8).
+- Deletion operations protected with accessible modal dialogs that enforce keyboard focus trapping and explicit user confirmation.
+
+---
+
+## Input Validation & Bounds Checking
+
+All inputs submitted to `/predict` are validated server-side in [`validation.py`](validation.py) before execution:
+
+| Parameter | Allowed Range / Types | Validation Policy |
+|---|:---:|---|
+| **Age** | 1 – 13 (BRFSS age bands) | Integer bounds |
+| **Sex** | 0 (Female), 1 (Male) | Binary integer |
+| **BMI** | 10.0 – 80.0 | Floating-point range |
+| **Diabetes Duration** | 0 – 4 (<1 yr, 1–5 yrs, 5–10 yrs, 10–20 yrs, 20+ yrs) | Categorical band |
+| **HighBP / HighChol / Smoker / Stroke** | 0 or 1 | Binary integer |
+| **HeartDiseaseorAttack / DiffWalk / BlurryVision** | 0 or 1 | Binary integer |
+| **PhysHlth / MentHlth** | 0 – 30 days | Integer day bounds |
+| **GenHlth** | 1 – 5 | Categorical integer |
+| **NoDocbcCost** | 0 or 1 | Binary integer |
+| **HbA1c (Optional)** | 3.0 – 20.0% | Optional floating-point |
+| **Systolic BP (Optional)** | 60 – 250 mmHg | Optional integer |
+| **LDL Cholesterol (Optional)** | 20 – 400 mg/dL | Optional integer |
+
+---
+
+## Logging & Auditing
+
+- **Log File**: `logs/diabetes_system.log`
+- **Rotation Policy**: Rotates at 10MB with 5 archived backups (50MB maximum ceiling).
+- **Log Events**:
+  - Application startup, configuration warnings, and loaded model summaries.
+  - CSRF verification errors.
+  - Validation failures and malformed payloads.
+  - Model inference executions and database transaction status.
 
 ```bash
-# Real-time (on Windows PowerShell)
+# View real-time logs on Windows PowerShell
 Get-Content .\logs\diabetes_system.log -Tail 50 -Wait
 
-# Search for errors
-Select-String "ERROR" .\logs\diabetes_system.log
+# Search for security warnings or errors
+Select-String "WARNING|ERROR|CSRF" .\logs\diabetes_system.log
 ```
 
 ---
 
-## Data Privacy
+## Production Security Checklist
 
-### Session Management
+- [x] CSRF protection enabled across all form endpoints (Flask-WTF)
+- [x] Server-side bounds checking for all 15 clinical indicators and optional lab values
+- [x] Multi-stage Docker container build running as non-root user (`appuser`)
+- [x] Multi-threaded production WSGI server via Waitress (`wsgi.py`)
+- [x] Operational health check probe (`/health`)
+- [x] Defensive HTTP security headers (`X-Frame-Options`, `X-Content-Type-Options`, `Referrer-Policy`, `HSTS`)
+- [x] Rate limiting on public prediction endpoints (Flask-Limiter)
+- [x] Automated 90-day data retention pruning (`prune_expired_assessments`)
+- [x] Rotating file logger with 10MB limit and 5 backups
+- [x] SQLite WAL mode enabled for concurrent performance and non-destructive migrations
+- [ ] Set unique `SECRET_KEY` in production `.env`
+- [ ] Set `DEBUG=False` in production `.env`
+- [ ] Terminate TLS/HTTPS via reverse proxy (Nginx, Traefik, or Caddy)
 
-- ✅ Each visitor gets a unique session cookie (via `session["session_id"]`)
-- ✅ History page filters by session — users ONLY see their own assessments
-- ✅ Database enforces session_id checks on all history/archive/delete operations
-
-**Database Schema:**
-- `assessments.session_id` — anonymous visitor ID (not email, not username)
-- `assessments.created_at` — timestamp in UTC ISO format
-- All assessment data is tied to this session_id
-
-### Data Retention
-
-Currently:
-- ✅ Users can manually delete assessments (soft/hard delete available)
-- ✅ Users can archive assessments
-- ⚠️ **TODO for production:** Implement automatic data retention policy (e.g., delete after 90 days)
-
-### Database File
-
-- ✅ `diabetes_system.db` is in `.gitignore` — won't be committed
-- ⚠️ **Before production:** Set appropriate file permissions:
-  ```bash
-  # Linux/Mac:
-  chmod 600 diabetes_system.db
-  
-  # Windows (admin terminal):
-  icacls diabetes_system.db /inheritance:r /grant:r "%USERNAME%:F"
-  ```
-
----
-
-## Input Validation
-
-### Server-Side Validation
-
-All form inputs are validated on the server, regardless of client-side checks:
-
-**Validated Fields:**
-- BMI: 10.0–80.0 (float)
-- Age: 1–13 BRFSS bands (int)
-- General Health: 1–5 (int)
-- Physical Health Days: 0–30 (int)
-- Mental Health Days: 0–30 (int)
-- Lab values (optional):
-  - HbA1c: 3.0–20.0 (float)
-  - Systolic BP: 60–250 (int)
-  - LDL: 20–400 (int)
-- Checkboxes: Binary (0 or 1)
-- Selects: Allowed values only
-
-**Error Handling:**
-- ✅ All validation happens before prediction
-- ✅ Errors are returned to the form page with user-friendly messages
-- ✅ Invalid data is never saved to the database
-- ✅ Malformed requests don't crash the app
-
----
-
-## Exception Handling
-
-**Before:** Unhandled exceptions would show Flask debug pages (leaking stack traces).
-
-**After:**
-- ✅ All exceptions caught by `@app.errorhandler(Exception)`
-- ✅ Full stack trace logged to `logs/diabetes_system.log`
-- ✅ User sees generic "Something went wrong" message (doesn't leak internals)
-
----
-
-## Recommended Production Checklist
-
-- [ ] Generate and set new `SECRET_KEY` in `.env`
-- [ ] Set `DEBUG=false` in `.env`
-- [ ] Run `python train_model.py` to generate fresh models
-- [ ] Set database file permissions (600 on Linux/Mac, restricted on Windows)
-- [ ] Configure a production WSGI server (gunicorn, Waitress, etc.) instead of Flask's development server
-- [ ] Set up HTTPS/SSL certificate
-- [ ] Configure a reverse proxy (nginx, Apache) with security headers:
-  - `X-Frame-Options: DENY`
-  - `X-Content-Type-Options: nosniff`
-  - `Strict-Transport-Security: max-age=31536000; includeSubDomains`
-  - `Content-Security-Policy: default-src 'self'`
-- [ ] Implement rate limiting on `/predict` endpoint
-- [ ] Set up monitoring/alerting on `logs/diabetes_system.log` for ERROR entries
-- [ ] Document data retention policy
-- [ ] Test graceful degradation if models go offline (fallback to rule-matrix)
-- [ ] Backup database regularly (don't rely on version control)
-
----
-
-## Common Questions
-
-**Q: Can I share my `.env` file with teammates?**  
-A: No — use a `.env.example` template without actual keys. Each person generates their own.
-
-**Q: What if I forget to change the SECRET_KEY?**  
-A: ⚠️ Critical vulnerability. Any attacker can forge session cookies and access all patient histories.
-
-**Q: What happens if the models crash during prediction?**  
-A: Logged and caught. App returns rule-matrix results only. User sees "Model unavailable" indicator.
-
-**Q: How long are logs kept?**  
-A: 5 files × 10MB = 50MB max. Oldest logs are rotated out. For long-term audit trails, export logs periodically.
-
-**Q: Can I disable logging in production?**  
-A: Not recommended — logs are your only visibility into system health and errors.
-
----
-
-## Questions for Your Defense
-
-Be ready to explain:
-
-1. **"How do you protect session data?"**  
-   → By session_id, not username. History endpoint filters by session_id.
-
-2. **"What if models fail?"**  
-   → Graceful degradation: app continues with rule-matrix predictions only.
-
-3. **"How do you handle invalid input?"**  
-   → Server-side validation catches all violations before prediction.
-
-4. **"Where are logs stored? How long?"**  
-   → `logs/diabetes_system.log` with rotation at 10MB.
-
-5. **"Is your SECRET_KEY secure for production?"**  
-   → Not yet. Must be regenerated and set in `.env` before deployment.
-
-6. **"What if the database file is leaked?"**  
-   → Contains session_id (anonymous), timestamps, and predictions — no names, no emails. Still serious, but limited PII.
-
----
-
-## References
-
-- [OWASP Session Management Cheat Sheet](https://cheatsheetseries.owasp.org/cheatsheets/Session_Management_Cheat_Sheet.html)
-- [Python Secrets Module](https://docs.python.org/3/library/secrets.html)
-- [Flask Security](https://flask.palletsprojects.com/en/2.3.x/security/)
-- [SQLite Security](https://www.sqlite.org/security.html)

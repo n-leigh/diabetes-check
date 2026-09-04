@@ -19,6 +19,7 @@ payload_a = {
     'HighBP': '1', 'HighChol': '1', 'Smoker': '0', 'HeartDiseaseorAttack': '0',
     'Stroke': '0', 'DiffWalk': '0', 'PhysHlth': '2', 'GenHlth': '2',
     'MentHlth': '1', 'NoDocbcCost': '0',
+    'DiabetesDuration': '2', 'BlurryVision': '1',
     'LabHbA1c': '7.2', 'LabSystolicBP': '132', 'LabLDL': '110'
 }
 r_a = opener.open(urllib.request.Request('http://127.0.0.1:5000/predict', data=urllib.parse.urlencode(payload_a).encode('utf-8'))).read().decode('utf-8')
@@ -32,7 +33,8 @@ payload_b = {
     'csrf_token': csrf2, 'Age': '8', 'Sex': '0', 'BMI': '26.0',
     'HighBP': '0', 'HighChol': '0', 'Smoker': '0', 'HeartDiseaseorAttack': '0',
     'Stroke': '0', 'DiffWalk': '0', 'PhysHlth': '0', 'GenHlth': '2',
-    'MentHlth': '0', 'NoDocbcCost': '0'
+    'MentHlth': '0', 'NoDocbcCost': '0',
+    'DiabetesDuration': '1', 'BlurryVision': '0'
 }
 r_b = opener.open(urllib.request.Request('http://127.0.0.1:5000/predict', data=urllib.parse.urlencode(payload_b).encode('utf-8'))).read().decode('utf-8')
 assert 'Tip for your next doctor' in r_b
