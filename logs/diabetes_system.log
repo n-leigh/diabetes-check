@@ -195,3 +195,62 @@ werkzeug.exceptions.NotFound: 404 Not Found: The requested URL was not found on 
 2026-09-05 01:09:22,518 - werkzeug - INFO - [31m[1mWARNING: This is a development server. Do not use it in a production deployment. Use a production WSGI server instead.[0m
  * Running on http://127.0.0.1:5000
 2026-09-05 01:09:22,520 - werkzeug - INFO - [33mPress CTRL+C to quit[0m
+2026-09-05 01:15:22,480 - DiaBeates - INFO - Database initialized successfully with non-destructive WAL mode.
+2026-09-05 01:15:22,483 - DiaBeates - INFO - Loaded clinical models summary: ['cardiovascular', 'general_burden', 'neuropathy_mobility', 'retinopathy']
+2026-09-05 01:15:23,074 - werkzeug - INFO - WARNING: This is a development server. Do not use it in a production deployment. Use a production WSGI server instead.
+ * Running on http://127.0.0.1:5000
+2026-09-05 01:15:23,075 - werkzeug - INFO - Press CTRL+C to quit
+2026-09-05 01:15:28,760 - DiaBeates - INFO - Rule matrix computed for patient: {'cardiovascular': {'score': 2, 'label': 'Low', 'percentage': 12}, 'neuropathy_mobility': {'score': 3, 'label': 'Moderate', 'percentage': 38}, 'general_burden': {'score': 3, 'label': 'Moderate', 'percentage': 43}, 'retinopathy': {'score': 4, 'label': 'Moderate', 'percentage': 40}}
+2026-09-05 01:15:29,001 - werkzeug - INFO - 127.0.0.1 - - [05/Sep/2026 01:15:29] "POST /predict HTTP/1.1" 200 -
+2026-09-05 01:15:29,141 - werkzeug - INFO - 127.0.0.1 - - [05/Sep/2026 01:15:29] "GET /static/logo.png HTTP/1.1" 304 -
+2026-09-05 01:15:29,315 - werkzeug - INFO - 127.0.0.1 - - [05/Sep/2026 01:15:29] "GET /static/logo.svg HTTP/1.1" 304 -
+2026-09-05 01:17:04,573 - DiaBeates - INFO - Database initialized successfully with non-destructive WAL mode.
+2026-09-05 01:17:04,575 - DiaBeates - INFO - Loaded clinical models summary: ['cardiovascular', 'general_burden', 'neuropathy_mobility', 'retinopathy']
+2026-09-05 01:17:04,958 - werkzeug - INFO - WARNING: This is a development server. Do not use it in a production deployment. Use a production WSGI server instead.
+ * Running on http://127.0.0.1:5000
+2026-09-05 01:17:04,959 - werkzeug - INFO - Press CTRL+C to quit
+2026-09-05 01:17:09,411 - DiaBeates - INFO - Rule matrix computed for patient: {'cardiovascular': {'score': 2, 'label': 'Low', 'percentage': 12}, 'neuropathy_mobility': {'score': 3, 'label': 'Moderate', 'percentage': 38}, 'general_burden': {'score': 3, 'label': 'Moderate', 'percentage': 43}, 'retinopathy': {'score': 4, 'label': 'Moderate', 'percentage': 40}}
+2026-09-05 01:17:09,609 - werkzeug - INFO - 127.0.0.1 - - [05/Sep/2026 01:17:09] "POST /predict HTTP/1.1" 200 -
+2026-09-05 01:17:09,751 - werkzeug - INFO - 127.0.0.1 - - [05/Sep/2026 01:17:09] "GET /static/logo.png HTTP/1.1" 304 -
+2026-09-05 01:17:09,888 - werkzeug - INFO - 127.0.0.1 - - [05/Sep/2026 01:17:09] "GET /static/logo.svg HTTP/1.1" 304 -
+2026-09-05 01:18:19,110 - DiaBeates - INFO - Rule matrix computed for patient: {'cardiovascular': {'score': 2, 'label': 'Low', 'percentage': 12}, 'neuropathy_mobility': {'score': 3, 'label': 'Moderate', 'percentage': 38}, 'general_burden': {'score': 3, 'label': 'Moderate', 'percentage': 43}, 'retinopathy': {'score': 4, 'label': 'Moderate', 'percentage': 40}}
+2026-09-05 01:18:19,245 - werkzeug - INFO - 127.0.0.1 - - [05/Sep/2026 01:18:19] "POST /predict HTTP/1.1" 200 -
+2026-09-05 01:18:19,273 - werkzeug - INFO - 127.0.0.1 - - [05/Sep/2026 01:18:19] "GET /static/logo.png HTTP/1.1" 304 -
+2026-09-05 01:18:19,499 - werkzeug - INFO - 127.0.0.1 - - [05/Sep/2026 01:18:19] "GET /static/logo.svg HTTP/1.1" 304 -
+2026-09-05 01:19:53,055 - DiaBeates - INFO - Database initialized successfully with non-destructive WAL mode.
+2026-09-05 01:19:53,057 - DiaBeates - INFO - Loaded clinical models summary: ['cardiovascular', 'general_burden', 'neuropathy_mobility', 'retinopathy']
+2026-09-05 01:19:53,751 - werkzeug - INFO - [31m[1mWARNING: This is a development server. Do not use it in a production deployment. Use a production WSGI server instead.[0m
+ * Running on http://127.0.0.1:5000
+2026-09-05 01:19:53,751 - werkzeug - INFO - [33mPress CTRL+C to quit[0m
+2026-09-05 01:20:05,952 - werkzeug - INFO - 127.0.0.1 - - [05/Sep/2026 01:20:05] "GET / HTTP/1.1" 200 -
+2026-09-05 01:20:20,604 - DiaBeates - INFO - Rule matrix computed for patient: {'cardiovascular': {'score': 2, 'label': 'Low', 'percentage': 12}, 'neuropathy_mobility': {'score': 3, 'label': 'Moderate', 'percentage': 38}, 'general_burden': {'score': 3, 'label': 'Moderate', 'percentage': 43}, 'retinopathy': {'score': 4, 'label': 'Moderate', 'percentage': 40}}
+2026-09-05 01:20:20,778 - werkzeug - INFO - 127.0.0.1 - - [05/Sep/2026 01:20:20] "POST /predict HTTP/1.1" 200 -
+2026-09-05 01:20:20,814 - werkzeug - INFO - 127.0.0.1 - - [05/Sep/2026 01:20:20] "GET /static/logo.png HTTP/1.1" 304 -
+2026-09-05 01:20:21,051 - werkzeug - INFO - 127.0.0.1 - - [05/Sep/2026 01:20:21] "GET /static/logo.svg HTTP/1.1" 304 -
+2026-09-05 01:21:06,485 - DiaBeates - INFO - Rule matrix computed for patient: {'cardiovascular': {'score': 2, 'label': 'Low', 'percentage': 12}, 'neuropathy_mobility': {'score': 3, 'label': 'Moderate', 'percentage': 38}, 'general_burden': {'score': 3, 'label': 'Moderate', 'percentage': 43}, 'retinopathy': {'score': 4, 'label': 'Moderate', 'percentage': 40}}
+2026-09-05 01:21:06,618 - werkzeug - INFO - 127.0.0.1 - - [05/Sep/2026 01:21:06] "POST /predict HTTP/1.1" 200 -
+2026-09-05 01:21:06,657 - werkzeug - INFO - 127.0.0.1 - - [05/Sep/2026 01:21:06] "GET /static/logo.png HTTP/1.1" 304 -
+2026-09-05 01:21:06,896 - werkzeug - INFO - 127.0.0.1 - - [05/Sep/2026 01:21:06] "GET /static/logo.svg HTTP/1.1" 304 -
+2026-09-05 01:21:32,058 - werkzeug - INFO - 127.0.0.1 - - [05/Sep/2026 01:21:32] "GET / HTTP/1.1" 200 -
+2026-09-05 01:21:46,473 - DiaBeates - INFO - Rule matrix computed for patient: {'cardiovascular': {'score': 2, 'label': 'Low', 'percentage': 12}, 'neuropathy_mobility': {'score': 3, 'label': 'Moderate', 'percentage': 38}, 'general_burden': {'score': 3, 'label': 'Moderate', 'percentage': 43}, 'retinopathy': {'score': 4, 'label': 'Moderate', 'percentage': 40}}
+2026-09-05 01:21:46,612 - werkzeug - INFO - 127.0.0.1 - - [05/Sep/2026 01:21:46] "POST /predict HTTP/1.1" 200 -
+2026-09-05 01:21:46,649 - werkzeug - INFO - 127.0.0.1 - - [05/Sep/2026 01:21:46] "GET /static/logo.png HTTP/1.1" 304 -
+2026-09-05 01:21:46,994 - werkzeug - INFO - 127.0.0.1 - - [05/Sep/2026 01:21:46] "GET /static/logo.svg HTTP/1.1" 304 -
+2026-09-05 01:21:56,565 - werkzeug - INFO - 127.0.0.1 - - [05/Sep/2026 01:21:56] "GET /assessment HTTP/1.1" 200 -
+2026-09-05 01:22:04,869 - DiaBeates - INFO - Rule matrix computed for patient: {'cardiovascular': {'score': 2, 'label': 'Low', 'percentage': 12}, 'neuropathy_mobility': {'score': 3, 'label': 'Moderate', 'percentage': 38}, 'general_burden': {'score': 3, 'label': 'Moderate', 'percentage': 43}, 'retinopathy': {'score': 4, 'label': 'Moderate', 'percentage': 40}}
+2026-09-05 01:22:04,958 - werkzeug - INFO - 127.0.0.1 - - [05/Sep/2026 01:22:04] "POST /predict HTTP/1.1" 200 -
+2026-09-05 01:22:05,008 - werkzeug - INFO - 127.0.0.1 - - [05/Sep/2026 01:22:05] "GET /static/logo.png HTTP/1.1" 304 -
+2026-09-05 01:23:01,152 - DiaBeates - INFO - Rule matrix computed for patient: {'cardiovascular': {'score': 2, 'label': 'Low', 'percentage': 12}, 'neuropathy_mobility': {'score': 3, 'label': 'Moderate', 'percentage': 38}, 'general_burden': {'score': 3, 'label': 'Moderate', 'percentage': 43}, 'retinopathy': {'score': 4, 'label': 'Moderate', 'percentage': 40}}
+2026-09-05 01:23:01,308 - werkzeug - INFO - 127.0.0.1 - - [05/Sep/2026 01:23:01] "POST /predict HTTP/1.1" 200 -
+2026-09-05 01:23:01,338 - werkzeug - INFO - 127.0.0.1 - - [05/Sep/2026 01:23:01] "GET /static/logo.png HTTP/1.1" 304 -
+2026-09-05 01:23:01,575 - werkzeug - INFO - 127.0.0.1 - - [05/Sep/2026 01:23:01] "GET /static/logo.svg HTTP/1.1" 304 -
+2026-09-05 01:25:12,506 - DiaBeates - INFO - Rule matrix computed for patient: {'cardiovascular': {'score': 2, 'label': 'Low', 'percentage': 12}, 'neuropathy_mobility': {'score': 3, 'label': 'Moderate', 'percentage': 38}, 'general_burden': {'score': 3, 'label': 'Moderate', 'percentage': 43}, 'retinopathy': {'score': 4, 'label': 'Moderate', 'percentage': 40}}
+2026-09-05 01:25:12,616 - werkzeug - INFO - 127.0.0.1 - - [05/Sep/2026 01:25:12] "POST /predict HTTP/1.1" 200 -
+2026-09-05 01:25:12,707 - werkzeug - INFO - 127.0.0.1 - - [05/Sep/2026 01:25:12] "GET /static/logo.png HTTP/1.1" 304 -
+2026-09-05 01:25:13,427 - werkzeug - INFO - 127.0.0.1 - - [05/Sep/2026 01:25:13] "GET /static/logo.svg HTTP/1.1" 304 -
+2026-09-05 01:25:42,153 - DiaBeates - INFO - Database initialized successfully with non-destructive WAL mode.
+2026-09-05 01:25:42,155 - DiaBeates - INFO - Loaded clinical models summary: ['cardiovascular', 'general_burden', 'neuropathy_mobility', 'retinopathy']
+2026-09-05 01:26:23,383 - DiaBeates - INFO - Rule matrix computed for patient: {'cardiovascular': {'score': 2, 'label': 'Low', 'percentage': 12}, 'neuropathy_mobility': {'score': 3, 'label': 'Moderate', 'percentage': 38}, 'general_burden': {'score': 3, 'label': 'Moderate', 'percentage': 43}, 'retinopathy': {'score': 4, 'label': 'Moderate', 'percentage': 40}}
+2026-09-05 01:26:23,529 - werkzeug - INFO - 127.0.0.1 - - [05/Sep/2026 01:26:23] "POST /predict HTTP/1.1" 200 -
+2026-09-05 01:26:23,583 - werkzeug - INFO - 127.0.0.1 - - [05/Sep/2026 01:26:23] "GET /static/logo.png HTTP/1.1" 304 -
+2026-09-05 01:26:23,797 - werkzeug - INFO - 127.0.0.1 - - [05/Sep/2026 01:26:23] "GET /static/logo.svg HTTP/1.1" 304 -
