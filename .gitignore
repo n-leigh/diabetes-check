@@ -14,8 +14,11 @@ env/
 # first time they run the app, since app.py creates it if missing.
 diabetes_system.db
 *.db
+*.db-*
 *.sqlite
+*.sqlite-*
 *.sqlite3
+*.sqlite3-*
 
 .env
 

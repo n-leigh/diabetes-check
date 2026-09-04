@@ -27,9 +27,6 @@ from zoneinfo import ZoneInfo
 from dotenv import load_dotenv
 import joblib
 import pandas as pd
-import logging
-import logging.handlers
-from dotenv import load_dotenv
 from flask import Flask, render_template, request, redirect, url_for, session
 from flask_wtf.csrf import CSRFProtect, CSRFError
 from flask_limiter import Limiter
@@ -127,6 +124,13 @@ limiter = Limiter(
 
 database.init_db()
 logger.info("Database initialized successfully with non-destructive WAL mode.")
+try:
+    RETENTION_DAYS = int(os.getenv("RETENTION_DAYS", "90"))
+except ValueError:
+    RETENTION_DAYS = 90
+pruned_count = database.prune_expired_assessments(days=RETENTION_DAYS)
+if pruned_count:
+    logger.info("Expired assessments pruned: %d", pruned_count)
 
 CATEGORIES = ["cardiovascular", "neuropathy_mobility", "general_burden", "retinopathy"]
 FEATURE_COLUMNS = [
