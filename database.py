@@ -47,17 +47,23 @@ def get_connection():
 
 
 def restrict_database_permissions():
-    """Restrict SQLite files to the current Windows user."""
-    if platform.system() != "Windows":
-        return
+    """Best-effort: restrict SQLite files to the current OS user (where supported)."""
     for path in (DB_PATH, f"{DB_PATH}-wal", f"{DB_PATH}-shm"):
-        if os.path.exists(path):
+        if not os.path.exists(path):
+            continue
+
+        if platform.system() == "Windows":
             subprocess.run(
                 ["icacls", path, "/inheritance:r", "/grant:r", f"{getpass.getuser()}:F"],
                 check=False,
                 capture_output=True,
                 text=True,
             )
+        else:
+            try:
+                os.chmod(path, 0o600)
+            except OSError:
+                pass
 
 
 def init_db():
