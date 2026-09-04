@@ -190,3 +190,8 @@ werkzeug.exceptions.NotFound: 404 Not Found: The requested URL was not found on 
 2026-08-31 22:33:03,204 - werkzeug - INFO - 127.0.0.1 - - [31/Aug/2026 22:33:03] "[36mGET /static/logo.png HTTP/1.1[0m" 304 -
 2026-08-31 22:33:04,745 - werkzeug - INFO - 127.0.0.1 - - [31/Aug/2026 22:33:04] "GET /about HTTP/1.1" 200 -
 2026-08-31 22:33:05,349 - werkzeug - INFO - 127.0.0.1 - - [31/Aug/2026 22:33:05] "[36mGET /static/logo.png HTTP/1.1[0m" 304 -
+2026-09-05 01:09:21,682 - DiaBeates - INFO - Database initialized successfully with non-destructive WAL mode.
+2026-09-05 01:09:21,685 - DiaBeates - INFO - Loaded clinical models summary: ['cardiovascular', 'general_burden', 'neuropathy_mobility', 'retinopathy']
+2026-09-05 01:09:22,518 - werkzeug - INFO - [31m[1mWARNING: This is a development server. Do not use it in a production deployment. Use a production WSGI server instead.[0m
+ * Running on http://127.0.0.1:5000
+2026-09-05 01:09:22,520 - werkzeug - INFO - [33mPress CTRL+C to quit[0m
