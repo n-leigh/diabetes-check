@@ -19,6 +19,7 @@ Then open http://127.0.0.1:5000
 import os
 import json
 import uuid
+import secrets
 import logging
 import logging.handlers
 from datetime import datetime, timezone
@@ -62,8 +63,16 @@ logging.basicConfig(
 )
 logger = logging.getLogger("DiaBeates")
 
-DEFAULT_SECRET_KEY = "diabeates-dev-secret-replace-before-any-real-deployment"
-SECRET_KEY = os.getenv("SECRET_KEY", DEFAULT_SECRET_KEY)
+secret_key_path = os.path.join(BASE_DIR, ".secret_key")
+SECRET_KEY = os.getenv("SECRET_KEY")
+if not SECRET_KEY:
+    try:
+        with open(secret_key_path, "x", encoding="utf-8") as secret_file:
+            secret_file.write(secrets.token_hex(32))
+    except FileExistsError:
+        pass
+    with open(secret_key_path, encoding="utf-8") as secret_file:
+        SECRET_KEY = secret_file.read().strip()
 DEBUG = os.getenv("DEBUG", "False").strip().lower() in {"1", "true", "yes", "on"}
 SESSION_COOKIE_SECURE = os.getenv("SESSION_COOKIE_SECURE", "False").strip().lower() in {"1", "true", "yes", "on"}
 DISPLAY_TIMEZONE = os.getenv("DISPLAY_TIMEZONE", "Asia/Manila").strip() or "Asia/Manila"
@@ -73,12 +82,6 @@ except Exception:
     logger.warning("Invalid DISPLAY_TIMEZONE '%s'; falling back to Asia/Manila.", DISPLAY_TIMEZONE)
     DISPLAY_TIMEZONE = "Asia/Manila"
     DISPLAY_ZONE = ZoneInfo(DISPLAY_TIMEZONE)
-
-if SECRET_KEY == DEFAULT_SECRET_KEY:
-    if not DEBUG:
-        logger.error("CRITICAL SECURITY ERROR: Production deployment (DEBUG=False) is using DEFAULT_SECRET_KEY! Update .env immediately.")
-    else:
-        logger.warning("SECURITY WARNING: Using default secret key. Set SECRET_KEY in .env for production.")
 
 app = Flask(__name__)
 app.config.update(
@@ -458,7 +461,7 @@ def predict():
     patient, lab_values, errors = validate_patient_form(request.form)
 
     if errors:
-        logger.warning(f"Form validation failed: {errors}")
+        logger.warning("Form validation failed")
         return render_template(
             "assessment.html",
             errors=errors,
@@ -466,7 +469,7 @@ def predict():
         ), 400
 
     rule_results = compute_all_risks(patient)
-    logger.info(f"Rule matrix computed for patient: {rule_results}")
+    logger.info("Rule matrix assessment completed")
 
     lab_assessment = compute_lab_assessment(
         hba1c=lab_values.get("LabHbA1c"),
@@ -626,7 +629,7 @@ def handle_csrf_error(e):
 
 @app.errorhandler(Exception)
 def handle_unexpected_error(e):
-    logger.exception(f"Unexpected server error: {e}")
+    logger.exception("Unexpected server error")
     return render_template(
         "assessment.html",
         errors=["An error occurred while processing your assessment. Please check your inputs and try again."],
@@ -635,4 +638,4 @@ def handle_unexpected_error(e):
 
 
 if __name__ == "__main__":
-    app.run(debug=DEBUG)
+    app.run(host="127.0.0.1", port=5000, debug=DEBUG)

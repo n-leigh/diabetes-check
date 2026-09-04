@@ -31,6 +31,9 @@ writing a real migration for.
 import sqlite3
 import json
 import os
+import getpass
+import platform
+import subprocess
 from datetime import datetime, timezone
 
 DB_PATH = os.path.join(os.path.dirname(os.path.abspath(__file__)), "diabetes_system.db")
@@ -44,6 +47,20 @@ def get_connection():
     conn.execute("PRAGMA journal_mode = WAL")
     conn.execute("PRAGMA busy_timeout = 5000")
     return conn
+
+
+def restrict_database_permissions():
+    """Restrict SQLite files to the current Windows user."""
+    if platform.system() != "Windows":
+        return
+    for path in (DB_PATH, f"{DB_PATH}-wal", f"{DB_PATH}-shm"):
+        if os.path.exists(path):
+            subprocess.run(
+                ["icacls", path, "/inheritance:r", "/grant:r", f"{getpass.getuser()}:F"],
+                check=False,
+                capture_output=True,
+                text=True,
+            )
 
 
 def init_db():
@@ -99,6 +116,7 @@ def init_db():
     conn.execute(f"PRAGMA user_version = {SCHEMA_VERSION}")
     conn.commit()
     conn.close()
+    restrict_database_permissions()
 
 
 def save_assessment(session_id: str, patient: dict, rule_results: dict,
