@@ -137,6 +137,22 @@
           </div>
 
           <div class="space-y-1.5 col-span-2 sm:col-span-1">
+            <label for="DiabetesDuration" class="block text-sm font-semibold text-slate-700 font-display">Years with diabetes <span class="text-red-500">*</span></label>
+            <select name="DiabetesDuration" id="DiabetesDuration" aria-describedby="duration-help" required
+                    class="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 text-sm text-slate-800 bg-white cursor-pointer focus:outline-none focus:ring-2 focus:ring-teal-400/50 focus:border-teal-400 transition-all">
+              <option value="" disabled {{ 'selected' if not (form_data and form_data.get('DiabetesDuration') is not none and form_data.get('DiabetesDuration') != '') }}>Select duration</option>
+              <option value="0" {{ 'selected' if form_data and form_data.get('DiabetesDuration')|string == '0' }}>Less than 1 year (Newly diagnosed)</option>
+              <option value="1" {{ 'selected' if form_data and form_data.get('DiabetesDuration')|string == '1' }}>1 to 4 years</option>
+              <option value="2" {{ 'selected' if form_data and form_data.get('DiabetesDuration')|string == '2' }}>5 to 9 years (Elevated risk threshold)</option>
+              <option value="3" {{ 'selected' if form_data and form_data.get('DiabetesDuration')|string == '3' }}>10 or more years (High microvascular risk)</option>
+            </select>
+            <p id="duration-help" class="text-xs text-slate-400 leading-snug">
+              Roughly how long you have had diagnosed diabetes.
+              {{ info_tooltip('Duration of diabetes is the single strongest clinical predictor of diabetic retinopathy and microvascular capillary breakdown in ADA and UKPDS clinical guidelines.', align='left') }}
+            </p>
+          </div>
+
+          <div class="space-y-1.5 col-span-2 sm:col-span-1">
             <label for="PhysHlth" class="block text-sm font-semibold text-slate-700 font-display">Days of poor physical health <span class="text-red-500">*</span></label>
             <input type="number" min="0" max="30" name="PhysHlth" id="PhysHlth" aria-describedby="physhlth-help physhlth-warning"
                    value="{{ form_data.get('PhysHlth', '') if form_data else '' }}"
@@ -192,6 +208,7 @@
             ('HeartDiseaseorAttack', 'Prior heart disease/attack', 'Established cardiovascular disease is the strongest historical predictor of future macrovascular events.'),
             ('Stroke', 'Prior stroke', 'Past cerebrovascular events indicate established macrovascular compromise.'),
             ('DiffWalk', 'Difficulty walking/climbing stairs', 'Primary clinical proxy for peripheral neuropathy, reduced lower-limb sensation, and foot complications.'),
+            ('BlurryVision', 'Frequent blurry vision / floaters', 'Cardinal subjective symptom of diabetic macular edema, vitreous traction, and capillary leakage.'),
             ('NoDocbcCost', 'Skipped care due to cost', 'Financial barriers increase complication risk through delayed screening and missed preventive care.'),
           ] %}
           {% for field, cb_label, cb_info in checkboxes %}

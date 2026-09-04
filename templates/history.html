@@ -11,13 +11,37 @@
       <p class="text-slate-500 text-sm">{{ records|length }} record{{ 's' if records|length != 1 else '' }} {{ 'archived' if show_archived else 'saved' }} — only visible to you</p>
     </div>
 
-    <div class="flex gap-1 mb-6 bg-white border border-slate-200 rounded-xl p-1 w-fit">
-      <a href="/history" class="px-4 py-1.5 rounded-lg text-sm font-medium transition-colors {{ 'bg-teal-50 text-teal-700' if not show_archived else 'text-slate-500 hover:text-slate-700' }}">
-        Active
-      </a>
-      <a href="/history?view=archived" class="px-4 py-1.5 rounded-lg text-sm font-medium transition-colors {{ 'bg-teal-50 text-teal-700' if show_archived else 'text-slate-500 hover:text-slate-700' }}">
-        Archived
-      </a>
+    <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6">
+      <div class="flex gap-1 bg-white border border-slate-200 rounded-xl p-1 w-fit">
+        <a href="/history{{ '?sort=' + sort_order if sort_order != 'desc' else '' }}" class="px-4 py-1.5 rounded-lg text-sm font-medium transition-colors {{ 'bg-teal-50 text-teal-700' if not show_archived else 'text-slate-500 hover:text-slate-700' }}">
+          Active
+        </a>
+        <a href="/history?view=archived{{ '&sort=' + sort_order if sort_order != 'desc' else '' }}" class="px-4 py-1.5 rounded-lg text-sm font-medium transition-colors {{ 'bg-teal-50 text-teal-700' if show_archived else 'text-slate-500 hover:text-slate-700' }}">
+          Archived
+        </a>
+      </div>
+
+      {% if records %}
+      <div class="flex items-center gap-1.5 bg-white border border-slate-200 rounded-xl p-1 w-fit">
+        <span class="text-xs font-semibold text-slate-400 px-2 uppercase tracking-wider">Sort</span>
+        <a href="/history?{{ 'view=archived&' if show_archived else '' }}sort=desc"
+           class="inline-flex items-center gap-1.5 px-3 py-1 rounded-lg text-xs font-semibold transition-colors {{ 'bg-slate-900 text-white shadow-xs' if sort_order == 'desc' else 'text-slate-600 hover:bg-slate-50' }}"
+           aria-label="Sort newest first" title="Newest assessments first">
+          <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M3 4h13M3 8h9m-9 4h6m4 0l4-4m0 0l4 4m-4-4v12" />
+          </svg>
+          Newest
+        </a>
+        <a href="/history?{{ 'view=archived&' if show_archived else '' }}sort=asc"
+           class="inline-flex items-center gap-1.5 px-3 py-1 rounded-lg text-xs font-semibold transition-colors {{ 'bg-slate-900 text-white shadow-xs' if sort_order == 'asc' else 'text-slate-600 hover:bg-slate-50' }}"
+           aria-label="Sort oldest first" title="Oldest assessments first">
+          <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M3 4h13M3 8h9m-9 4h9m5-4v12m0 0l-4-4m4 4l4-4" />
+          </svg>
+          Oldest
+        </a>
+      </div>
+      {% endif %}
     </div>
 
     {% if not records %}
@@ -41,10 +65,12 @@
           <thead>
             <tr class="border-b border-slate-100 bg-slate-50/50">
               <th class="text-left font-semibold text-slate-500 px-5 py-3">#</th>
-              <th class="text-left font-semibold text-slate-500 px-5 py-3">Date/Time (UTC)</th>
+              <th class="text-left font-semibold text-slate-500 px-5 py-3">Date/Time (PHT)</th>
               <th class="text-left font-semibold text-slate-500 px-5 py-3">BMI</th>
               {% for cat in categories %}
-              <th class="text-left font-semibold text-slate-500 px-5 py-3">{{ cat.replace('_', ' ').title() }}</th>
+              <th class="text-left font-semibold text-slate-500 px-5 py-3">
+                {% if cat == 'cardiovascular' %}Cardiovascular{% elif cat == 'general_burden' %}Nephropathy{% elif cat == 'neuropathy_mobility' %}Neuropathy{% else %}Retinopathy{% endif %}
+              </th>
               {% endfor %}
               <th class="px-5 py-3"></th>
             </tr>
@@ -52,42 +78,67 @@
           <tbody>
             {% for r in records %}
             <tr class="border-b border-slate-50 hover:bg-slate-50/50 transition-colors">
-              <td class="px-5 py-3 text-slate-500">{{ loop.index }}</td>
-              <td class="px-5 py-3 text-slate-600">{{ r.created_at }}</td>
+              <td class="px-5 py-3 font-semibold text-slate-700">
+                #{{ r.display_index }}
+              </td>
+              <td class="px-5 py-3 text-slate-600">{{ r.created_at|display_time }}</td>
               <td class="px-5 py-3 text-slate-700 font-medium">{{ r.patient.BMI }}</td>
               {% for cat in categories %}
-              {% set label = r.rule_results[cat].label %}
-              {% if label == 'Low' %}
-                {% set tier_bg, tier_text = '#f0fdf4', '#15803d' %}
-              {% elif label == 'Moderate' %}
-                {% set tier_bg, tier_text = '#fffbeb', '#b45309' %}
-              {% else %}
-                {% set tier_bg, tier_text = '#fef2f2', '#b91c1c' %}
-              {% endif %}
+              {% set res = r.rule_results.get(cat) %}
               <td class="px-5 py-3">
-                <span class="px-2.5 py-0.5 rounded-full text-xs font-semibold" style="background-color: {{ tier_bg }}; color: {{ tier_text }};">
-                  {{ label }}
-                </span>
+                {% if res %}
+                  {% set label = res.label %}
+                  {% if label == 'Low' %}
+                    {% set tier_bg, tier_text = '#f0fdf4', '#15803d' %}
+                  {% elif label == 'Moderate' %}
+                    {% set tier_bg, tier_text = '#fffbeb', '#b45309' %}
+                  {% else %}
+                    {% set tier_bg, tier_text = '#fef2f2', '#b91c1c' %}
+                  {% endif %}
+                  <span class="px-2.5 py-0.5 rounded-full text-xs font-semibold" style="background-color: {{ tier_bg }}; color: {{ tier_text }};">
+                    {{ label }}
+                  </span>
+                {% else %}
+                  <span class="text-slate-400 text-xs">—</span>
+                {% endif %}
               </td>
               {% endfor %}
               <td class="px-5 py-3 whitespace-nowrap">
                 <a href="/history/{{ r.id }}" class="text-teal-600 hover:text-teal-700 font-medium text-xs">View</a>
-                <a href="/history/{{ r.id }}/print" target="_blank" class="text-slate-400 hover:text-slate-600 font-medium text-xs ml-3">Print</a>
+                <a href="/history/{{ r.id }}/print" target="_blank"
+                   class="inline-flex items-center justify-center text-slate-400 hover:text-slate-600 ml-3 focus:outline-none focus:ring-2 focus:ring-teal-400/50 rounded"
+                   aria-label="Print assessment {{ r.display_index }}" title="Print assessment">
+                  <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8" aria-hidden="true">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M6 9V4h12v5M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2M6 14h12v6H6z" />
+                    <path stroke-linecap="round" d="M18 12h.01" />
+                  </svg>
+                </a>
 
                 <form action="/history/{{ r.id }}/archive" method="post" class="inline">
                   <input type="hidden" name="csrf_token" value="{{ csrf_token() }}" />
                   <input type="hidden" name="archived" value="{{ '0' if show_archived else '1' }}">
                   <input type="hidden" name="from" value="{{ 'archived' if show_archived else 'active' }}">
-                  <button type="submit" class="text-slate-400 hover:text-slate-600 font-medium text-xs ml-3">
-                    {{ 'Restore' if show_archived else 'Archive' }}
+                  <button type="submit"
+                          class="inline-flex items-center justify-center text-slate-400 hover:text-slate-600 ml-3 focus:outline-none focus:ring-2 focus:ring-teal-400/50 rounded"
+                          aria-label="{{ 'Restore' if show_archived else 'Archive' }} assessment {{ r.display_index }}"
+                          title="{{ 'Restore assessment' if show_archived else 'Archive assessment' }}">
+                    {% if show_archived %}
+                    <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8" aria-hidden="true">
+                      <path stroke-linecap="round" stroke-linejoin="round" d="M3 7h18v13H3zM3 7l2-4h14l2 4M12 17v-7m0 0-3 3m3-3 3 3" />
+                    </svg>
+                    {% else %}
+                    <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8" aria-hidden="true">
+                      <path stroke-linecap="round" stroke-linejoin="round" d="M3 7h18v13H3zM3 7l2-4h14l2 4M9 12h6" />
+                    </svg>
+                    {% endif %}
                   </button>
                 </form>
 
                 <button type="button"
                         class="js-delete-trigger text-red-400 hover:text-red-600 font-medium text-xs ml-3 transition-colors inline-block cursor-pointer focus:outline-none focus:underline"
                         data-id="{{ r.id }}"
-                        data-index="{{ loop.index }}"
-                        data-date="{{ r.created_at }}"
+                        data-index="{{ r.display_index }}"
+                        data-date="{{ r.created_at|display_time }} PHT"
                         aria-haspopup="dialog"
                         aria-expanded="false"
                         aria-controls="deleteConfirmModal">

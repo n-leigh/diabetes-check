@@ -19,6 +19,10 @@ HEALTH_RATINGS = {
 
 SEX_LABELS = {"0": "Female", "1": "Male"}
 
+DURATION_LABELS = {
+    "0": "<1 year", "1": "1–4 years", "2": "5–9 years", "3": "10+ years",
+}
+
 CHECKBOX_LABELS = {
     "HighBP": "High blood pressure",
     "HighChol": "High cholesterol",
@@ -27,6 +31,7 @@ CHECKBOX_LABELS = {
     "Stroke": "Prior stroke",
     "DiffWalk": "Difficulty walking/climbing stairs",
     "NoDocbcCost": "Skipped care due to cost",
+    "BlurryVision": "Frequent blurry vision / floaters",
 }
 
 
@@ -37,6 +42,7 @@ def describe_patient(patient: dict) -> dict:
         "Age": AGE_RANGES.get(str(patient.get("Age")), "—"),
         "GenHlth": HEALTH_RATINGS.get(str(patient.get("GenHlth")), "—"),
         "Sex": SEX_LABELS.get(str(patient.get("Sex")), "—"),
+        "DiabetesDuration": DURATION_LABELS.get(str(patient.get("DiabetesDuration")), "—"),
         "PhysHlth": patient.get("PhysHlth"),
         "MentHlth": patient.get("MentHlth"),
         "risk_factors": [

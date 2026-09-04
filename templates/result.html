@@ -9,16 +9,18 @@
     <div class="text-center mb-8">
       <h1 class="font-display text-3xl font-extrabold text-slate-900 mb-2">Complication Risk Results</h1>
       {% if viewing_past %}
-      <p class="text-slate-500 text-sm">Viewing past assessment from {{ created_at }} UTC</p>
+      <p class="text-slate-500 text-sm">Viewing past assessment from {{ created_at|display_time }} PHT</p>
       {% else %}
       <p class="text-slate-500 text-sm">Based on the health indicators you submitted</p>
       {% endif %}
     </div>
 
-    <div class="grid sm:grid-cols-3 gap-5 mb-8">
+    <div class="grid sm:grid-cols-2 lg:grid-cols-4 gap-5 mb-8">
       {% for cat in categories %}
-      {% set pct = rule_results[cat].percentage %}
-      {% set label = rule_results[cat].label %}
+      {% set res = rule_results.get(cat) %}
+      {% if res %}
+      {% set pct = res.percentage %}
+      {% set label = res.label %}
       {% if label == 'Low' %}
         {% set tier_color, tier_bg, tier_text = '#22c55e', '#f0fdf4', '#15803d' %}
       {% elif label == 'Moderate' %}
@@ -47,8 +49,10 @@
             Cardiovascular (ACC/AHA)
           {% elif cat == 'general_burden' %}
             Nephropathy & Renal (KDIGO)
-          {% else %}
+          {% elif cat == 'neuropathy_mobility' %}
             Neuropathy & Mobility (MNSI)
+          {% else %}
+            Diabetic Retinopathy (ADA)
           {% endif %}
         </p>
         <span class="mt-2 px-2.5 py-0.5 rounded-full text-xs font-semibold" style="background-color: {{ tier_bg }}; color: {{ tier_text }};">
@@ -58,7 +62,7 @@
         <div class="w-full mt-4 pt-4 border-t border-slate-100 text-xs text-slate-500 space-y-1">
           <div class="flex justify-between">
             <span>Rule score</span>
-            <span class="font-semibold text-slate-700">{{ rule_results[cat].score }} pts</span>
+            <span class="font-semibold text-slate-700">{{ res.score }} pts</span>
           </div>
           {% if model_results.get(cat) %}
           <div class="flex justify-between">
@@ -89,6 +93,7 @@
           {% endif %}
         </div>
       </div>
+      {% endif %}
       {% endfor %}
     </div>
 
@@ -106,12 +111,20 @@
         </div>
       </div>
 
-      <div class="grid sm:grid-cols-3 gap-4">
+      <div class="grid sm:grid-cols-2 lg:grid-cols-4 gap-4">
         {% for cat in categories %}
         <div class="bg-slate-50 rounded-xl p-4 border border-slate-100 flex flex-col justify-between">
           <div>
             <p class="font-display font-semibold text-xs text-slate-700 uppercase tracking-wider mb-2.5">
-              {% if cat == 'cardiovascular' %}Cardiovascular (ASCVD){% elif cat == 'general_burden' %}Nephropathy (KDIGO){% else %}Neuropathy (MNSI){% endif %}
+              {% if cat == 'cardiovascular' %}
+                Cardiovascular (ASCVD)
+              {% elif cat == 'general_burden' %}
+                Nephropathy (KDIGO)
+              {% elif cat == 'neuropathy_mobility' %}
+                Neuropathy (MNSI)
+              {% else %}
+                Retinopathy (ADA)
+              {% endif %}
             </p>
             <ul class="space-y-2.5">
               {% for d in patient_drivers.get(cat, []) %}

@@ -124,6 +124,37 @@ def score_general_complication_burden(row: Dict) -> int:
     return points
 
 
+def score_retinopathy(row: Dict) -> int:
+    """
+    Diabetic Retinopathy & Vision Risk Scorer (ADA & UKPDS 50 Aligned).
+    Risk factors:
+      - Diabetes Duration: >=10 yrs (+3), 5-9 yrs (+2), 1-4 yrs (+1)
+      - Visual Symptoms (BlurryVision) (+3) [Key indicator of macular edema/capillary leakage]
+      - Hypertension / HighBP (+2) [Shear stress on retinal capillaries]
+      - Dyslipidemia / HighChol (+1) [Hard lipid exudate risk]
+      - Smoker (+1) [Microvascular retinal ischemia]
+    """
+    points = 0
+    dur = _get(row, "DiabetesDuration", 1)
+    if dur >= 3:
+        points += 3
+    elif dur == 2:
+        points += 2
+    elif dur == 1:
+        points += 1
+
+    if _get(row, "BlurryVision") == 1:
+        points += 3
+    if _get(row, "HighBP") == 1:
+        points += 2
+    if _get(row, "HighChol") == 1:
+        points += 1
+    if _get(row, "Smoker") == 1:
+        points += 1
+
+    return points
+
+
 def classify_pct(pct: float) -> str:
     """
     Clinical risk tier boundaries:
@@ -144,6 +175,7 @@ MAX_SCORES = {
     "cardiovascular": 2 + 2 + 2 + 3 + 3 + 2 + 2,   # 16
     "neuropathy_mobility": 3 + 2 + 1 + 1 + 1,       # 8
     "general_burden": 2 + 3 + 1 + 1,                # 7
+    "retinopathy": 3 + 3 + 2 + 1 + 1,               # 10
 }
 
 
@@ -213,8 +245,14 @@ def compute_all_risks(row: Dict) -> Dict[str, Dict]:
     cv = score_cardiovascular(row)
     neuro = score_neuropathy_mobility(row)
     general = score_general_complication_burden(row)
+    retino = score_retinopathy(row)
 
-    scores = {"cardiovascular": cv, "neuropathy_mobility": neuro, "general_burden": general}
+    scores = {
+        "cardiovascular": cv,
+        "neuropathy_mobility": neuro,
+        "general_burden": general,
+        "retinopathy": retino,
+    }
     result = {}
     for cat, score in scores.items():
         pct = round(min(score / MAX_SCORES[cat], 1.0) * 100)

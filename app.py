@@ -21,6 +21,8 @@ import json
 import uuid
 import logging
 import logging.handlers
+from datetime import datetime, timezone
+from zoneinfo import ZoneInfo
 from dotenv import load_dotenv
 import joblib
 import pandas as pd
@@ -60,6 +62,14 @@ logger = logging.getLogger("DiaBeates")
 DEFAULT_SECRET_KEY = "diabeates-dev-secret-replace-before-any-real-deployment"
 SECRET_KEY = os.getenv("SECRET_KEY", DEFAULT_SECRET_KEY)
 DEBUG = os.getenv("DEBUG", "False").strip().lower() in {"1", "true", "yes", "on"}
+SESSION_COOKIE_SECURE = os.getenv("SESSION_COOKIE_SECURE", "False").strip().lower() in {"1", "true", "yes", "on"}
+DISPLAY_TIMEZONE = os.getenv("DISPLAY_TIMEZONE", "Asia/Manila").strip() or "Asia/Manila"
+try:
+    DISPLAY_ZONE = ZoneInfo(DISPLAY_TIMEZONE)
+except Exception:
+    logger.warning("Invalid DISPLAY_TIMEZONE '%s'; falling back to Asia/Manila.", DISPLAY_TIMEZONE)
+    DISPLAY_TIMEZONE = "Asia/Manila"
+    DISPLAY_ZONE = ZoneInfo(DISPLAY_TIMEZONE)
 
 if SECRET_KEY == DEFAULT_SECRET_KEY:
     if not DEBUG:
@@ -74,10 +84,23 @@ app.config.update(
     TEMPLATES_AUTO_RELOAD=True,
     SESSION_COOKIE_HTTPONLY=True,
     SESSION_COOKIE_SAMESITE="Lax",
-    SESSION_COOKIE_SECURE=not DEBUG,
+    SESSION_COOKIE_SECURE=SESSION_COOKIE_SECURE,
     PERMANENT_SESSION_LIFETIME=86400,
 )
 csrf = CSRFProtect(app)
+
+
+@app.template_filter("display_time")
+def display_time(value):
+    if not value:
+        return ""
+    try:
+        timestamp = datetime.fromisoformat(str(value).replace("Z", "+00:00"))
+        if timestamp.tzinfo is None:
+            timestamp = timestamp.replace(tzinfo=timezone.utc)
+        return timestamp.astimezone(DISPLAY_ZONE).strftime("%Y-%m-%d %H:%M")
+    except (TypeError, ValueError):
+        return value
 
 @app.after_request
 def set_security_headers(response):
@@ -99,11 +122,11 @@ limiter = Limiter(
 database.init_db()
 logger.info("Database initialized successfully with non-destructive WAL mode.")
 
-CATEGORIES = ["cardiovascular", "neuropathy_mobility", "general_burden"]
+CATEGORIES = ["cardiovascular", "neuropathy_mobility", "general_burden", "retinopathy"]
 FEATURE_COLUMNS = [
     "HighBP", "HighChol", "Smoker", "HeartDiseaseorAttack", "Stroke",
     "BMI", "Age", "DiffWalk", "PhysHlth", "GenHlth", "MentHlth",
-    "NoDocbcCost", "Sex",
+    "NoDocbcCost", "Sex", "DiabetesDuration", "BlurryVision",
 ]
 
 MODELS = {}
@@ -183,7 +206,12 @@ def explain_patient_risk(patient: dict) -> dict:
     identifying the specific lifestyle, biometric, and clinical history factors
     that elevate this individual's risk score.
     """
-    drivers = {"cardiovascular": [], "general_burden": [], "neuropathy_mobility": []}
+    drivers = {
+        "cardiovascular": [],
+        "general_burden": [],
+        "neuropathy_mobility": [],
+        "retinopathy": [],
+    }
 
     # Cardiovascular drivers (ACC/AHA)
     if patient.get("HeartDiseaseorAttack") == 1:
@@ -342,6 +370,52 @@ def explain_patient_risk(patient: dict) -> dict:
             "detail": "Age-related peripheral nerve conduction reduction."
         })
 
+    # Diabetic Retinopathy & Vision Loss drivers (ADA / UKPDS)
+    dur = patient.get("DiabetesDuration", 0)
+    if dur >= 3:
+        drivers["retinopathy"].append({
+            "factor": "Diabetes Duration ≥10 Years",
+            "impact": "High",
+            "badge": "bg-red-100 text-red-700 border-red-200",
+            "detail": "Primary epidemiological risk factor for diabetic microvascular retinal capillary breakdown."
+        })
+    elif dur == 2:
+        drivers["retinopathy"].append({
+            "factor": "Diabetes Duration 5–9 Years",
+            "impact": "Moderate",
+            "badge": "bg-amber-100 text-amber-800 border-amber-200",
+            "detail": "Cumulative duration threshold where early microaneurysms and exudates become prevalent."
+        })
+
+    if patient.get("BlurryVision") == 1:
+        drivers["retinopathy"].append({
+            "factor": "Frequent Blurry Vision / Floaters",
+            "impact": "High",
+            "badge": "bg-red-100 text-red-700 border-red-200",
+            "detail": "Cardinal subjective symptom associated with macular edema or vitreous microvascular changes."
+        })
+    if patient.get("HighBP") == 1:
+        drivers["retinopathy"].append({
+            "factor": "Hypertension (High BP)",
+            "impact": "Moderate",
+            "badge": "bg-amber-100 text-amber-800 border-amber-200",
+            "detail": "Elevates hydrostatic shear stress on delicate retinal capillary walls."
+        })
+    if patient.get("HighChol") == 1:
+        drivers["retinopathy"].append({
+            "factor": "Dyslipidemia / High Cholesterol",
+            "impact": "Mild",
+            "badge": "bg-slate-100 text-slate-700 border-slate-200",
+            "detail": "Associated with retinal hard exudate formation and capillary leakage."
+        })
+    if patient.get("Smoker") == 1:
+        drivers["retinopathy"].append({
+            "factor": "Active Smoking History",
+            "impact": "Mild",
+            "badge": "bg-slate-100 text-slate-700 border-slate-200",
+            "detail": "Promotes microvascular vasoconstriction and relative retinal hypoxia."
+        })
+
     for cat in drivers:
         if not drivers[cat]:
             drivers[cat].append({
@@ -421,8 +495,25 @@ def predict():
 @app.route("/history", methods=["GET"])
 def history():
     show_archived = request.args.get("view") == "archived"
-    records = database.get_all_assessments(session_id=session["session_id"], archived=show_archived)
-    return render_template("history.html", records=records, categories=CATEGORIES, show_archived=show_archived)
+    sort_order = request.args.get("sort", "desc").lower()
+    if sort_order not in ("asc", "desc"):
+        sort_order = "desc"
+
+    # Always fetch in asc order first to establish baseline chronological numbering (1, 2, 3...)
+    asc_records = database.get_all_assessments(session_id=session["session_id"], archived=show_archived, sort_order="asc")
+    for idx, r in enumerate(asc_records, start=1):
+        r["display_index"] = idx
+
+    # If user selected desc (newest first), reverse the display list while keeping the chronological index intact
+    records = asc_records if sort_order == "asc" else list(reversed(asc_records))
+
+    return render_template(
+        "history.html",
+        records=records,
+        categories=CATEGORIES,
+        show_archived=show_archived,
+        sort_order=sort_order,
+    )
 
 
 @app.route("/history/<int:assessment_id>/archive", methods=["POST"])

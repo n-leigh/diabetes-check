@@ -70,7 +70,7 @@ For each domain, three diverse algorithmic architectures were trained and compar
 3. **Gradient Boosting Classifier (Iterative gradient-boosted decision trees)**
 
 ### Selected Best Models & Serialized Wrapper
-To prevent pickling errors across differing environments, all winning estimators are encapsulated in [`ClinicalRiskWrapper`](file:///c:/Users/nicol/Downloads/diabetes-check/clinical_model.py) and stored in `model/*.pkl`.
+To prevent pickling errors across differing environments, all winning estimators are encapsulated in [`ClinicalRiskWrapper`](clinical_model.py) and stored in `model/*.pkl`.
 
 ---
 
@@ -93,7 +93,7 @@ Rather than reporting naive accuracy, the system is evaluated on gold-standard c
 
 ## Clinical Rule Matrix (Version 2.0-Clinical)
 
-The transparent rule matrix in [`rule_matrix.py`](file:///c:/Users/nicol/Downloads/diabetes-check/rule_matrix.py) was updated from Version 1.0 to **Version 2.0-clinical**, aligned with international medical guidelines:
+The transparent rule matrix in [`rule_matrix.py`](rule_matrix.py) was updated from Version 1.0 to **Version 2.0-clinical**, aligned with international medical guidelines:
 
 1. **Cardiovascular (ACC/AHA ASCVD & UKPDS Aligned):**
    - Active smoking in diabetes (+2 points; ACC/AHA risk multiplier)

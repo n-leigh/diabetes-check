@@ -29,11 +29,12 @@ OPTIONAL_LAB_FIELD_RULES = [
 
 CHECKBOX_FIELDS = [
     "HighBP", "HighChol", "Smoker", "HeartDiseaseorAttack", "Stroke",
-    "DiffWalk", "NoDocbcCost",
+    "DiffWalk", "NoDocbcCost", "BlurryVision",
 ]
 
 SELECT_FIELDS = {
     "Sex": [0, 1],
+    "DiabetesDuration": [0, 1, 2, 3],
 }
 
 

@@ -60,9 +60,16 @@ def init_db():
             phys_hlth INTEGER, ment_hlth INTEGER,
             high_bp INTEGER, high_chol INTEGER, smoker INTEGER,
             heart_disease INTEGER, stroke INTEGER, diff_walk INTEGER,
-            no_doc_cost INTEGER
+            no_doc_cost INTEGER, diabetes_duration INTEGER, blurry_vision INTEGER
         )
     """)
+
+    # Safe schema migration for existing sqlite database
+    existing_cols = [r[1] for r in conn.execute("PRAGMA table_info(assessments)").fetchall()]
+    if "diabetes_duration" not in existing_cols:
+        conn.execute("ALTER TABLE assessments ADD COLUMN diabetes_duration INTEGER DEFAULT 0")
+    if "blurry_vision" not in existing_cols:
+        conn.execute("ALTER TABLE assessments ADD COLUMN blurry_vision INTEGER DEFAULT 0")
     conn.execute("""
         CREATE TABLE IF NOT EXISTS risk_results (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -105,8 +112,8 @@ def save_assessment(session_id: str, patient: dict, rule_results: dict,
         """INSERT INTO assessments
            (session_id, created_at, rule_matrix_version, bmi, age_band, gen_hlth, sex,
             phys_hlth, ment_hlth, high_bp, high_chol, smoker, heart_disease, stroke,
-            diff_walk, no_doc_cost)
-           VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)""",
+            diff_walk, no_doc_cost, diabetes_duration, blurry_vision)
+           VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)""",
         (
             session_id,
             datetime.now(timezone.utc).isoformat(timespec="seconds"),
@@ -116,6 +123,7 @@ def save_assessment(session_id: str, patient: dict, rule_results: dict,
             patient.get("HighBP", 0), patient.get("HighChol", 0), patient.get("Smoker", 0),
             patient.get("HeartDiseaseorAttack", 0), patient.get("Stroke", 0),
             patient.get("DiffWalk", 0), patient.get("NoDocbcCost", 0),
+            patient.get("DiabetesDuration", 0), patient.get("BlurryVision", 0),
         ),
     )
     assessment_id = cur.lastrowid
@@ -165,6 +173,8 @@ def _reconstruct(conn, row) -> dict:
         "HighBP": row["high_bp"], "HighChol": row["high_chol"], "Smoker": row["smoker"],
         "HeartDiseaseorAttack": row["heart_disease"], "Stroke": row["stroke"],
         "DiffWalk": row["diff_walk"], "NoDocbcCost": row["no_doc_cost"],
+        "DiabetesDuration": row["diabetes_duration"] if "diabetes_duration" in row.keys() else 0,
+        "BlurryVision": row["blurry_vision"] if "blurry_vision" in row.keys() else 0,
     }
 
     rule_results = {}
@@ -206,13 +216,15 @@ def _reconstruct(conn, row) -> dict:
     }
 
 
-def get_all_assessments(session_id: str, limit: int = 200, archived: bool = False):
+def get_all_assessments(session_id: str, limit: int = 200, archived: bool = False, sort_order: str = "desc"):
     """archived=False (default) returns active records; archived=True
     returns only archived ones. The two views are always mutually
-    exclusive so nothing is silently duplicated or hidden between them."""
+    exclusive so nothing is silently duplicated or hidden between them.
+    sort_order can be 'asc' (oldest first) or 'desc' (newest first)."""
     conn = get_connection()
+    direction = "ASC" if str(sort_order).strip().lower() == "asc" else "DESC"
     rows = conn.execute(
-        "SELECT * FROM assessments WHERE session_id = ? AND archived = ? ORDER BY id DESC LIMIT ?",
+        f"SELECT * FROM assessments WHERE session_id = ? AND archived = ? ORDER BY id {direction} LIMIT ?",
         (session_id, int(archived), limit),
     ).fetchall()
     result = [_reconstruct(conn, r) for r in rows]

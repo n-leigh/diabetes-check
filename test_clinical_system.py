@@ -17,12 +17,13 @@ def test_rule_matrix():
     patient = {
         "HighBP": 1, "HighChol": 1, "Smoker": 1, "HeartDiseaseorAttack": 0, "Stroke": 0,
         "BMI": 31.5, "Age": 10, "DiffWalk": 1, "PhysHlth": 15, "GenHlth": 4,
-        "MentHlth": 5, "NoDocbcCost": 0, "Sex": 1
+        "MentHlth": 5, "NoDocbcCost": 0, "Sex": 1, "DiabetesDuration": 3, "BlurryVision": 1,
     }
     risks = compute_all_risks(patient)
     assert "cardiovascular" in risks
     assert "general_burden" in risks
     assert "neuropathy_mobility" in risks
+    assert "retinopathy" in risks
     print("Rule risks computed successfully:", {k: v["label"] for k, v in risks.items()})
 
     lab = compute_lab_assessment(hba1c=7.8, systolic_bp=135, ldl=115)
@@ -73,6 +74,7 @@ def test_flask_endpoints():
         "csrf_token": csrf_token,
         "Age": "10",
         "Sex": "1",
+        "DiabetesDuration": "3",
         "BMI": "29.4",
         "HighBP": "1",
         "HighChol": "1",
@@ -80,6 +82,7 @@ def test_flask_endpoints():
         "HeartDiseaseorAttack": "0",
         "Stroke": "0",
         "DiffWalk": "1",
+        "BlurryVision": "1",
         "PhysHlth": "10",
         "GenHlth": "4",
         "MentHlth": "5",
@@ -104,12 +107,35 @@ def test_flask_endpoints():
     assert "ACC/AHA" in html
     assert "KDIGO" in html
     assert "MNSI" in html
+    assert "Retinopathy" in html
     assert "Patient-Specific Risk Drivers" in html
-    print("POST /predict with valid CSRF returned 200 OK with clinical AUROC, guideline badges, and feature risk drivers rendered.")
+    print("POST /predict with valid CSRF returned 200 OK with all 4 complication domains rendered.")
 
-    res_hist = client.get("/history")
-    assert res_hist.status_code == 200
-    print("GET /history returned 200 OK")
+    res_hist_desc = client.get("/history?sort=desc")
+    assert res_hist_desc.status_code == 200
+    html_desc = res_hist_desc.get_data(as_text=True)
+    assert "Newest First" in html_desc
+    assert "Chronological" in html_desc
+    assert "Baseline" in html_desc
+
+    res_hist_asc = client.get("/history?sort=asc")
+    assert res_hist_asc.status_code == 200
+    html_asc = res_hist_asc.get_data(as_text=True)
+    assert "Baseline" in html_asc
+    print("GET /history (desc and asc) returned 200 OK with sort toggle and Baseline badge.")
+
+    # Test print view
+    with app.app_context():
+        from database import get_connection
+        conn = get_connection()
+        row = conn.execute("SELECT id FROM assessments ORDER BY id DESC LIMIT 1").fetchone()
+        conn.close()
+        if row:
+            latest_id = row["id"]
+            res_print = client.get(f"/history/{latest_id}/print")
+            assert res_print.status_code == 200
+            assert "Diabetic Retinopathy (ADA)" in res_print.get_data(as_text=True)
+            print(f"GET /history/{latest_id}/print returned 200 OK with Retinopathy section.")
 
 
 def test_health_and_security_headers():
@@ -121,8 +147,8 @@ def test_health_and_security_headers():
     health_data = res_health.get_json()
     assert health_data["status"] == "healthy"
     assert health_data["database"] == "connected"
-    assert len(health_data["models_loaded"]) == 3
-    print("GET /health probe verified: 200 OK with connected DB and 3 models loaded.")
+    assert len(health_data["models_loaded"]) == 4
+    print("GET /health probe verified: 200 OK with connected DB and 4 models loaded.")
 
     # Check security response headers
     res = client.get("/")

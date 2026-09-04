@@ -12,6 +12,9 @@ Trained on authentic clinical datasets:
 3. Neuropathy & Functional Mobility Model:
    Trained on CDC BRFSS diabetic cohort (N=5,000) with clinically validated
    mobility and peripheral functional impairment (DiffWalk).
+4. Diabetic Retinopathy & Vision Complication Model:
+   Trained on CDC NHANES 2007-2008 diabetic cohort (N=797) with digital
+   retinal photography examination (OPDURET, OPDDRET) and doctor diagnosis.
 
 Evaluates models using standard clinical epidemiology metrics:
 - 5-Fold Stratified Cross-Validation on training partition for model selection
@@ -50,7 +53,7 @@ os.makedirs(MODEL_DIR, exist_ok=True)
 FEATURE_COLUMNS = [
     "HighBP", "HighChol", "Smoker", "HeartDiseaseorAttack", "Stroke",
     "BMI", "Age", "DiffWalk", "PhysHlth", "GenHlth", "MentHlth",
-    "NoDocbcCost", "Sex",
+    "NoDocbcCost", "Sex", "DiabetesDuration", "BlurryVision",
 ]
 
 
@@ -71,6 +74,8 @@ def load_cardiovascular_data():
         "MentHlth": 0,
         "NoDocbcCost": 0,
         "Sex": df["sex"].astype(int),
+        "DiabetesDuration": 2,
+        "BlurryVision": 0,
     })
     y = df["target_heart_disease"].astype(int).values
     feature_subset = ["HighBP", "HighChol", "Smoker", "Stroke", "Age", "Sex"]
@@ -94,6 +99,8 @@ def load_nephropathy_data():
         "MentHlth": 0,
         "NoDocbcCost": 0,
         "Sex": df["sex"].astype(int),
+        "DiabetesDuration": 2,
+        "BlurryVision": 0,
     })
     y = df["target_ckd_present"].astype(int).values
     feature_subset = ["HighBP", "Smoker", "BMI", "Age", "Sex"]
@@ -106,10 +113,44 @@ def load_neuropathy_mobility_data():
     if len(df) > 5000:
         df = df.sample(n=5000, random_state=42)
 
-    X = df[FEATURE_COLUMNS].copy()
+    df_copy = df.copy()
+    if "DiabetesDuration" not in df_copy.columns:
+        df_copy["DiabetesDuration"] = 2
+    if "BlurryVision" not in df_copy.columns:
+        df_copy["BlurryVision"] = 0
+
+    X = df_copy[FEATURE_COLUMNS].copy()
     y = df["DiffWalk"].astype(int).values
     feature_subset = ["BMI", "Age", "PhysHlth", "GenHlth", "Smoker", "HighBP"]
     return X, y, feature_subset, "CDC BRFSS Diabetic Cohort (N=5,000)"
+
+
+def load_retinopathy_data():
+    path = os.path.join(DATA_DIR, "processed_retinopathy_cohort.csv")
+    df = pd.read_csv(path)
+    dur_tier = df["diabetes_duration_years"].apply(
+        lambda d: 3 if d >= 10 else (2 if d >= 5 else (1 if d >= 1 else 0))
+    )
+    X = pd.DataFrame({
+        "HighBP": df["high_bp"].astype(int),
+        "HighChol": df["high_chol"].astype(int),
+        "Smoker": df["smoker"].astype(int),
+        "HeartDiseaseorAttack": 0,
+        "Stroke": 0,
+        "BMI": df["bmi"].astype(float),
+        "Age": df["age"].apply(lambda a: min(13, max(1, int((a - 18) // 5) + 1))),
+        "DiffWalk": 0,
+        "PhysHlth": 0,
+        "GenHlth": 3,
+        "MentHlth": 0,
+        "NoDocbcCost": 0,
+        "Sex": df["sex"].astype(int),
+        "DiabetesDuration": dur_tier.astype(int),
+        "BlurryVision": df["blurry_vision"].astype(int),
+    })
+    y = df["target_retinopathy"].astype(int).values
+    feature_subset = ["HighBP", "HighChol", "Smoker", "BMI", "Age", "Sex", "DiabetesDuration", "BlurryVision"]
+    return X, y, feature_subset, "CDC NHANES Retinopathy Exam Cohort (N=797)"
 
 
 def compute_auroc_ci(y_test, y_prob, n_bootstraps=1000, random_state=42):
@@ -150,11 +191,18 @@ def train_and_evaluate_all():
             "title": "Neuropathy & Mobility Impairment (CDC BRFSS Registry)",
             "endpoint": "Lower-Extremity Functional Mobility Deficit (DiffWalk)",
         },
+        "retinopathy": {
+            "loader": load_retinopathy_data,
+            "low_thresh": 0.30,
+            "high_thresh": 0.55,
+            "title": "Diabetic Retinopathy & Vision Loss (CDC NHANES 2007-2008)",
+            "endpoint": "Digital Retinal Photography Exam & Physician-Diagnosed Retinopathy",
+        },
     }
 
     summary = {}
-    fig_roc, axes_roc = plt.subplots(1, 3, figsize=(18, 5))
-    fig_cal, axes_cal = plt.subplots(1, 3, figsize=(18, 5))
+    fig_roc, axes_roc = plt.subplots(1, 4, figsize=(24, 5))
+    fig_cal, axes_cal = plt.subplots(1, 4, figsize=(24, 5))
 
     for idx, (cat, config) in enumerate(tasks.items()):
         print(f"\n{'='*75}\n[TRAINING & CV EVALUATION] Category: {cat.upper()} — {config['title']}\n{'='*75}")

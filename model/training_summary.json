@@ -135,5 +135,53 @@
         "cv_std": 0.0139
       }
     }
+  },
+  "retinopathy": {
+    "title": "Diabetic Retinopathy & Vision Loss (CDC NHANES 2007-2008)",
+    "endpoint": "Digital Retinal Photography Exam & Physician-Diagnosed Retinopathy",
+    "cohort_source": "CDC NHANES Retinopathy Exam Cohort (N=797)",
+    "sample_size": 797,
+    "train_size": 637,
+    "test_size": 160,
+    "event_prevalence_pct": 42.8,
+    "best_model": "Calibrated Logistic Regression",
+    "cv_auroc_mean": 0.6759,
+    "cv_auroc_std": 0.03,
+    "auroc": 0.6421,
+    "auroc_95_ci": [
+      0.5465,
+      0.7234
+    ],
+    "pr_auc": 0.5025,
+    "brier_score": 0.2366,
+    "sensitivity": 0.8676,
+    "specificity": 0.3804,
+    "negative_predictive_value": 0.7955,
+    "positive_predictive_value": 0.5086,
+    "high_risk_threshold": 0.2997,
+    "features_used": [
+      "HighBP",
+      "HighChol",
+      "Smoker",
+      "BMI",
+      "Age",
+      "Sex",
+      "DiabetesDuration",
+      "BlurryVision"
+    ],
+    "models_compared_cv": {
+      "Calibrated Logistic Regression": {
+        "cv_mean": 0.6759,
+        "cv_std": 0.03
+      },
+      "Calibrated Random Forest": {
+        "cv_mean": 0.639,
+        "cv_std": 0.0281
+      },
+      "Gradient Boosting Classifier": {
+        "cv_mean": 0.6455,
+        "cv_std": 0.0246
+      }
+    }
   }
 }
