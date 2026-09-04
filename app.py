@@ -139,8 +139,19 @@ logger.info("Database initialized successfully with non-destructive WAL mode.")
 try:
     RETENTION_DAYS = int(os.getenv("RETENTION_DAYS", "90"))
 except ValueError:
+    logger.warning("Invalid RETENTION_DAYS; falling back to 90.")
     RETENTION_DAYS = 90
-pruned_count = database.prune_expired_assessments(days=RETENTION_DAYS)
+
+if RETENTION_DAYS < 1:
+    logger.warning("RETENTION_DAYS must be >= 1; falling back to 90.")
+    RETENTION_DAYS = 90
+
+try:
+    pruned_count = database.prune_expired_assessments(days=RETENTION_DAYS)
+except Exception:
+    logger.exception("Failed to prune expired assessments")
+    pruned_count = 0
+
 if pruned_count:
     logger.info("Expired assessments pruned: %d", pruned_count)
 
