@@ -254,3 +254,9 @@ werkzeug.exceptions.NotFound: 404 Not Found: The requested URL was not found on 
 2026-09-05 01:26:23,529 - werkzeug - INFO - 127.0.0.1 - - [05/Sep/2026 01:26:23] "POST /predict HTTP/1.1" 200 -
 2026-09-05 01:26:23,583 - werkzeug - INFO - 127.0.0.1 - - [05/Sep/2026 01:26:23] "GET /static/logo.png HTTP/1.1" 304 -
 2026-09-05 01:26:23,797 - werkzeug - INFO - 127.0.0.1 - - [05/Sep/2026 01:26:23] "GET /static/logo.svg HTTP/1.1" 304 -
+2026-09-05 02:32:31,207 - DiaBeates - ERROR - CRITICAL SECURITY ERROR: Production deployment (DEBUG=False) is using DEFAULT_SECRET_KEY! Update .env immediately.
+2026-09-05 02:32:31,213 - DiaBeates - INFO - Database initialized successfully with non-destructive WAL mode.
+2026-09-05 02:32:31,214 - DiaBeates - INFO - Loaded clinical models summary: ['cardiovascular', 'general_burden', 'neuropathy_mobility', 'retinopathy']
+2026-09-05 02:32:31,414 - werkzeug - INFO - [31m[1mWARNING: This is a development server. Do not use it in a production deployment. Use a production WSGI server instead.[0m
+ * Running on http://127.0.0.1:5000
+2026-09-05 02:32:31,414 - werkzeug - INFO - [33mPress CTRL+C to quit[0m
