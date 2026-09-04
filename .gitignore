@@ -13,6 +13,12 @@ env/
 # code. Each teammate will get their own fresh copy automatically the
 # first time they run the app, since app.py creates it if missing.
 diabetes_system.db
+*.db
+*.db-*
+*.sqlite
+*.sqlite-*
+*.sqlite3
+*.sqlite3-*
 
 .env
 
@@ -22,6 +28,7 @@ diabetes_system.db
 Thumbs.db
 .env
 logs/
+.secret_key
 
 # Raw external datasets (auto-downloaded/cached locally)
 data/raw_retinopathy/

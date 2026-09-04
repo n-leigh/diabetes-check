@@ -21,20 +21,20 @@ get_assessment()/get_all_assessments() reconstruct the same nested dict
 shape the templates already expect, so upgrading the storage layer
 doesn't require touching app.py's rendering logic.
 
-SCHEMA_VERSION is checked against SQLite's built-in PRAGMA user_version
-at startup. If they don't match (e.g. an older copy of the DB file from
-before this schema existed), the app tables are dropped and recreated
-automatically — this is local demo data, not production data worth
-writing a real migration for.
+SCHEMA_VERSION is tracked with SQLite's built-in PRAGMA user_version.
+Migrations are additive and preserve existing assessment data.
 """
 
 import sqlite3
 import json
 import os
-from datetime import datetime, timezone
+import getpass
+import platform
+import subprocess
+from datetime import datetime, timedelta, timezone
 
 DB_PATH = os.path.join(os.path.dirname(os.path.abspath(__file__)), "diabetes_system.db")
-SCHEMA_VERSION = 3
+SCHEMA_VERSION = 4
 
 
 def get_connection():
@@ -46,8 +46,34 @@ def get_connection():
     return conn
 
 
+def restrict_database_permissions():
+    """Best-effort: restrict SQLite files to the current OS user (where supported)."""
+    for path in (DB_PATH, f"{DB_PATH}-wal", f"{DB_PATH}-shm"):
+        if not os.path.exists(path):
+            continue
+
+        if platform.system() == "Windows":
+            subprocess.run(
+                ["icacls", path, "/inheritance:r", "/grant:r", f"{getpass.getuser()}:F"],
+                check=False,
+                capture_output=True,
+                text=True,
+            )
+        else:
+            try:
+                os.chmod(path, 0o600)
+            except OSError:
+                pass
+
+
 def init_db():
     conn = get_connection()
+    current_version = conn.execute("PRAGMA user_version").fetchone()[0]
+    if current_version > SCHEMA_VERSION:
+        conn.close()
+        raise RuntimeError(
+            f"Database schema version {current_version} is newer than supported version {SCHEMA_VERSION}"
+        )
 
     conn.execute("""
         CREATE TABLE IF NOT EXISTS assessments (
@@ -96,9 +122,15 @@ def init_db():
             comment TEXT
         )
     """)
+    conn.execute("CREATE INDEX IF NOT EXISTS idx_assessments_session_archived_id ON assessments(session_id, archived, id)")
+    conn.execute("CREATE INDEX IF NOT EXISTS idx_assessments_created_at ON assessments(created_at)")
+    conn.execute("CREATE INDEX IF NOT EXISTS idx_risk_results_assessment_id ON risk_results(assessment_id)")
+    conn.execute("CREATE INDEX IF NOT EXISTS idx_lab_assessments_assessment_id ON lab_assessments(assessment_id)")
+    conn.execute("CREATE INDEX IF NOT EXISTS idx_feedback_assessment_id ON feedback(assessment_id)")
     conn.execute(f"PRAGMA user_version = {SCHEMA_VERSION}")
     conn.commit()
     conn.close()
+    restrict_database_permissions()
 
 
 def save_assessment(session_id: str, patient: dict, rule_results: dict,
@@ -108,50 +140,55 @@ def save_assessment(session_id: str, patient: dict, rule_results: dict,
     model_confidences = model_confidences or {}
     model_names = model_names or {}
     conn = get_connection()
-    cur = conn.execute(
-        """INSERT INTO assessments
+    try:
+        cur = conn.execute(
+            """INSERT INTO assessments
            (session_id, created_at, rule_matrix_version, bmi, age_band, gen_hlth, sex,
             phys_hlth, ment_hlth, high_bp, high_chol, smoker, heart_disease, stroke,
             diff_walk, no_doc_cost, diabetes_duration, blurry_vision)
            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)""",
-        (
-            session_id,
-            datetime.now(timezone.utc).isoformat(timespec="seconds"),
-            rule_version,
-            patient.get("BMI"), patient.get("Age"), patient.get("GenHlth"), patient.get("Sex"),
-            patient.get("PhysHlth"), patient.get("MentHlth"),
-            patient.get("HighBP", 0), patient.get("HighChol", 0), patient.get("Smoker", 0),
-            patient.get("HeartDiseaseorAttack", 0), patient.get("Stroke", 0),
-            patient.get("DiffWalk", 0), patient.get("NoDocbcCost", 0),
-            patient.get("DiabetesDuration", 0), patient.get("BlurryVision", 0),
-        ),
-    )
-    assessment_id = cur.lastrowid
+            (
+                session_id,
+                datetime.now(timezone.utc).isoformat(timespec="seconds"),
+                rule_version,
+                patient.get("BMI"), patient.get("Age"), patient.get("GenHlth"), patient.get("Sex"),
+                patient.get("PhysHlth"), patient.get("MentHlth"),
+                patient.get("HighBP", 0), patient.get("HighChol", 0), patient.get("Smoker", 0),
+                patient.get("HeartDiseaseorAttack", 0), patient.get("Stroke", 0),
+                patient.get("DiffWalk", 0), patient.get("NoDocbcCost", 0),
+                patient.get("DiabetesDuration", 0), patient.get("BlurryVision", 0),
+            ),
+        )
+        assessment_id = cur.lastrowid
 
-    for category, result in rule_results.items():
-        conf = model_confidences.get(category)
-        conn.execute(
-            """INSERT INTO risk_results
+        for category, result in rule_results.items():
+            conf = model_confidences.get(category)
+            conn.execute(
+                """INSERT INTO risk_results
                (assessment_id, category, rule_score, rule_percentage, rule_label,
                 model_name, model_label, model_confidence)
                VALUES (?, ?, ?, ?, ?, ?, ?, ?)""",
-            (assessment_id, category, result["score"], result["percentage"], result["label"],
-             model_names.get(category), model_results.get(category), conf),
-        )
+                (assessment_id, category, result["score"], result["percentage"], result["label"],
+                 model_names.get(category), model_results.get(category), conf),
+            )
 
-    if lab_assessment:
-        d = lab_assessment.get("details", {})
-        conn.execute(
-            """INSERT INTO lab_assessments (assessment_id, hba1c, systolic_bp, ldl, label, percentage)
+        if lab_assessment:
+            d = lab_assessment.get("details", {})
+            conn.execute(
+                """INSERT INTO lab_assessments (assessment_id, hba1c, systolic_bp, ldl, label, percentage)
                VALUES (?, ?, ?, ?, ?, ?)""",
-            (assessment_id,
-             d.get("hba1c", {}).get("value"), d.get("systolic_bp", {}).get("value"), d.get("ldl", {}).get("value"),
-             lab_assessment["label"], lab_assessment["percentage"]),
-        )
+                (assessment_id,
+                 d.get("hba1c", {}).get("value"), d.get("systolic_bp", {}).get("value"), d.get("ldl", {}).get("value"),
+                 lab_assessment["label"], lab_assessment["percentage"]),
+            )
 
-    conn.commit()
-    conn.close()
-    return assessment_id
+        conn.commit()
+        return assessment_id
+    except Exception:
+        conn.rollback()
+        raise
+    finally:
+        conn.close()
 
 
 def save_feedback(assessment_id: int, helpful: bool, comment: str = None):
@@ -283,10 +320,13 @@ def prune_expired_assessments(days: int = 90) -> int:
     """Permanently deletes assessments older than `days` days and their child records.
     Returns the count of deleted assessment records to comply with GDPR storage limitation
     and HIPAA minimal retention policies."""
+    if days < 1:
+        raise ValueError("Retention period must be at least one day")
+    cutoff = (datetime.now(timezone.utc) - timedelta(days=days)).isoformat(timespec="seconds")
     conn = get_connection()
     rows = conn.execute(
-        "SELECT id FROM assessments WHERE created_at < datetime('now', ?)",
-        (f"-{days} days",)
+        "SELECT id FROM assessments WHERE created_at < ?",
+        (cutoff,)
     ).fetchall()
     if not rows:
         conn.close()

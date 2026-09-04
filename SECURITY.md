@@ -106,6 +106,7 @@ serve(app, host='0.0.0.0', port=5000, threads=8)
 
 ### 3. Automated Data Retention Pruning
 - Implemented via `prune_expired_assessments(days=90)` in [`database.py`](database.py).
+- Runs during application startup and can be configured with the `RETENTION_DAYS` environment variable.
 - Purges stale records and associated risk entries exceeding the retention horizon, complying with data minimization principles.
 
 ### 4. Patient Audit Trail & UX

@@ -19,6 +19,7 @@ Then open http://127.0.0.1:5000
 import os
 import json
 import uuid
+import secrets
 import logging
 import logging.handlers
 from datetime import datetime, timezone
@@ -26,9 +27,6 @@ from zoneinfo import ZoneInfo
 from dotenv import load_dotenv
 import joblib
 import pandas as pd
-import logging
-import logging.handlers
-from dotenv import load_dotenv
 from flask import Flask, render_template, request, redirect, url_for, session
 from flask_wtf.csrf import CSRFProtect, CSRFError
 from flask_limiter import Limiter
@@ -62,8 +60,28 @@ logging.basicConfig(
 )
 logger = logging.getLogger("DiaBeates")
 
-DEFAULT_SECRET_KEY = "diabeates-dev-secret-replace-before-any-real-deployment"
-SECRET_KEY = os.getenv("SECRET_KEY", DEFAULT_SECRET_KEY)
+secret_key_path = os.path.join(BASE_DIR, ".secret_key")
+SECRET_KEY = os.getenv("SECRET_KEY")
+if not SECRET_KEY:
+    try:
+        # Create a persisted key if missing/empty.
+        if not os.path.exists(secret_key_path) or os.path.getsize(secret_key_path) == 0:
+            with open(secret_key_path, "w", encoding="utf-8") as secret_file:
+                secret_file.write(secrets.token_hex(32))
+            # Best-effort permission hardening on POSIX.
+            try:
+                os.chmod(secret_key_path, 0o600)
+            except OSError:
+                pass
+
+        with open(secret_key_path, encoding="utf-8") as secret_file:
+            SECRET_KEY = secret_file.read().strip()
+    except OSError:
+        # Read-only FS / permission error: fall back to a non-persisted key.
+        SECRET_KEY = secrets.token_hex(32)
+
+if not SECRET_KEY:
+    SECRET_KEY = secrets.token_hex(32)
 DEBUG = os.getenv("DEBUG", "False").strip().lower() in {"1", "true", "yes", "on"}
 SESSION_COOKIE_SECURE = os.getenv("SESSION_COOKIE_SECURE", "False").strip().lower() in {"1", "true", "yes", "on"}
 DISPLAY_TIMEZONE = os.getenv("DISPLAY_TIMEZONE", "Asia/Manila").strip() or "Asia/Manila"
@@ -73,12 +91,6 @@ except Exception:
     logger.warning("Invalid DISPLAY_TIMEZONE '%s'; falling back to Asia/Manila.", DISPLAY_TIMEZONE)
     DISPLAY_TIMEZONE = "Asia/Manila"
     DISPLAY_ZONE = ZoneInfo(DISPLAY_TIMEZONE)
-
-if SECRET_KEY == DEFAULT_SECRET_KEY:
-    if not DEBUG:
-        logger.error("CRITICAL SECURITY ERROR: Production deployment (DEBUG=False) is using DEFAULT_SECRET_KEY! Update .env immediately.")
-    else:
-        logger.warning("SECURITY WARNING: Using default secret key. Set SECRET_KEY in .env for production.")
 
 app = Flask(__name__)
 app.config.update(
@@ -124,6 +136,24 @@ limiter = Limiter(
 
 database.init_db()
 logger.info("Database initialized successfully with non-destructive WAL mode.")
+try:
+    RETENTION_DAYS = int(os.getenv("RETENTION_DAYS", "90"))
+except ValueError:
+    logger.warning("Invalid RETENTION_DAYS; falling back to 90.")
+    RETENTION_DAYS = 90
+
+if RETENTION_DAYS < 1:
+    logger.warning("RETENTION_DAYS must be >= 1; falling back to 90.")
+    RETENTION_DAYS = 90
+
+try:
+    pruned_count = database.prune_expired_assessments(days=RETENTION_DAYS)
+except Exception:
+    logger.exception("Failed to prune expired assessments")
+    pruned_count = 0
+
+if pruned_count:
+    logger.info("Expired assessments pruned: %d", pruned_count)
 
 CATEGORIES = ["cardiovascular", "neuropathy_mobility", "general_burden", "retinopathy"]
 FEATURE_COLUMNS = [
@@ -458,7 +488,7 @@ def predict():
     patient, lab_values, errors = validate_patient_form(request.form)
 
     if errors:
-        logger.warning(f"Form validation failed: {errors}")
+        logger.warning("Form validation failed")
         return render_template(
             "assessment.html",
             errors=errors,
@@ -466,7 +496,7 @@ def predict():
         ), 400
 
     rule_results = compute_all_risks(patient)
-    logger.info(f"Rule matrix computed for patient: {rule_results}")
+    logger.info("Rule matrix assessment completed")
 
     lab_assessment = compute_lab_assessment(
         hba1c=lab_values.get("LabHbA1c"),
@@ -626,7 +656,7 @@ def handle_csrf_error(e):
 
 @app.errorhandler(Exception)
 def handle_unexpected_error(e):
-    logger.exception(f"Unexpected server error: {e}")
+    logger.exception("Unexpected server error")
     return render_template(
         "assessment.html",
         errors=["An error occurred while processing your assessment. Please check your inputs and try again."],
@@ -635,4 +665,4 @@ def handle_unexpected_error(e):
 
 
 if __name__ == "__main__":
-    app.run(debug=DEBUG)
+    app.run(host="127.0.0.1", port=5000, debug=DEBUG)
