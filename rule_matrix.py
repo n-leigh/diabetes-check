@@ -182,43 +182,43 @@ MAX_SCORES = {
 def compute_lab_assessment(hba1c=None, systolic_bp=None, ldl=None) -> Optional[Dict]:
     """
     Optional clinical lab assessment using biomarker values:
-    - HbA1c: ADA Standards of Care glycemic targets (<6.5% optimal, 6.5-8.0% suboptimal, >8.0% high risk)
-    - Systolic BP: KDIGO 2024 / ADA target (<120 optimal, 120-139 elevated, >=140 stage 2 hypertension)
-    - LDL cholesterol: ACC/AHA lipid targets (<100 optimal, 100-129 borderline, >=130 elevated)
+    - HbA1c: ADA 2026 Standards of Care Section 6 targets (<7.0% optimal per Rec 6.3a, 7.0-7.9% suboptimal, >=8.0% elevated/uncontrolled)
+    - Systolic BP: KDIGO 2024 Rec 3.4.1 & ADA 2026 Rec 10.4 targets (<120 optimal, 120-129 elevated, >=130 hypertension)
+    - LDL cholesterol: ADA 2026 Section 10 targets (<70 optimal per Rec 10.20, 70-99 borderline, >=100 elevated)
     """
     provided = {}
     max_possible = 0
     total = 0
 
     if hba1c is not None:
-        if hba1c < 6.5:
-            pts = 0
+        if hba1c < 7.0:
+            pts = 0  # ADA 2026 Rec 6.3a general target for nonpregnant adults
         elif hba1c < 8.0:
-            pts = 1
+            pts = 1  # Suboptimal / individualized target
         else:
-            pts = 2
+            pts = 2  # Marked hyperglycemia / elevated complication risk
         provided["hba1c"] = {"value": hba1c, "points": pts}
         total += pts
         max_possible += 2
 
     if systolic_bp is not None:
         if systolic_bp < 120:
-            pts = 0
-        elif systolic_bp < 140:
-            pts = 1
+            pts = 0  # KDIGO 2024 & ADA Rec 10.4 high cardiovascular/renal risk target
+        elif systolic_bp < 130:
+            pts = 1  # Elevated systolic blood pressure
         else:
-            pts = 2
+            pts = 2  # Hypertension threshold (>=130 mmHg per ADA 2026)
         provided["systolic_bp"] = {"value": systolic_bp, "points": pts}
         total += pts
         max_possible += 2
 
     if ldl is not None:
-        if ldl < 100:
-            pts = 0
-        elif ldl < 130:
-            pts = 1
+        if ldl < 70:
+            pts = 0  # ADA 2026 Rec 10.20 optimal primary prevention target in diabetes
+        elif ldl < 100:
+            pts = 1  # Suboptimal atherogenic lipid level
         else:
-            pts = 2
+            pts = 2  # Elevated cardiovascular risk (>=100 mg/dL)
         provided["ldl"] = {"value": ldl, "points": pts}
         total += pts
         max_possible += 2
