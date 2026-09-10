@@ -188,11 +188,11 @@
           </div>
           <div class="mt-2">
             {% if lab_assessment.details.hba1c.points == 0 %}
-            <span class="inline-block px-2 py-0.5 rounded-full text-[11px] font-semibold bg-emerald-50 text-emerald-700 border border-emerald-200">Optimal (&lt;6.5% ADA)</span>
+            <span class="inline-block px-2 py-0.5 rounded-full text-[11px] font-semibold bg-emerald-50 text-emerald-700 border border-emerald-200">Optimal (&lt;7.0% ADA 2026)</span>
             {% elif lab_assessment.details.hba1c.points == 1 %}
-            <span class="inline-block px-2 py-0.5 rounded-full text-[11px] font-semibold bg-amber-50 text-amber-700 border border-amber-200">Suboptimal (6.5–8.0% ADA)</span>
+            <span class="inline-block px-2 py-0.5 rounded-full text-[11px] font-semibold bg-amber-50 text-amber-700 border border-amber-200">Suboptimal (7.0–7.9% ADA)</span>
             {% else %}
-            <span class="inline-block px-2 py-0.5 rounded-full text-[11px] font-semibold bg-red-50 text-red-700 border border-red-200">Elevated Risk (&gt;8.0% ADA)</span>
+            <span class="inline-block px-2 py-0.5 rounded-full text-[11px] font-semibold bg-red-50 text-red-700 border border-red-200">Elevated Risk (&ge;8.0% ADA)</span>
             {% endif %}
           </div>
         </div>
@@ -205,11 +205,11 @@
           </div>
           <div class="mt-2">
             {% if lab_assessment.details.systolic_bp.points == 0 %}
-            <span class="inline-block px-2 py-0.5 rounded-full text-[11px] font-semibold bg-emerald-50 text-emerald-700 border border-emerald-200">Optimal (&lt;120 KDIGO)</span>
+            <span class="inline-block px-2 py-0.5 rounded-full text-[11px] font-semibold bg-emerald-50 text-emerald-700 border border-emerald-200">Optimal (&lt;120 KDIGO 2024)</span>
             {% elif lab_assessment.details.systolic_bp.points == 1 %}
-            <span class="inline-block px-2 py-0.5 rounded-full text-[11px] font-semibold bg-amber-50 text-amber-700 border border-amber-200">Elevated (120–139 KDIGO)</span>
+            <span class="inline-block px-2 py-0.5 rounded-full text-[11px] font-semibold bg-amber-50 text-amber-700 border border-amber-200">Elevated (120–129 mmHg)</span>
             {% else %}
-            <span class="inline-block px-2 py-0.5 rounded-full text-[11px] font-semibold bg-red-50 text-red-700 border border-red-200">Stage 2 (&ge;140 KDIGO)</span>
+            <span class="inline-block px-2 py-0.5 rounded-full text-[11px] font-semibold bg-red-50 text-red-700 border border-red-200">Hypertension (&ge;130 ADA 2026)</span>
             {% endif %}
           </div>
         </div>
@@ -222,11 +222,11 @@
           </div>
           <div class="mt-2">
             {% if lab_assessment.details.ldl.points == 0 %}
-            <span class="inline-block px-2 py-0.5 rounded-full text-[11px] font-semibold bg-emerald-50 text-emerald-700 border border-emerald-200">Optimal (&lt;100 ACC/AHA)</span>
+            <span class="inline-block px-2 py-0.5 rounded-full text-[11px] font-semibold bg-emerald-50 text-emerald-700 border border-emerald-200">Optimal (&lt;70 mg/dL ADA 2026)</span>
             {% elif lab_assessment.details.ldl.points == 1 %}
-            <span class="inline-block px-2 py-0.5 rounded-full text-[11px] font-semibold bg-amber-50 text-amber-700 border border-amber-200">Borderline (100–129 ACC/AHA)</span>
+            <span class="inline-block px-2 py-0.5 rounded-full text-[11px] font-semibold bg-amber-50 text-amber-700 border border-amber-200">Borderline (70–99 mg/dL)</span>
             {% else %}
-            <span class="inline-block px-2 py-0.5 rounded-full text-[11px] font-semibold bg-red-50 text-red-700 border border-red-200">Elevated (&ge;130 ACC/AHA)</span>
+            <span class="inline-block px-2 py-0.5 rounded-full text-[11px] font-semibold bg-red-50 text-red-700 border border-red-200">Elevated (&ge;100 mg/dL ADA 2026)</span>
             {% endif %}
           </div>
         </div>

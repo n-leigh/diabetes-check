@@ -176,7 +176,7 @@ flowchart TB
   - `risk_results` - Rule-based scores, guideline labels, calibrated ML event probabilities, and AUROC metrics across all 4 domains.
   - `lab_assessments` - Optional laboratory biomarkers (HbA1c, Systolic BP, LDL).
   - `feedback` - User feedback for continuous quality monitoring.
-  - `prune_expired_assessments()` - Automated data retention policy pruning assessments older than 90 days.
+  - `prune_expired_assessments()` - Startup data retention policy pruning assessments older than the configured 90-day default.
 
 ### 6. **Authentic Clinical Data Sources**
 - `nhanes_2017_2018_heart_disease_prediction.csv` - CDC NHANES 2017–2018 CVD diabetic cohort ($N=949$).
