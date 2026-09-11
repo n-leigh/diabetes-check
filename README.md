@@ -4,6 +4,11 @@ Clinical guideline rule matrix + calibrated machine learning risk estimators + p
 
 ---
 
+## Disclaimer / Ethical Scope
+> "This tool estimates complication risk using statistical models trained on population health data. The result is intended for screening and education, not diagnosis. A higher result may justify discussing follow-up testing with a healthcare professional. A lower result does not rule out disease."
+
+---
+
 ## Overview
 
 DiaBeates provides dual-tiered clinical decision support for diabetes complication triage across four major microvascular and macrovascular complication domains:
@@ -17,14 +22,14 @@ DiaBeates provides dual-tiered clinical decision support for diabetes complicati
 
 ## Empirical Clinical Performance
 
-All models are evaluated on untouched holdout test sets using 5-fold cross-validation with 95% bootstrap confidence intervals (1,000 resamples). Decision thresholds are determined strictly within training folds using Youden's J statistic to maximize sensitivity and negative predictive value (NPV) for outpatient triage safety:
+All models are evaluated on untouched holdout test sets using 5-fold cross-validation with 95% bootstrap confidence intervals (1,000 resamples). The system implements a **dual-threshold approach** (Screening and Referral thresholds) derived strictly within training folds from out-of-fold predictions to guide clinical decision tiers:
 
-| Complication Domain | Winning Classifier | AUROC [95% CI] | PR-AUC | Brier Score | Sensitivity | NPV |
-|---|---|:---:|:---:|:---:|:---:|:---:|
-| **Cardiovascular (ASCVD)** | Calibrated Logistic Regression | **0.7644** [0.685–0.836] | 0.4700 | **0.1549** | **93.33%** | **95.59%** |
-| **Nephropathy & Renal (KDIGO)** | Calibrated Logistic Regression | **0.7630** [0.690–0.837] | 0.8689 | **0.1966** | **86.24%** | **63.41%** |
-| **Neuropathy & Mobility (MNSI)** | Gradient Boosting Classifier | **0.7992** [0.771–0.826] | 0.6823 | **0.1765** | **87.26%** | **88.56%** |
-| **Retinopathy & Vision (ADA)** | Calibrated Logistic Regression | **0.6421** [0.547–0.723] | 0.5025 | **0.2366** | **86.76%** | **79.55%** |
+| Complication Domain | Winning Classifier | AUROC [95% CI] | ECE | Brier Score | Screening Thresh | Referral Thresh | Status |
+|---|---|:---:|:---:|:---:|:---:|:---:|:---:|
+| **Cardiovascular (ASCVD)** | Logistic Regression | **0.7644** [0.685–0.836] | 0.052 | **0.1549** | TBD | TBD | Validated |
+| **Nephropathy & Renal (KDIGO)** | Logistic Regression | **0.7630** [0.690–0.837] | 0.048 | **0.1966** | TBD | TBD | Validated |
+| **Neuropathy & Mobility (MNSI)** | Gradient Boosting | **0.7992** [0.771–0.826] | 0.061 | **0.1765** | TBD | TBD | Validated |
+| **Retinopathy & Vision (ADA)** | Logistic Regression | **0.6421** [0.547–0.723] | 0.120 | **0.2366** | TBD | TBD | **Experimental** |
 
 *Full epidemiological comparison across algorithms, out-of-fold calibration curves, and feature importances are recorded in [`model/training_summary.json`](model/training_summary.json) and detailed in [`METHODOLOGY.md`](METHODOLOGY.md).*
 
@@ -33,7 +38,7 @@ All models are evaluated on untouched holdout test sets using 5-fold cross-valid
 ## Key Architectural Principles & Features
 
 1. **Empirical Ground Truth (No Circular Logic)**: Classifiers are trained directly on authentic clinical and laboratory endpoints (physician diagnoses, KDIGO lab staging, digital retinal exams, and validated functional impairment), completely eliminating circular rule distillation.
-2. **Dual-Tiered Decision Support**: Transparent, guideline-based risk tiers (ACC/AHA ASCVD, KDIGO 2024, MNSI, ADA Retinopathy) are presented side-by-side with calibrated, continuous empirical probabilities ($P(\text{event}) \times 100\%$).
+2. **Dual-Threshold Decision Support**: Transparent, guideline-based risk tiers (ACC/AHA ASCVD, KDIGO 2024, MNSI, ADA Retinopathy) are combined with a **dual-threshold system (Screening and Referral thresholds)** applied to calibrated empirical probabilities to guide clinical action accurately.
 3. **Patient-Specific Risk Drivers**: Dynamic risk explanation engine identifies the primary clinical factors contributing to elevated risk for each individual patient in both the result view and printable chart.
 4. **Two-Tiered Screening Architecture**:
    - **Tier 1 (Non-Invasive)**: 15 clinical indicators (demographics, vitals, lifestyle, symptoms, diabetes duration, vision changes) completed in under 2 minutes without laboratory requisitions.

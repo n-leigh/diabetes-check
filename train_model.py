@@ -17,10 +17,10 @@ Trained on authentic clinical datasets:
    retinal photography examination (OPDURET, OPDDRET) and doctor diagnosis.
 
 Evaluates models using standard clinical epidemiology metrics:
-- 5-Fold Stratified Cross-Validation on training partition for model selection
+- Repeated Stratified Cross-Validation on training partition for model selection
 - Out-of-sample evaluation on untouched holdout test partition
 - Discrimination: AUROC (C-statistic) with 95% Bootstrap Confidence Intervals & PR-AUC
-- Calibration: Brier Score & Probability Calibration Curves
+- Calibration: Brier Score, ECE, & Probability Calibration Curves
 - Clinical Decision Utility: Sensitivity/Recall (minimizing missed complications),
   Specificity, Negative Predictive Value (NPV), and Positive Predictive Value (PPV).
 """
@@ -32,7 +32,10 @@ import numpy as np
 import pandas as pd
 import matplotlib.pyplot as plt
 
-from sklearn.model_selection import train_test_split, StratifiedKFold, cross_val_score, cross_val_predict
+from sklearn.model_selection import (
+    train_test_split, StratifiedKFold, RepeatedStratifiedKFold, 
+    cross_val_score, cross_val_predict
+)
 from sklearn.linear_model import LogisticRegression
 from sklearn.ensemble import RandomForestClassifier, GradientBoostingClassifier
 from sklearn.calibration import CalibratedClassifierCV, calibration_curve
@@ -168,33 +171,158 @@ def compute_auroc_ci(y_test, y_prob, n_bootstraps=1000, random_state=42):
     return [round(lower, 4), round(upper, 4)]
 
 
+def compute_ece(y_true, y_prob, n_bins=10):
+    """Expected Calibration Error."""
+    bin_edges = np.linspace(0, 1, n_bins + 1)
+    ece = 0.0
+    reliability_table = []
+    for i in range(n_bins):
+        mask = (y_prob >= bin_edges[i]) & (y_prob < bin_edges[i + 1])
+        if i == n_bins - 1:
+            mask = (y_prob >= bin_edges[i]) & (y_prob <= bin_edges[i + 1])
+        count = mask.sum()
+        if count == 0:
+            continue
+        mean_pred = float(y_prob[mask].mean())
+        observed = float(y_true[mask].mean())
+        gap = abs(mean_pred - observed)
+        ece += (count / len(y_true)) * gap
+        reliability_table.append({
+            "bin": f"{bin_edges[i]:.1f}-{bin_edges[i+1]:.1f}",
+            "count": int(count),
+            "mean_predicted": round(mean_pred, 4),
+            "observed_fraction": round(observed, 4),
+            "gap": round(gap, 4),
+        })
+    return round(ece, 4), reliability_table
+
+
+def compute_metric_bootstrap_ci(y_true, y_prob, threshold, n_bootstraps=1000, random_state=42):
+    """Bootstrap 95% CIs for Brier, sensitivity, specificity, PPV, NPV."""
+    rng = np.random.RandomState(random_state)
+    briers, sensitivities, specificities, ppvs, npvs = [], [], [], [], []
+    for _ in range(n_bootstraps):
+        idx = rng.randint(0, len(y_true), len(y_true))
+        yt, yp = y_true[idx], y_prob[idx]
+        if len(np.unique(yt)) < 2:
+            continue
+        briers.append(float(brier_score_loss(yt, yp)))
+        y_pred = (yp >= threshold).astype(int)
+        tn, fp, fn, tp = confusion_matrix(yt, y_pred, labels=[0, 1]).ravel()
+        sensitivities.append(float(tp / (tp + fn)) if (tp + fn) > 0 else 0.0)
+        specificities.append(float(tn / (tn + fp)) if (tn + fp) > 0 else 0.0)
+        ppvs.append(float(tp / (tp + fp)) if (tp + fp) > 0 else 0.0)
+        npvs.append(float(tn / (tn + fn)) if (tn + fn) > 0 else 0.0)
+    def ci(arr):
+        return [round(float(np.percentile(arr, 2.5)), 4), round(float(np.percentile(arr, 97.5)), 4)] if arr else [0.0, 0.0]
+    return {
+        "brier_95_ci": ci(briers),
+        "sensitivity_95_ci": ci(sensitivities),
+        "specificity_95_ci": ci(specificities),
+        "ppv_95_ci": ci(ppvs),
+        "npv_95_ci": ci(npvs),
+    }
+
+
+def compute_subgroup_analysis(X_test_full, y_test, y_prob, threshold, feature_subset):
+    """Subgroup reliability analysis."""
+    subgroups = {}
+    
+    # Age subgroups
+    ages = X_test_full["Age"].values
+    for label, mask_fn in [("age_18_44", lambda a: a <= 5), ("age_45_59", lambda a: (a >= 6) & (a <= 8)), ("age_60_plus", lambda a: a >= 9)]:
+        mask = mask_fn(ages)
+        n = int(mask.sum())
+        if n == 0:
+            continue
+        yt, yp = y_test[mask], y_prob[mask]
+        y_pred = (yp >= threshold).astype(int)
+        actual_rate = float(yt.mean()) if n > 0 else 0.0
+        mean_pred = float(yp.mean()) if n > 0 else 0.0
+        cal_err = round(abs(mean_pred - actual_rate), 4)
+        tp = int(((y_pred == 1) & (yt == 1)).sum())
+        fn = int(((y_pred == 0) & (yt == 1)).sum())
+        tn = int(((y_pred == 0) & (yt == 0)).sum())
+        fp = int(((y_pred == 1) & (yt == 0)).sum())
+        recall = round(tp / (tp + fn), 4) if (tp + fn) > 0 else 0.0
+        spec = round(tn / (tn + fp), 4) if (tn + fp) > 0 else 0.0
+        fnr = round(fn / (fn + tp), 4) if (fn + tp) > 0 else 0.0
+        flag = "insufficient_data" if n < 30 else ("warning" if cal_err > 0.10 else "ok")
+        subgroups[label] = {
+            "n": n, "actual_positive_rate": round(actual_rate, 4),
+            "mean_predicted": round(mean_pred, 4), "calibration_error": cal_err,
+            "recall": recall, "specificity": spec, "false_negative_rate": fnr,
+            "flag": flag,
+        }
+    
+    # Sex subgroups
+    sexes = X_test_full["Sex"].values
+    for label, val in [("male", 1), ("female", 0)]:
+        mask = (sexes == val)
+        n = int(mask.sum())
+        if n == 0:
+            continue
+        yt, yp = y_test[mask], y_prob[mask]
+        y_pred = (yp >= threshold).astype(int)
+        actual_rate = float(yt.mean()) if n > 0 else 0.0
+        mean_pred = float(yp.mean()) if n > 0 else 0.0
+        cal_err = round(abs(mean_pred - actual_rate), 4)
+        tp = int(((y_pred == 1) & (yt == 1)).sum())
+        fn = int(((y_pred == 0) & (yt == 1)).sum())
+        tn = int(((y_pred == 0) & (yt == 0)).sum())
+        fp = int(((y_pred == 1) & (yt == 0)).sum())
+        recall = round(tp / (tp + fn), 4) if (tp + fn) > 0 else 0.0
+        spec = round(tn / (tn + fp), 4) if (tn + fp) > 0 else 0.0
+        fnr = round(fn / (fn + tp), 4) if (fn + tp) > 0 else 0.0
+        flag = "insufficient_data" if n < 30 else ("warning" if cal_err > 0.10 else "ok")
+        subgroups[label] = {
+            "n": n, "actual_positive_rate": round(actual_rate, 4),
+            "mean_predicted": round(mean_pred, 4), "calibration_error": cal_err,
+            "recall": recall, "specificity": spec, "false_negative_rate": fnr,
+            "flag": flag,
+        }
+    
+    return subgroups
+
+
+def determine_calibration_quality(ece):
+    if ece <= 0.05:
+        return "good"
+    elif ece <= 0.10:
+        return "fair"
+    else:
+        return "weak"
+
+
+def determine_uncertainty_level(auroc_ci):
+    width = auroc_ci[1] - auroc_ci[0]
+    if width <= 0.08:
+        return "narrow"
+    elif width <= 0.15:
+        return "moderate"
+    else:
+        return "wide"
+
+
 def train_and_evaluate_all():
     tasks = {
         "cardiovascular": {
             "loader": load_cardiovascular_data,
-            "low_thresh": 0.15,
-            "high_thresh": 0.35,
             "title": "Cardiovascular Disease (CDC NHANES 2017-2018)",
             "endpoint": "Physician-Diagnosed CAD, Angina, or Myocardial Infarction",
         },
         "general_burden": {
             "loader": load_nephropathy_data,
-            "low_thresh": 0.40,
-            "high_thresh": 0.70,
             "title": "Nephropathy & Chronic Kidney Disease (CDC NHANES 2021-2023)",
             "endpoint": "Laboratory-Confirmed KDIGO CKD (eGFR < 60 or uACR >= 30 mg/g)",
         },
         "neuropathy_mobility": {
             "loader": load_neuropathy_mobility_data,
-            "low_thresh": 0.25,
-            "high_thresh": 0.50,
             "title": "Neuropathy & Mobility Impairment (CDC BRFSS Registry)",
             "endpoint": "Lower-Extremity Functional Mobility Deficit (DiffWalk)",
         },
         "retinopathy": {
             "loader": load_retinopathy_data,
-            "low_thresh": 0.30,
-            "high_thresh": 0.55,
             "title": "Diabetic Retinopathy & Vision Loss (CDC NHANES 2007-2008)",
             "endpoint": "Digital Retinal Photography Exam & Physician-Diagnosed Retinopathy",
         },
@@ -214,24 +342,31 @@ def train_and_evaluate_all():
         )
 
         candidate_algorithms = {
-            "Calibrated Logistic Regression": Pipeline([
-                ("scaler", StandardScaler()),
-                ("clf", LogisticRegression(max_iter=2000, random_state=42))
-            ]),
+            "Calibrated Logistic Regression": CalibratedClassifierCV(
+                estimator=Pipeline([
+                    ("scaler", StandardScaler()),
+                    ("clf", LogisticRegression(max_iter=2000, random_state=42))
+                ]),
+                method="sigmoid",
+                cv=5
+            ),
             "Calibrated Random Forest": CalibratedClassifierCV(
                 estimator=RandomForestClassifier(n_estimators=120, max_depth=6, random_state=42),
-                method="sigmoid", cv=3
+                method="sigmoid",
+                cv=5
             ),
-            "Gradient Boosting Classifier": GradientBoostingClassifier(
-                n_estimators=80, max_depth=3, random_state=42
+            "Calibrated Gradient Boosting": CalibratedClassifierCV(
+                estimator=GradientBoostingClassifier(n_estimators=80, max_depth=3, random_state=42),
+                method="sigmoid",
+                cv=5
             ),
         }
 
-        cv = StratifiedKFold(n_splits=5, shuffle=True, random_state=42)
+        cv = RepeatedStratifiedKFold(n_splits=5, n_repeats=3, random_state=42)
         cv_results = {}
         X_sub_train = X_train[feature_subset]
 
-        print("--> Running 5-Fold Stratified Cross-Validation on Training Partition...")
+        print("--> Running Repeated Stratified Cross-Validation on Training Partition...")
         for name, algo in candidate_algorithms.items():
             # Cross-validation strictly on training set (avoids holdout test leakage)
             cv_scores = cross_val_score(algo, X_sub_train, y_train, cv=cv, scoring="roc_auc")
@@ -240,48 +375,120 @@ def train_and_evaluate_all():
                 "cv_mean": float(np.mean(cv_scores)),
                 "cv_std": float(np.std(cv_scores)),
             }
-            print(f"  {name:32s} | 5-Fold CV AUROC: {cv_results[name]['cv_mean']:.4f} ± {cv_results[name]['cv_std']:.4f}")
+            print(f"  {name:32s} | 5-Fold x3 CV AUROC: {cv_results[name]['cv_mean']:.4f} ± {cv_results[name]['cv_std']:.4f}")
 
         # Model selection based on mean cross-validated AUROC on the training partition
         best_name = max(cv_results, key=lambda n: cv_results[n]["cv_mean"])
         best_cv = cv_results[best_name]
         print(f"\n--> Selected Best Model via CV: {best_name} (CV AUROC: {best_cv['cv_mean']:.4f})")
 
-        # Fit best model inside ClinicalRiskWrapper and evaluate ONCE on untouched test set
-        winning_wrapper = ClinicalRiskWrapper(
-            base_estimator=best_cv["algo"],
-            feature_subset=feature_subset,
-            low_threshold=config["low_thresh"],
-            high_threshold=config["high_thresh"]
-        )
-        winning_wrapper.fit(X_train, y_train)
-        y_prob = winning_wrapper.predict_proba(X_test)[:, 1]
+        # Get out-of-fold predictions using plain StratifiedKFold(5) on the training set
+        oof_cv = StratifiedKFold(n_splits=5, shuffle=True, random_state=42)
+        oof_train_probs = cross_val_predict(
+            best_cv["algo"], X_sub_train, y_train, cv=oof_cv, method="predict_proba"
+        )[:, 1]
+
+        # Dual threshold selection
+        precisions, recalls, pr_thresholds = precision_recall_curve(y_train, oof_train_probs)
+        
+        # Also compute ROC curve for specificity-aware threshold selection
+        train_fpr, train_tpr, roc_thresholds = roc_curve(y_train, oof_train_probs)
+        train_spec = 1 - train_fpr
+        
+        # Screening threshold: sensitivity >= 0.85 and precision >= 0.50
+        # Additionally require specificity >= 0.20 to avoid degenerate thresholds
+        # on high-prevalence datasets
+        screening_candidates = []
+        for i in range(len(pr_thresholds)):
+            if recalls[i] >= 0.85 and precisions[i] >= 0.50:
+                # Check specificity at this threshold via ROC curve
+                roc_idx = np.searchsorted(roc_thresholds, pr_thresholds[i])
+                roc_idx = min(roc_idx, len(train_spec) - 1)
+                if train_spec[roc_idx] >= 0.20:
+                    screening_candidates.append(pr_thresholds[i])
+        
+        if not screening_candidates:
+            # Fallback: use ROC curve to find threshold with TPR >= 0.85
+            # and highest available specificity
+            roc_candidates = [(roc_thresholds[i], train_spec[i]) 
+                              for i in range(len(roc_thresholds)) 
+                              if train_tpr[i] >= 0.85 and train_spec[i] >= 0.20]
+            if roc_candidates:
+                # Pick the threshold with the best specificity among those with TPR >= 0.85
+                screening_thresh = float(max(roc_candidates, key=lambda x: x[1])[0])
+            else:
+                screening_thresh = 0.3
+        else:
+            screening_thresh = float(max(screening_candidates))
+        
+        # Referral threshold: precision >= 0.60 with specificity >= 0.40
+        referral_candidates = []
+        for i in range(len(pr_thresholds)):
+            if precisions[i] >= 0.60:
+                roc_idx = np.searchsorted(roc_thresholds, pr_thresholds[i])
+                roc_idx = min(roc_idx, len(train_spec) - 1)
+                if train_spec[roc_idx] >= 0.40:
+                    referral_candidates.append(pr_thresholds[i])
+        referral_thresh = float(min(referral_candidates)) if referral_candidates else None
+        
+        if referral_thresh is None:
+            # Fall back: use ROC-based approach for reasonable referral threshold
+            roc_ref_candidates = [(roc_thresholds[i], train_spec[i]) 
+                                  for i in range(len(roc_thresholds)) 
+                                  if train_spec[i] >= 0.50]
+            if roc_ref_candidates:
+                referral_thresh = float(min(roc_ref_candidates, key=lambda x: x[0])[0])
+            else:
+                referral_thresh = screening_thresh + 0.15
+        
+        # Ensure referral > screening
+        if referral_thresh <= screening_thresh:
+            referral_thresh = screening_thresh + 0.10
+
+
+        # Fit best model to get probabilities on holdout set
+        best_algo = best_cv["algo"]
+        best_algo.fit(X_sub_train, y_train)
+        y_prob = best_algo.predict_proba(X_test[feature_subset])[:, 1]
 
         test_auroc = float(round(roc_auc_score(y_test, y_prob), 4))
         test_pr_auc = float(round(average_precision_score(y_test, y_prob), 4))
         test_brier = float(round(brier_score_loss(y_test, y_prob), 4))
         auroc_ci = compute_auroc_ci(y_test, y_prob)
 
-        # Independent Threshold Selection:
-        # Determine the high-sensitivity triage cutoff strictly on training fold predictions (OOF)
-        # to guarantee the holdout test set remains completely independent and untouched.
-        oof_train_probs = cross_val_predict(
-            best_cv["algo"], X_sub_train, y_train, cv=cv, method="predict_proba"
-        )[:, 1]
-        train_fpr, train_tpr, train_thresholds = roc_curve(y_train, oof_train_probs)
-        high_sens_idx = np.where(train_tpr >= 0.85)[0]
-        best_thresh = float(train_thresholds[high_sens_idx[0]]) if len(high_sens_idx) > 0 else 0.3
+        ece, reliability_table = compute_ece(y_test, y_prob)
+        cal_quality = determine_calibration_quality(ece)
+        unc_level = determine_uncertainty_level(auroc_ci)
 
-        # Apply the pre-selected threshold to the untouched holdout test partition
-        y_pred_thresh = (y_prob >= best_thresh).astype(int)
-        tn, fp, fn, tp = confusion_matrix(y_test, y_pred_thresh).ravel()
+        # Build and fit wrapper
+        winning_wrapper = ClinicalRiskWrapper(
+            base_estimator=best_algo,
+            feature_subset=feature_subset,
+            screening_threshold=screening_thresh,
+            referral_threshold=referral_thresh,
+            model_status="experimental" if cat == "retinopathy" else "validated",
+            calibration_quality=cal_quality,
+            uncertainty_level=unc_level,
+        )
+        winning_wrapper.fit(X_train, y_train)
+
+        # Compute threshold metrics using the SCREENING threshold
+        y_pred_thresh = (y_prob >= screening_thresh).astype(int)
+        tn, fp, fn, tp = confusion_matrix(y_test, y_pred_thresh, labels=[0, 1]).ravel()
 
         sensitivity = float(round(tp / (tp + fn), 4)) if (tp + fn) > 0 else 0.0
         specificity = float(round(tn / (tn + fp), 4)) if (tn + fp) > 0 else 0.0
         ppv = float(round(tp / (tp + fp), 4)) if (tp + fp) > 0 else 0.0
         npv = float(round(tn / (tn + fn), 4)) if (tn + fn) > 0 else 0.0
 
-        print(f"--> Test Evaluation: AUROC = {test_auroc:.4f} (95% CI: {auroc_ci[0]}-{auroc_ci[1]}), PR-AUC = {test_pr_auc:.4f}, Brier = {test_brier:.4f}, Sens = {sensitivity:.4f}, NPV = {npv:.4f} (Threshold = {best_thresh:.4f} from Train-CV)")
+        # Compute Bootstrap CIs for additional metrics
+        bootstrap_metrics = compute_metric_bootstrap_ci(y_test, y_prob, screening_thresh)
+        
+        # Compute Subgroup analysis
+        subgroup_analysis = compute_subgroup_analysis(X_test, y_test, y_prob, screening_thresh, feature_subset)
+
+        print(f"--> Test Evaluation: AUROC = {test_auroc:.4f} (95% CI: {auroc_ci[0]}-{auroc_ci[1]}), PR-AUC = {test_pr_auc:.4f}, Brier = {test_brier:.4f}, ECE = {ece:.4f}")
+        print(f"    Screening Threshold = {screening_thresh:.4f} -> Sens = {sensitivity:.4f}, Spec = {specificity:.4f}, NPV = {npv:.4f}, PPV = {ppv:.4f}")
 
         # Save winning model
         out_model_path = os.path.join(MODEL_DIR, f"{cat}_model.pkl")
@@ -306,7 +513,19 @@ def train_and_evaluate_all():
             "specificity": specificity,
             "negative_predictive_value": npv,
             "positive_predictive_value": ppv,
-            "high_risk_threshold": float(round(best_thresh, 4)),
+            "screening_threshold": float(round(screening_thresh, 4)),
+            "referral_threshold": float(round(referral_thresh, 4)),
+            "model_status": "experimental" if cat == "retinopathy" else "validated",
+            "calibration_quality": cal_quality,
+            "uncertainty_level": unc_level,
+            "ece": ece,
+            "brier_score_95_ci": bootstrap_metrics["brier_95_ci"],
+            "sensitivity_95_ci": bootstrap_metrics["sensitivity_95_ci"],
+            "specificity_95_ci": bootstrap_metrics["specificity_95_ci"],
+            "ppv_95_ci": bootstrap_metrics["ppv_95_ci"],
+            "npv_95_ci": bootstrap_metrics["npv_95_ci"],
+            "reliability_table": reliability_table,
+            "subgroup_analysis": subgroup_analysis,
             "features_used": feature_subset,
             "models_compared_cv": {
                 n: {
@@ -330,7 +549,7 @@ def train_and_evaluate_all():
         # Plot Calibration curve
         prob_true, prob_pred = calibration_curve(y_test, y_prob, n_bins=5)
         ax_cal = axes_cal[idx]
-        ax_cal.plot(prob_pred, prob_true, marker="o", color="#198754", lw=2, label=f"Calibrated (Brier = {test_brier:.3f})")
+        ax_cal.plot(prob_pred, prob_true, marker="o", color="#198754", lw=2, label=f"Calibrated\nBrier = {test_brier:.3f}\nECE = {ece:.3f}")
         ax_cal.plot([0, 1], [0, 1], color="grey", lw=1, linestyle="--", label="Ideal Calibration")
         ax_cal.set_title(f"{cat.replace('_', ' ').title()}\nCalibration Curve", fontsize=11, fontweight="bold")
         ax_cal.set_xlabel("Mean Predicted Probability")
@@ -353,7 +572,7 @@ def train_and_evaluate_all():
         json.dump(summary, f, indent=2)
 
     print(f"\n{'='*75}")
-    print(f"[SUCCESS] Trained with 5-Fold Cross-Validation on Train Partition")
+    print(f"[SUCCESS] Trained with Repeated Stratified Cross-Validation on Train Partition")
     print(f"[SUCCESS] Evaluated with 95% Confidence Intervals on Untouched Holdout")
     print(f"[SUCCESS] Saved summary to {summary_path}")
     print(f"[SUCCESS] Saved ROC plot to {roc_path}")

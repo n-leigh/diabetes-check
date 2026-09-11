@@ -1,0 +1,676 @@
+{
+  "cardiovascular": {
+    "label": "Cardiovascular (ACC/AHA)",
+    "cohort_source": "CDC NHANES 2017-2018 (N=949)",
+    "test_size": 190,
+    "event_prevalence_pct": 23.7,
+    "auroc": 0.7638,
+    "pr_auc": 0.4696,
+    "brier_score": 0.1552,
+    "ece": 0.0485,
+    "screening_threshold": 0.1734,
+    "referral_threshold": 0.188,
+    "metrics_at_screening": {
+      "threshold": 0.1734,
+      "accuracy": 0.5632,
+      "sensitivity": 0.9333,
+      "specificity": 0.4483,
+      "precision": 0.3443,
+      "f1": 0.503,
+      "tn": 65,
+      "fp": 80,
+      "fn": 3,
+      "tp": 42
+    },
+    "metrics_at_referral": {
+      "threshold": 0.188,
+      "accuracy": 0.5895,
+      "sensitivity": 0.9111,
+      "specificity": 0.4897,
+      "precision": 0.3565,
+      "f1": 0.5125,
+      "tn": 71,
+      "fp": 74,
+      "fn": 4,
+      "tp": 41
+    },
+    "risk_tiers": {
+      "tier_counts": {
+        "Lower Estimated Risk": 68,
+        "Moderate Estimated Risk": 7,
+        "Higher Estimated Risk": 115
+      },
+      "tier_confusion_matrix": {
+        "rows": [
+          "actual_negative",
+          "actual_positive"
+        ],
+        "columns": [
+          "Lower Estimated Risk",
+          "Moderate Estimated Risk",
+          "Higher Estimated Risk"
+        ],
+        "values": [
+          [
+            65,
+            6,
+            74
+          ],
+          [
+            3,
+            1,
+            41
+          ]
+        ]
+      },
+      "tier_metrics": [
+        {
+          "tier": "Lower Estimated Risk",
+          "count": 68,
+          "accuracy": 0.4368,
+          "precision": 0.0441,
+          "recall": 0.0667,
+          "f1": 0.0531,
+          "tn": 80,
+          "fp": 65,
+          "fn": 42,
+          "tp": 3
+        },
+        {
+          "tier": "Moderate Estimated Risk",
+          "count": 7,
+          "accuracy": 0.7368,
+          "precision": 0.1429,
+          "recall": 0.0222,
+          "f1": 0.0385,
+          "tn": 139,
+          "fp": 6,
+          "fn": 44,
+          "tp": 1
+        },
+        {
+          "tier": "Higher Estimated Risk",
+          "count": 115,
+          "accuracy": 0.5895,
+          "precision": 0.3565,
+          "recall": 0.9111,
+          "f1": 0.5125,
+          "tn": 71,
+          "fp": 74,
+          "fn": 4,
+          "tp": 41
+        }
+      ]
+    },
+    "high_tier_recall": 0.9111,
+    "high_tier_precision": 0.3565,
+    "high_tier_operating_point": {
+      "threshold": 0.188,
+      "accuracy": 0.5895,
+      "sensitivity": 0.9111,
+      "specificity": 0.4897,
+      "precision": 0.3565,
+      "f1": 0.5125,
+      "tn": 71,
+      "fp": 74,
+      "fn": 4,
+      "tp": 41
+    },
+    "recommended_threshold": {
+      "threshold": 0.6,
+      "accuracy": 0.7684,
+      "sensitivity": 0.0444,
+      "specificity": 0.9931,
+      "precision": 0.6667,
+      "f1": 0.0833,
+      "tn": 144,
+      "fp": 1,
+      "fn": 43,
+      "tp": 2,
+      "category": "cardiovascular"
+    },
+    "recommendation_precision_floor": 0.6,
+    "calibration_warnings": [
+      {
+        "probability_bucket": "0.3-0.4",
+        "predicted_probability": 0.3395,
+        "observed_frequency": 0.4706,
+        "count": 34,
+        "calibration_gap": 0.1311,
+        "flag": "under-confident",
+        "category": "cardiovascular"
+      }
+    ],
+    "calibration_interpretation": {
+      "flag": "under-confident",
+      "message": "Material calibration gap(s) detected in: 0.3-0.4",
+      "ranges": [
+        "0.3-0.4"
+      ]
+    },
+    "subgroup_warnings": [
+      {
+        "subgroup": "age_18_44",
+        "n": 17,
+        "actual_positive_rate": 0.0588,
+        "mean_predicted": 0.0353,
+        "calibration_gap": 0.0235,
+        "recall": 0.0,
+        "specificity": 1.0,
+        "precision": 0.0,
+        "flag": "insufficient_data",
+        "category": "cardiovascular",
+        "threshold_used": 0.1734
+      }
+    ],
+    "model_status": "validated",
+    "calibration_quality": "good",
+    "uncertainty_level": "wide"
+  },
+  "general_burden": {
+    "label": "Nephropathy & CKD (KDIGO)",
+    "cohort_source": "CDC NHANES 2021-2023 (N=848)",
+    "test_size": 170,
+    "event_prevalence_pct": 64.1,
+    "auroc": 0.7624,
+    "pr_auc": 0.8684,
+    "brier_score": 0.1969,
+    "ece": 0.0879,
+    "screening_threshold": 0.5522,
+    "referral_threshold": 0.6522,
+    "metrics_at_screening": {
+      "threshold": 0.5522,
+      "accuracy": 0.7059,
+      "sensitivity": 0.8624,
+      "specificity": 0.4262,
+      "precision": 0.7287,
+      "f1": 0.7899,
+      "tn": 26,
+      "fp": 35,
+      "fn": 15,
+      "tp": 94
+    },
+    "metrics_at_referral": {
+      "threshold": 0.6522,
+      "accuracy": 0.7,
+      "sensitivity": 0.7248,
+      "specificity": 0.6557,
+      "precision": 0.79,
+      "f1": 0.756,
+      "tn": 40,
+      "fp": 21,
+      "fn": 30,
+      "tp": 79
+    },
+    "risk_tiers": {
+      "tier_counts": {
+        "Lower Estimated Risk": 41,
+        "Moderate Estimated Risk": 29,
+        "Higher Estimated Risk": 100
+      },
+      "tier_confusion_matrix": {
+        "rows": [
+          "actual_negative",
+          "actual_positive"
+        ],
+        "columns": [
+          "Lower Estimated Risk",
+          "Moderate Estimated Risk",
+          "Higher Estimated Risk"
+        ],
+        "values": [
+          [
+            26,
+            14,
+            21
+          ],
+          [
+            15,
+            15,
+            79
+          ]
+        ]
+      },
+      "tier_metrics": [
+        {
+          "tier": "Lower Estimated Risk",
+          "count": 41,
+          "accuracy": 0.2941,
+          "precision": 0.3659,
+          "recall": 0.1376,
+          "f1": 0.2,
+          "tn": 35,
+          "fp": 26,
+          "fn": 94,
+          "tp": 15
+        },
+        {
+          "tier": "Moderate Estimated Risk",
+          "count": 29,
+          "accuracy": 0.3647,
+          "precision": 0.5172,
+          "recall": 0.1376,
+          "f1": 0.2174,
+          "tn": 47,
+          "fp": 14,
+          "fn": 94,
+          "tp": 15
+        },
+        {
+          "tier": "Higher Estimated Risk",
+          "count": 100,
+          "accuracy": 0.7,
+          "precision": 0.79,
+          "recall": 0.7248,
+          "f1": 0.756,
+          "tn": 40,
+          "fp": 21,
+          "fn": 30,
+          "tp": 79
+        }
+      ]
+    },
+    "high_tier_recall": 0.7248,
+    "high_tier_precision": 0.79,
+    "high_tier_operating_point": {
+      "threshold": 0.6522,
+      "accuracy": 0.7,
+      "sensitivity": 0.7248,
+      "specificity": 0.6557,
+      "precision": 0.79,
+      "f1": 0.756,
+      "tn": 40,
+      "fp": 21,
+      "fn": 30,
+      "tp": 79
+    },
+    "recommended_threshold": {
+      "threshold": 0.2,
+      "accuracy": 0.6471,
+      "sensitivity": 0.9908,
+      "specificity": 0.0328,
+      "precision": 0.6467,
+      "f1": 0.7826,
+      "tn": 2,
+      "fp": 59,
+      "fn": 1,
+      "tp": 108,
+      "category": "general_burden"
+    },
+    "recommendation_precision_floor": 0.6,
+    "calibration_warnings": [],
+    "calibration_interpretation": {
+      "flag": "no_material_systematic_gap",
+      "message": "No probability bucket with at least 30 cases differs by more than 0.10.",
+      "ranges": []
+    },
+    "subgroup_warnings": [
+      {
+        "subgroup": "age_18_44",
+        "n": 13,
+        "actual_positive_rate": 0.3846,
+        "mean_predicted": 0.256,
+        "calibration_gap": 0.1286,
+        "recall": 0.0,
+        "specificity": 1.0,
+        "precision": 0.0,
+        "flag": "insufficient_data",
+        "category": "general_burden",
+        "threshold_used": 0.5522
+      },
+      {
+        "subgroup": "age_45_59",
+        "n": 30,
+        "actual_positive_rate": 0.3,
+        "mean_predicted": 0.5005,
+        "calibration_gap": -0.2005,
+        "recall": 0.2222,
+        "specificity": 0.7619,
+        "precision": 0.2857,
+        "flag": "warning",
+        "category": "general_burden",
+        "threshold_used": 0.5522
+      },
+      {
+        "subgroup": "bmi_normal",
+        "n": 14,
+        "actual_positive_rate": 0.7143,
+        "mean_predicted": 0.6428,
+        "calibration_gap": 0.0715,
+        "recall": 0.9,
+        "specificity": 0.75,
+        "precision": 0.9,
+        "flag": "insufficient_data",
+        "category": "general_burden",
+        "threshold_used": 0.5522
+      }
+    ],
+    "model_status": "validated",
+    "calibration_quality": "fair",
+    "uncertainty_level": "moderate"
+  },
+  "neuropathy_mobility": {
+    "label": "Neuropathy & Mobility (MNSI)",
+    "cohort_source": "CDC BRFSS Diabetic Cohort (N=5,000)",
+    "test_size": 1000,
+    "event_prevalence_pct": 36.9,
+    "auroc": 0.7996,
+    "pr_auc": 0.6856,
+    "brier_score": 0.1758,
+    "ece": 0.0425,
+    "screening_threshold": 0.2429,
+    "referral_threshold": 0.2865,
+    "metrics_at_screening": {
+      "threshold": 0.2429,
+      "accuracy": 0.686,
+      "sensitivity": 0.8753,
+      "specificity": 0.5753,
+      "precision": 0.5465,
+      "f1": 0.6729,
+      "tn": 363,
+      "fp": 268,
+      "fn": 46,
+      "tp": 323
+    },
+    "metrics_at_referral": {
+      "threshold": 0.2865,
+      "accuracy": 0.708,
+      "sensitivity": 0.8022,
+      "specificity": 0.6529,
+      "precision": 0.5748,
+      "f1": 0.6697,
+      "tn": 412,
+      "fp": 219,
+      "fn": 73,
+      "tp": 296
+    },
+    "risk_tiers": {
+      "tier_counts": {
+        "Lower Estimated Risk": 409,
+        "Moderate Estimated Risk": 76,
+        "Higher Estimated Risk": 515
+      },
+      "tier_confusion_matrix": {
+        "rows": [
+          "actual_negative",
+          "actual_positive"
+        ],
+        "columns": [
+          "Lower Estimated Risk",
+          "Moderate Estimated Risk",
+          "Higher Estimated Risk"
+        ],
+        "values": [
+          [
+            363,
+            49,
+            219
+          ],
+          [
+            46,
+            27,
+            296
+          ]
+        ]
+      },
+      "tier_metrics": [
+        {
+          "tier": "Lower Estimated Risk",
+          "count": 409,
+          "accuracy": 0.314,
+          "precision": 0.1125,
+          "recall": 0.1247,
+          "f1": 0.1183,
+          "tn": 268,
+          "fp": 363,
+          "fn": 323,
+          "tp": 46
+        },
+        {
+          "tier": "Moderate Estimated Risk",
+          "count": 76,
+          "accuracy": 0.609,
+          "precision": 0.3553,
+          "recall": 0.0732,
+          "f1": 0.1213,
+          "tn": 582,
+          "fp": 49,
+          "fn": 342,
+          "tp": 27
+        },
+        {
+          "tier": "Higher Estimated Risk",
+          "count": 515,
+          "accuracy": 0.708,
+          "precision": 0.5748,
+          "recall": 0.8022,
+          "f1": 0.6697,
+          "tn": 412,
+          "fp": 219,
+          "fn": 73,
+          "tp": 296
+        }
+      ]
+    },
+    "high_tier_recall": 0.8022,
+    "high_tier_precision": 0.5748,
+    "high_tier_operating_point": {
+      "threshold": 0.2865,
+      "accuracy": 0.708,
+      "sensitivity": 0.8022,
+      "specificity": 0.6529,
+      "precision": 0.5748,
+      "f1": 0.6697,
+      "tn": 412,
+      "fp": 219,
+      "fn": 73,
+      "tp": 296
+    },
+    "recommended_threshold": {
+      "threshold": 0.35,
+      "accuracy": 0.726,
+      "sensitivity": 0.7317,
+      "specificity": 0.7227,
+      "precision": 0.6067,
+      "f1": 0.6634,
+      "tn": 456,
+      "fp": 175,
+      "fn": 99,
+      "tp": 270,
+      "category": "neuropathy_mobility"
+    },
+    "recommendation_precision_floor": 0.6,
+    "calibration_warnings": [
+      {
+        "probability_bucket": "0.7-0.8",
+        "predicted_probability": 0.7541,
+        "observed_frequency": 0.6129,
+        "count": 93,
+        "calibration_gap": -0.1412,
+        "flag": "over-confident",
+        "category": "neuropathy_mobility"
+      }
+    ],
+    "calibration_interpretation": {
+      "flag": "over-confident",
+      "message": "Material calibration gap(s) detected in: 0.7-0.8",
+      "ranges": [
+        "0.7-0.8"
+      ]
+    },
+    "subgroup_warnings": [],
+    "model_status": "validated",
+    "calibration_quality": "good",
+    "uncertainty_level": "narrow"
+  },
+  "retinopathy": {
+    "label": "Retinopathy (ADA)",
+    "cohort_source": "CDC NHANES Retinopathy Exam Cohort (N=797)",
+    "test_size": 160,
+    "event_prevalence_pct": 42.5,
+    "auroc": 0.6418,
+    "pr_auc": 0.5019,
+    "brier_score": 0.2341,
+    "ece": 0.0624,
+    "screening_threshold": 0.3286,
+    "referral_threshold": 0.4001,
+    "metrics_at_screening": {
+      "threshold": 0.3286,
+      "accuracy": 0.5875,
+      "sensitivity": 0.8676,
+      "specificity": 0.3804,
+      "precision": 0.5086,
+      "f1": 0.6413,
+      "tn": 35,
+      "fp": 57,
+      "fn": 9,
+      "tp": 59
+    },
+    "metrics_at_referral": {
+      "threshold": 0.4001,
+      "accuracy": 0.6125,
+      "sensitivity": 0.7353,
+      "specificity": 0.5217,
+      "precision": 0.5319,
+      "f1": 0.6173,
+      "tn": 48,
+      "fp": 44,
+      "fn": 18,
+      "tp": 50
+    },
+    "risk_tiers": {
+      "tier_counts": {
+        "Lower Estimated Risk": 44,
+        "Moderate Estimated Risk": 22,
+        "Higher Estimated Risk": 94
+      },
+      "tier_confusion_matrix": {
+        "rows": [
+          "actual_negative",
+          "actual_positive"
+        ],
+        "columns": [
+          "Lower Estimated Risk",
+          "Moderate Estimated Risk",
+          "Higher Estimated Risk"
+        ],
+        "values": [
+          [
+            35,
+            13,
+            44
+          ],
+          [
+            9,
+            9,
+            50
+          ]
+        ]
+      },
+      "tier_metrics": [
+        {
+          "tier": "Lower Estimated Risk",
+          "count": 44,
+          "accuracy": 0.4125,
+          "precision": 0.2045,
+          "recall": 0.1324,
+          "f1": 0.1607,
+          "tn": 57,
+          "fp": 35,
+          "fn": 59,
+          "tp": 9
+        },
+        {
+          "tier": "Moderate Estimated Risk",
+          "count": 22,
+          "accuracy": 0.55,
+          "precision": 0.4091,
+          "recall": 0.1324,
+          "f1": 0.2,
+          "tn": 79,
+          "fp": 13,
+          "fn": 59,
+          "tp": 9
+        },
+        {
+          "tier": "Higher Estimated Risk",
+          "count": 94,
+          "accuracy": 0.6125,
+          "precision": 0.5319,
+          "recall": 0.7353,
+          "f1": 0.6173,
+          "tn": 48,
+          "fp": 44,
+          "fn": 18,
+          "tp": 50
+        }
+      ]
+    },
+    "high_tier_recall": 0.7353,
+    "high_tier_precision": 0.5319,
+    "high_tier_operating_point": {
+      "threshold": 0.4001,
+      "accuracy": 0.6125,
+      "sensitivity": 0.7353,
+      "specificity": 0.5217,
+      "precision": 0.5319,
+      "f1": 0.6173,
+      "tn": 48,
+      "fp": 44,
+      "fn": 18,
+      "tp": 50
+    },
+    "recommended_threshold": null,
+    "recommendation_precision_floor": 0.6,
+    "calibration_warnings": [],
+    "calibration_interpretation": {
+      "flag": "no_material_systematic_gap",
+      "message": "No probability bucket with at least 30 cases differs by more than 0.10.",
+      "ranges": []
+    },
+    "subgroup_warnings": [
+      {
+        "subgroup": "age_18_44",
+        "n": 18,
+        "actual_positive_rate": 0.2778,
+        "mean_predicted": 0.3803,
+        "calibration_gap": -0.1026,
+        "recall": 1.0,
+        "specificity": 0.6923,
+        "precision": 0.5556,
+        "flag": "insufficient_data",
+        "category": "retinopathy",
+        "threshold_used": 0.3286
+      },
+      {
+        "subgroup": "bmi_normal",
+        "n": 24,
+        "actual_positive_rate": 0.3333,
+        "mean_predicted": 0.4837,
+        "calibration_gap": -0.1503,
+        "recall": 1.0,
+        "specificity": 0.25,
+        "precision": 0.4,
+        "flag": "insufficient_data",
+        "category": "retinopathy",
+        "threshold_used": 0.3286
+      },
+      {
+        "subgroup": "bmi_overweight",
+        "n": 32,
+        "actual_positive_rate": 0.5625,
+        "mean_predicted": 0.4494,
+        "calibration_gap": 0.1131,
+        "recall": 0.7778,
+        "specificity": 0.1429,
+        "precision": 0.5385,
+        "flag": "warning",
+        "category": "retinopathy",
+        "threshold_used": 0.3286
+      }
+    ],
+    "model_status": "experimental",
+    "calibration_quality": "fair",
+    "uncertainty_level": "wide"
+  }
+}

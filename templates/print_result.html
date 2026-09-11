@@ -152,7 +152,7 @@
     <h2 class="section-title">Complication Risk Results</h2>
     <table class="risk-table">
       <thead>
-        <tr><th>Category</th><th>Clinical Rule</th><th>Model Prediction</th><th>Risk Level</th></tr>
+        <tr><th>Category</th><th>Clinical Rule</th><th>Estimated Risk</th><th>Risk Level</th></tr>
       </thead>
       <tbody>
         {% for cat in categories %}
@@ -172,12 +172,20 @@
           </td>
           <td>{{ res.score }} pts ({{ res.percentage }}%)</td>
           <td>
+            {% set cal_qual = model_metadata.get(cat, {}).get('calibration_quality', 'fair') if model_metadata is defined else 'fair' %}
             {{ model_results.get(cat, '—') }}
-            {% if model_confidences and model_confidences.get(cat) %}
-              <span style="color:#64748b; font-size:11.5px;">({{ model_confidences[cat] }}% risk)</span>
+            {% if model_confidences and model_confidences.get(cat) and cal_qual != 'weak' %}
+              <span style="color:#64748b; font-size:11.5px;">({{ model_confidences[cat] }}%)</span>
+            {% endif %}
+            {% if model_metadata is defined and model_metadata.get(cat) %}
+              {% set unc = model_metadata[cat].get('uncertainty_level', 'moderate') %}
+              <span style="color:#94a3b8; font-size:10.5px;">· Uncertainty: {{ unc }}</span>
+              {% if model_metadata[cat].model_status == 'experimental' %}
+              <span style="color:#b45309; font-size:10.5px; font-weight:600;"> · Experimental</span>
+              {% endif %}
             {% endif %}
           </td>
-          <td><span class="tier-badge tier-{{ res.label }}">{{ res.label }}</span></td>
+          <td><span class="tier-badge tier-{{ res.label }}">{% if res.label == 'Low' %}Lower{% elif res.label == 'Moderate' %}Moderate{% else %}Higher{% endif %} Est. Risk</span></td>
         </tr>
         {% endif %}
         {% endfor %}
@@ -228,11 +236,11 @@
   </section>
 
   <div class="disclaimer">
-    <strong>Not medical advice.</strong> This summary is generated for educational and preliminary screening
-    purposes and is not a certified diagnostic device. Risk levels are clinical projections based on an evidence-aligned
-    rule matrix (clinical) and calibrated classification models trained on CDC NHANES and BRFSS clinical cohorts;
-    they do not constitute a medical diagnosis. Please share this summary with a licensed healthcare provider for
-    interpretation and any decisions about your care.
+    <strong>Screening tool — not a medical diagnosis.</strong> This summary is generated for educational and preliminary screening
+    purposes. It estimates complication risk using statistical models trained on population health data (CDC NHANES and BRFSS
+    clinical cohorts) and evidence-aligned clinical rule scoring. A higher result may justify discussing follow-up testing with
+    a healthcare professional. A lower result does not rule out disease, and a higher result does not confirm disease.
+    Please share this summary with a licensed healthcare provider for interpretation and any decisions about your care.
   </div>
 
   <p class="footer-note">DiaBeates — Dual-engine clinical decision support and diabetes complication risk screening.</p>

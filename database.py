@@ -33,6 +33,8 @@ import platform
 import subprocess
 from datetime import datetime, timedelta, timezone
 
+from rule_matrix import compute_lab_assessment
+
 DB_PATH = os.path.join(os.path.dirname(os.path.abspath(__file__)), "diabetes_system.db")
 SCHEMA_VERSION = 4
 
@@ -47,23 +49,33 @@ def get_connection():
 
 
 def restrict_database_permissions():
-    """Best-effort: restrict SQLite files to the current OS user (where supported)."""
+    """Best-effort: restrict SQLite files to the current OS user (where supported)."""
+
     for path in (DB_PATH, f"{DB_PATH}-wal", f"{DB_PATH}-shm"):
-        if not os.path.exists(path):
-            continue
-
-        if platform.system() == "Windows":
+        if not os.path.exists(path):
+
+            continue
+
+
+
+        if platform.system() == "Windows":
+
             subprocess.run(
                 ["icacls", path, "/inheritance:r", "/grant:r", f"{getpass.getuser()}:F"],
                 check=False,
                 capture_output=True,
                 text=True,
             )
-        else:
-            try:
-                os.chmod(path, 0o600)
-            except OSError:
-                pass
+        else:
+
+            try:
+
+                os.chmod(path, 0o600)
+
+            except OSError:
+
+                pass
+
 
 
 def init_db():
@@ -236,6 +248,16 @@ def _reconstruct(conn, row) -> dict:
             details["systolic_bp"] = {"value": lab_row["systolic_bp"]}
         if lab_row["ldl"] is not None:
             details["ldl"] = {"value": lab_row["ldl"]}
+        # Older rows store the values but not the per-measure points used by
+        # the result template to select the correct guideline legend.
+        recalculated = compute_lab_assessment(
+            hba1c=details.get("hba1c", {}).get("value"),
+            systolic_bp=details.get("systolic_bp", {}).get("value"),
+            ldl=details.get("ldl", {}).get("value"),
+        )
+        if recalculated:
+            for name, assessment in recalculated["details"].items():
+                details[name]["points"] = assessment["points"]
         lab_assessment = {"label": lab_row["label"], "percentage": lab_row["percentage"], "details": details}
 
     return {

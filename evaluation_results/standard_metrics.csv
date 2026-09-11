@@ -1,0 +1,9 @@
+category,operating_point,threshold,accuracy,sensitivity,specificity,precision,f1,tn,fp,fn,tp
+cardiovascular,screening,0.1734,0.5632,0.9333,0.4483,0.3443,0.503,65,80,3,42
+cardiovascular,referral,0.188,0.5895,0.9111,0.4897,0.3565,0.5125,71,74,4,41
+general_burden,screening,0.5522,0.7059,0.8624,0.4262,0.7287,0.7899,26,35,15,94
+general_burden,referral,0.6522,0.7,0.7248,0.6557,0.79,0.756,40,21,30,79
+neuropathy_mobility,screening,0.2429,0.686,0.8753,0.5753,0.5465,0.6729,363,268,46,323
+neuropathy_mobility,referral,0.2865,0.708,0.8022,0.6529,0.5748,0.6697,412,219,73,296
+retinopathy,screening,0.3286,0.5875,0.8676,0.3804,0.5086,0.6413,35,57,9,59
+retinopathy,referral,0.4001,0.6125,0.7353,0.5217,0.5319,0.6173,48,44,18,50

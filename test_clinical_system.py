@@ -51,6 +51,23 @@ def test_database_persistence():
     print("Non-destructive database migration verified: Record count preserved.")
 
 
+def test_historical_lab_legend_points():
+    print("\n--- 3. Testing Historical Lab Legend Reconstruction ---")
+    record = database.get_assessment(5)
+    if not record or not record.get("lab_assessment"):
+        print("No assessment 5 lab record available; skipping fixture-specific check.")
+        return
+
+    details = record["lab_assessment"]["details"]
+    assert details["hba1c"]["value"] == 5.5
+    assert details["hba1c"]["points"] == 0
+    assert details["systolic_bp"]["value"] == 100
+    assert details["systolic_bp"]["points"] == 0
+    assert details["ldl"]["value"] == 86
+    assert details["ldl"]["points"] == 1
+    print("Historical lab values reconstruct their correct guideline points.")
+
+
 def test_flask_endpoints():
     print("\n--- 3. Testing Flask Web Application Endpoints ---")
     client = app.test_client()
@@ -173,6 +190,7 @@ def test_health_and_security_headers():
 if __name__ == "__main__":
     test_rule_matrix()
     test_database_persistence()
+    test_historical_lab_legend_points()
     test_flask_endpoints()
     test_health_and_security_headers()
     print("\n[ALL CLINICAL ACCURACY, ACCESSIBILITY & PRODUCTION SECURITY TESTS PASSED!]")

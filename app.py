@@ -506,6 +506,7 @@ def predict():
 
     model_results = {}
     model_confidences = {}
+    model_metadata = {}
     if MODELS:
         X = pd.DataFrame([patient])[FEATURE_COLUMNS]
         for cat in CATEGORIES:
@@ -517,6 +518,12 @@ def predict():
                     proba = model.predict_proba(X)[0]
                     risk_pct = round(proba[1] * 100, 1) if len(proba) == 2 else round(max(proba) * 100, 1)
                     model_confidences[cat] = risk_pct
+                # Extract model quality metadata for UI display
+                model_metadata[cat] = {
+                    "model_status": getattr(model, "model_status", "validated"),
+                    "calibration_quality": getattr(model, "calibration_quality", "fair"),
+                    "uncertainty_level": getattr(model, "uncertainty_level", "moderate"),
+                }
 
     assessment_id = database.save_assessment(
         session_id=session["session_id"],
@@ -545,6 +552,7 @@ def predict():
         recommendations=recommendations,
         patient_drivers=patient_drivers,
         assessment_id=assessment_id,
+        model_metadata=model_metadata,
     )
 
 
@@ -593,6 +601,16 @@ def history_detail(assessment_id):
     if not record:
         return redirect(url_for("history"))
     patient_drivers = explain_patient_risk(record["patient"])
+    # Build model metadata from currently loaded models
+    hist_model_metadata = {}
+    for hcat in CATEGORIES:
+        if hcat in MODELS:
+            hmodel = MODELS[hcat]
+            hist_model_metadata[hcat] = {
+                "model_status": getattr(hmodel, "model_status", "validated"),
+                "calibration_quality": getattr(hmodel, "calibration_quality", "fair"),
+                "uncertainty_level": getattr(hmodel, "uncertainty_level", "moderate"),
+            }
     return render_template(
         "result.html",
         patient=record["patient"],
@@ -608,6 +626,7 @@ def history_detail(assessment_id):
         viewing_past=True,
         created_at=record["created_at"],
         assessment_id=assessment_id,
+        model_metadata=hist_model_metadata,
     )
 
 
@@ -617,6 +636,16 @@ def print_result(assessment_id):
     if not record:
         return redirect(url_for("history"))
     patient_drivers = explain_patient_risk(record["patient"])
+    # Build model metadata from currently loaded models
+    print_model_metadata = {}
+    for pcat in CATEGORIES:
+        if pcat in MODELS:
+            pmodel = MODELS[pcat]
+            print_model_metadata[pcat] = {
+                "model_status": getattr(pmodel, "model_status", "validated"),
+                "calibration_quality": getattr(pmodel, "calibration_quality", "fair"),
+                "uncertainty_level": getattr(pmodel, "uncertainty_level", "moderate"),
+            }
     return render_template(
         "print_result.html",
         assessment_id=assessment_id,
@@ -630,6 +659,7 @@ def print_result(assessment_id):
         lab_assessment=record.get("lab_assessment"),
         recommendations=build_recommendations(record["rule_results"], record.get("lab_assessment")),
         patient_drivers=patient_drivers,
+        model_metadata=print_model_metadata,
     )
 
 

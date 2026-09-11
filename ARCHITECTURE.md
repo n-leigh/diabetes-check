@@ -157,11 +157,12 @@ flowchart TB
   - Preprocesses clinical features and encodes gold-standard empirical diagnostic endpoints.
 - **train_model.py**
   - Trains calibrated machine learning models using 5-fold Stratified Cross-Validation strictly within training partitions.
-  - Evaluates candidate models (Calibrated Logistic Regression, Calibrated Random Forest, Gradient Boosting).
-  - Derives leak-free operating thresholds using Youden's J statistic targeting high sensitivity (>86%) and NPV (>79%–96%).
-  - Computes 95% bootstrap confidence intervals (1,000 resamples) for all discrimination and calibration metrics.
+  - Evaluates candidate models (Logistic Regression, Random Forest, Gradient Boosting), wrapping all in `CalibratedClassifierCV(method="sigmoid", cv=5)` to ensure probability outputs reflect true event frequencies without data leakage.
+  - Derives leak-free dual thresholds (screening and referral) on training folds using out-of-fold predictions.
+  - Computes 95% bootstrap confidence intervals (1,000 resamples) for all discrimination and calibration metrics, including Expected Calibration Error (ECE) and subgroup fairness analysis (by Age and Sex).
 - **clinical_model.py**
   - Encapsulates winning estimators in `ClinicalRiskWrapper` to guarantee deterministic, environment-agnostic joblib serialization.
+  - Includes a `model_metadata` concept: each model carries a `status` (validated vs experimental), `calibration_quality` metrics, and an `uncertainty_level` derived from CI widths.
 - **model/ Directory**
   - `cardiovascular_model.pkl`: Calibrated ASCVD risk estimator.
   - `general_burden_model.pkl`: Calibrated KDIGO CKD risk estimator.
@@ -219,15 +220,17 @@ Stratified 80/20 Train/Test Partitioning
     ↓
 5-Fold Stratified Cross-Validation on Training Folds Only
     ↓
-Model Comparison (Calibrated Logistic Regression vs Random Forest vs Gradient Boosting)
+Model Comparison (Logistic Regression, Random Forest, Gradient Boosting)
     ↓
-Platt / Isotonic Calibration (CalibratedClassifierCV)
+Platt Calibration: wrap in CalibratedClassifierCV(method="sigmoid", cv=5)
     ↓
-Leak-Free Threshold Selection on Training Folds via Youden's J
+Leak-Free Dual Threshold Derivation (Screening & Referral) on Training Folds
     ↓
-Holdout Test Evaluation with 95% Bootstrap Confidence Intervals (1,000 Resamples)
+Holdout Test Evaluation (AUROC, PR-AUC, ECE, Brier Score, Subgroup Analysis)
     ↓
-Serialization via ClinicalRiskWrapper into model/*.pkl
+Compute 95% Bootstrap Confidence Intervals (1,000 Resamples)
+    ↓
+Serialization via ClinicalRiskWrapper into model/*.pkl (incl. model_metadata)
 ```
 
 ---

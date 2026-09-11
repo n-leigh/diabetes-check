@@ -129,7 +129,9 @@ def build_recommendations(rule_results: Dict, lab_assessment: Optional[Dict] = N
             "title": "Schedule a dilated eye examination",
             "description": "Diabetic eye changes and macular swelling can develop without noticeable pain. "
                            "An annual comprehensive dilated eye exam or retinal photography with an optometrist "
-                           "or ophthalmologist is essential for catching early retinopathy before vision is affected.",
+                           "or ophthalmologist is essential for catching early retinopathy before vision is affected. "
+                           "Note: The retinopathy screening model has wider uncertainty than the other models "
+                           "and should be considered experimental.",
         })
 
     # General burden guidance
@@ -162,6 +164,16 @@ def build_recommendations(rule_results: Dict, lab_assessment: Optional[Dict] = N
             "description": "Even alongside the steps above, a yearly general checkup helps catch anything new "
                             "early — often before it becomes noticeable.",
         })
+
+    # Universal clinical disclaimer — always shown
+    items.append({
+        "title": "About these results",
+        "description": "This tool estimates complication risk using statistical models trained on "
+                        "population health data. The result is intended for screening and education, "
+                        "not diagnosis. A higher result may justify discussing follow-up testing with a "
+                        "healthcare professional. A lower result does not rule out disease, and a "
+                        "higher result does not confirm disease.",
+    })
 
     return {
         "overall_tier": overall,

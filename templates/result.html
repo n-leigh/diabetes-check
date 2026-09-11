@@ -15,6 +15,18 @@
       {% endif %}
     </div>
 
+    <div class="bg-blue-50 border border-blue-200 rounded-xl p-4 flex items-start gap-3 mb-8">
+      <svg class="w-5 h-5 text-blue-500 shrink-0 mt-0.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+        <path stroke-linecap="round" stroke-linejoin="round" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+      </svg>
+      <p class="text-sm text-blue-700">
+        This tool estimates complication risk using statistical models trained on population health data.
+        The result is intended for <strong>screening and education</strong>, not diagnosis.
+        A higher result may justify discussing follow-up testing with a healthcare professional.
+        A lower result does not rule out disease, and a higher result does not confirm disease.
+      </p>
+    </div>
+
     <div class="grid sm:grid-cols-2 lg:grid-cols-4 gap-5 mb-8 items-stretch">
       {% for cat in categories %}
       {% set res = rule_results.get(cat) %}
@@ -63,8 +75,13 @@
           </div>
 
           <span class="mt-2.5 px-3 py-0.5 rounded-full text-xs font-semibold inline-block" style="background-color: {{ tier_bg }}; color: {{ tier_text }};">
-            {{ label }} Risk
+            {% if label == 'Low' %}Lower{% elif label == 'Moderate' %}Moderate{% else %}Higher{% endif %} Estimated Risk
           </span>
+          {% if model_metadata is defined and model_metadata.get(cat) %}
+            {% if model_metadata[cat].model_status == 'experimental' %}
+            <span class="mt-1.5 px-2 py-0.5 rounded-full text-[10px] font-semibold inline-block bg-amber-50 text-amber-700 border border-amber-200">Experimental</span>
+            {% endif %}
+          {% endif %}
         </div>
 
         <!-- Bottom Technical Metrics Section -->
@@ -76,14 +93,26 @@
 
           {% if model_results.get(cat) %}
           <div class="flex justify-between items-start gap-3 w-full">
-            <span class="text-slate-500 font-medium shrink-0 pt-0.5">Model prediction</span>
+            <span class="text-slate-500 font-medium shrink-0 pt-0.5">Estimated risk</span>
             <span class="text-xs font-bold text-[#063154] flex flex-wrap items-center justify-end gap-x-1 gap-y-0.5 text-right min-w-0">
+              {% set cal_qual = model_metadata.get(cat, {}).get('calibration_quality', 'fair') if model_metadata is defined else 'fair' %}
+              {% if cal_qual == 'weak' and model_confidences.get(cat) %}
               <span>{{ model_results[cat] }}</span>
-              {% if model_confidences.get(cat) %}
+              {% elif model_confidences.get(cat) %}
+              <span>{{ model_results[cat] }}</span>
               <span class="text-xs font-bold text-[#063154]">({{ model_confidences[cat] }}%)</span>
+              {% else %}
+              <span>{{ model_results[cat] }}</span>
               {% endif %}
             </span>
           </div>
+          {% if model_metadata is defined and model_metadata.get(cat) %}
+          <div class="flex justify-between items-center gap-3 w-full">
+            <span class="text-slate-500 font-medium shrink-0">Uncertainty</span>
+            {% set unc = model_metadata[cat].get('uncertainty_level', 'moderate') %}
+            <span class="text-xs font-semibold {% if unc == 'narrow' %}text-emerald-600{% elif unc == 'moderate' %}text-amber-600{% else %}text-red-600{% endif %} text-right">{{ unc | capitalize }}</span>
+          </div>
+          {% endif %}
           {% endif %}
 
           {% if model_names.get(cat) %}
@@ -103,6 +132,12 @@
             <div class="flex justify-between items-center gap-3 w-full">
               <span class="text-slate-500 font-medium" title="Brier Score (Probability Calibration Error, lower is better)">Brier Score</span>
               <span class="text-xs font-bold text-[#063154] text-right">{{ clinical_metrics[cat].brier_score }}</span>
+            </div>
+            {% endif %}
+            {% if clinical_metrics[cat].get('ece') is not none %}
+            <div class="flex justify-between items-center gap-3 w-full">
+              <span class="text-slate-500 font-medium" title="Expected Calibration Error (lower is better)">ECE</span>
+              <span class="text-xs font-bold text-[#063154] text-right">{{ clinical_metrics[cat].ece }}</span>
             </div>
             {% endif %}
           </div>
@@ -187,9 +222,9 @@
             <p class="text-lg font-bold text-slate-800 font-display">{{ lab_assessment.details.hba1c.value }}%</p>
           </div>
           <div class="mt-2">
-            {% if lab_assessment.details.hba1c.points == 0 %}
+            {% if lab_assessment.details.hba1c.value < 7.0 %}
             <span class="inline-block px-2 py-0.5 rounded-full text-[11px] font-semibold bg-emerald-50 text-emerald-700 border border-emerald-200">Optimal (&lt;7.0% ADA 2026)</span>
-            {% elif lab_assessment.details.hba1c.points == 1 %}
+            {% elif lab_assessment.details.hba1c.value < 8.0 %}
             <span class="inline-block px-2 py-0.5 rounded-full text-[11px] font-semibold bg-amber-50 text-amber-700 border border-amber-200">Suboptimal (7.0–7.9% ADA)</span>
             {% else %}
             <span class="inline-block px-2 py-0.5 rounded-full text-[11px] font-semibold bg-red-50 text-red-700 border border-red-200">Elevated Risk (&ge;8.0% ADA)</span>
@@ -204,9 +239,9 @@
             <p class="text-lg font-bold text-slate-800 font-display">{{ lab_assessment.details.systolic_bp.value }} mmHg</p>
           </div>
           <div class="mt-2">
-            {% if lab_assessment.details.systolic_bp.points == 0 %}
+            {% if lab_assessment.details.systolic_bp.value < 120 %}
             <span class="inline-block px-2 py-0.5 rounded-full text-[11px] font-semibold bg-emerald-50 text-emerald-700 border border-emerald-200">Optimal (&lt;120 KDIGO 2024)</span>
-            {% elif lab_assessment.details.systolic_bp.points == 1 %}
+            {% elif lab_assessment.details.systolic_bp.value < 130 %}
             <span class="inline-block px-2 py-0.5 rounded-full text-[11px] font-semibold bg-amber-50 text-amber-700 border border-amber-200">Elevated (120–129 mmHg)</span>
             {% else %}
             <span class="inline-block px-2 py-0.5 rounded-full text-[11px] font-semibold bg-red-50 text-red-700 border border-red-200">Hypertension (&ge;130 ADA 2026)</span>
@@ -221,9 +256,9 @@
             <p class="text-lg font-bold text-slate-800 font-display">{{ lab_assessment.details.ldl.value }} mg/dL</p>
           </div>
           <div class="mt-2">
-            {% if lab_assessment.details.ldl.points == 0 %}
+            {% if lab_assessment.details.ldl.value < 70 %}
             <span class="inline-block px-2 py-0.5 rounded-full text-[11px] font-semibold bg-emerald-50 text-emerald-700 border border-emerald-200">Optimal (&lt;70 mg/dL ADA 2026)</span>
-            {% elif lab_assessment.details.ldl.points == 1 %}
+            {% elif lab_assessment.details.ldl.value < 100 %}
             <span class="inline-block px-2 py-0.5 rounded-full text-[11px] font-semibold bg-amber-50 text-amber-700 border border-amber-200">Borderline (70–99 mg/dL)</span>
             {% else %}
             <span class="inline-block px-2 py-0.5 rounded-full text-[11px] font-semibold bg-red-50 text-red-700 border border-red-200">Elevated (&ge;100 mg/dL ADA 2026)</span>
@@ -310,6 +345,7 @@
       </svg>
       <p class="text-sm text-teal-700">
         Each category provides dual-engine clinical decision support: an explainable baseline score anchored in published guidelines (<strong>ACC/AHA 10-Yr ASCVD</strong>, <strong>KDIGO 2024 CKD Staging</strong>, and <strong>MNSI</strong>) alongside <strong>calibrated machine learning models</strong> trained and validated on authentic <strong>CDC NHANES</strong> diabetic clinical cohorts.
+        Risk estimates labeled &ldquo;Higher&rdquo; or &ldquo;Lower&rdquo; reflect the model&rsquo;s assessment based on available data and should be discussed with a healthcare professional.
       </p>
     </div>
 

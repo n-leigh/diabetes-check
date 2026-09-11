@@ -1,6 +1,12 @@
 """
 clinical_model.py
 Defines the ClinicalRiskWrapper estimator for clinical complication risk models.
+
+Updated to support:
+- Dual screening/referral thresholds (replacing low_threshold/high_threshold)
+- Model status metadata (validated vs experimental)
+- Calibration quality indicator
+- Uncertainty level based on bootstrap CI width
 """
 
 import numpy as np
@@ -9,15 +15,27 @@ from sklearn.base import BaseEstimator, ClassifierMixin
 
 class ClinicalRiskWrapper(BaseEstimator, ClassifierMixin):
     """
-    Wraps an underlying probabilistic binary classifier to accept the full 
-    FEATURE_COLUMNS DataFrame from the web app, select its specific clinical predictors, 
-    and output both calibrated probabilities and clinical risk tiers (Low, Moderate, High).
+    Wraps an underlying probabilistic binary classifier to accept the full
+    FEATURE_COLUMNS DataFrame from the web app, select its specific clinical predictors,
+    and output both calibrated probabilities and clinical risk tiers.
+
+    Tiers are based on dual thresholds:
+    - Below screening_threshold  → "Lower Estimated Risk"
+    - Between screening and referral → "Moderate Estimated Risk"
+    - Above referral_threshold  → "Higher Estimated Risk"
     """
-    def __init__(self, base_estimator, feature_subset, low_threshold=0.20, high_threshold=0.45):
+
+    def __init__(self, base_estimator, feature_subset,
+                 screening_threshold=0.20, referral_threshold=0.45,
+                 model_status="validated", calibration_quality="fair",
+                 uncertainty_level="moderate"):
         self.base_estimator = base_estimator
         self.feature_subset = feature_subset
-        self.low_threshold = low_threshold
-        self.high_threshold = high_threshold
+        self.screening_threshold = screening_threshold
+        self.referral_threshold = referral_threshold
+        self.model_status = model_status
+        self.calibration_quality = calibration_quality
+        self.uncertainty_level = uncertainty_level
 
     @property
     def classes_(self):
@@ -35,13 +53,23 @@ class ClinicalRiskWrapper(BaseEstimator, ClassifierMixin):
         return self.base_estimator.predict_proba(X_sub)
 
     def predict(self, X):
+        """Predict risk tier labels based on dual thresholds."""
         proba = self.predict_proba(X)[:, 1]
         preds = []
         for p in proba:
-            if p <= self.low_threshold:
-                preds.append("Low")
-            elif p <= self.high_threshold:
-                preds.append("Moderate")
+            if p <= self.screening_threshold:
+                preds.append("Lower Estimated Risk")
+            elif p <= self.referral_threshold:
+                preds.append("Moderate Estimated Risk")
             else:
-                preds.append("High")
+                preds.append("Higher Estimated Risk")
         return np.array(preds)
+
+    # Backward-compatible properties for old low_threshold / high_threshold access
+    @property
+    def low_threshold(self):
+        return self.screening_threshold
+
+    @property
+    def high_threshold(self):
+        return self.referral_threshold

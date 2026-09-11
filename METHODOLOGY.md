@@ -68,12 +68,12 @@ To ensure genuine empirical validity, the models are trained directly on real cl
 1. **Preprocessing:** Standardized numerical scaling (`StandardScaler`) embedded within `imblearn`/`scikit-learn` pipelines to prevent data leakage.
 2. **Stratified Partitioning:** Patient-level stratified 80/20 train/test split preserving real-world event prevalence.
 3. **Cross-Validation:** 5-fold Stratified K-Fold cross-validation on the training partition only.
-4. **Probability Calibration:** Models are calibrated using `CalibratedClassifierCV` (sigmoid / isotonic regression) to ensure that predicted output probabilities $P(\text{event})$ reflect true empirical event frequencies.
+4. **Probability Calibration:** All candidate models are now wrapped in `CalibratedClassifierCV(method="sigmoid", cv=5)`. This uses Platt scaling fitted during cross-validation on the training data only. The held-out test set is never used for calibration, ensuring that predicted output probabilities $P(\text{event})$ accurately reflect true empirical event frequencies without data leakage.
 
 ### Evaluated Candidate Algorithms
 For each domain, three diverse algorithmic architectures were trained and compared:
-1. **Calibrated Logistic Regression (L2 regularized with Platt scaling)**
-2. **Calibrated Random Forest (Ensemble bagging, balanced class weights)**
+1. **Logistic Regression (L2 regularized)**
+2. **Random Forest (Ensemble bagging, balanced class weights)**
 3. **Gradient Boosting Classifier (Iterative gradient-boosted decision trees)**
 
 ### Selected Best Models & Serialized Wrapper
@@ -96,6 +96,23 @@ Rather than reporting naive accuracy, the system is evaluated on gold-standard c
 1. **Discrimination (AUROC 0.76 – 0.80):** Meets international clinical thresholds for outpatient risk stratification (comparable to the Framingham 10-year risk score and ACC/AHA Pooled Cohort Equations, which typically achieve AUROCs between 0.72 and 0.78 in diabetic cohorts).
 2. **Calibration (Brier Score < 0.20):** Confirms that a predicted $35\%$ risk means roughly 35 out of 100 such patients experience the clinical event (verified via calibration curves saved in `model/clinical_calibration_curves.png`).
 3. **Clinical Decision Utility (High Sensitivity & NPV > 79%–96%):** Optimized for preventative triage: minimizing false negatives ensures high-risk patients are not missed.
+
+### Calibration Metrics
+To ensure the predicted probabilities are reliable, the system evaluates:
+- **Expected Calibration Error (ECE)**: Measures the average difference between predicted probability and actual empirical frequency.
+- **Brier Score with Bootstrap CIs**: Evaluates the mean squared difference between predicted probabilities and actual outcomes, providing confidence intervals.
+- **Reliability Tables and Calibration Curves**: Visual and tabular confirmation that probabilities align with real-world incidence rates.
+
+### Subgroup Reliability
+The system computes calibration and discrimination metrics across distinct demographic subgroups:
+- **Age Bands**: 18-44, 45-59, 60+
+- **Sex**: Male, Female
+- **Flags**: 
+  - `insufficient_data`: Triggered if a subgroup has fewer than 30 samples.
+  - `warning`: Triggered if calibration error (ECE) exceeds 0.10 in a specific subgroup.
+
+### Uncertainty Reporting
+The system determines the **Uncertainty Level** (Narrow, Moderate, Wide) based on the width of the AUROC confidence intervals. When calibration quality is deemed weak, exact percentage readouts may be suppressed to avoid presenting overly confident but unreliable estimates to patients.
 
 ---
 
@@ -120,13 +137,18 @@ The transparent rule matrix in [`rule_matrix.py`](rule_matrix.py) was updated fr
 
 ## Threshold Selection & Clinical Decision Utility
 
-The system uses **evidence-based clinical decision tiers** derived strictly within training folds:
+The system uses a **dual-threshold approach** derived strictly from out-of-fold predictions within the training set, ensuring thresholds are data-driven rather than hardcoded:
+
+1. **Screening Threshold**: The lowest threshold achieving a Sensitivity $\ge 85\%$ with a Precision $\ge 50\%$. This prioritizes catching potential cases early for broad screening.
+2. **Referral Threshold**: The lowest threshold achieving a Precision $\ge 60\%$ (falling back to $50\%$ if not achievable). This provides higher confidence before recommending specialist referrals.
+
+These thresholds inform the **evidence-based clinical decision tiers**:
 
 | Risk Tier | Calibrated Event Probability | Clinical Action Recommended |
 | :--- | :---: | :--- |
-| **Low Risk** | $\le 30\%$ | Routine annual screening; lifestyle and primary glycemic maintenance. |
-| **Moderate Risk** | $31\% - 60\%$ | Elevated risk; accelerated surveillance, medication review, and lab follow-up. |
-| **High Risk** | $> 60\%$ | High complication burden; urgent specialist referral (Cardiology / Nephrology / Podiatry / Ophthalmology). |
+| **Low Risk** | $\le \text{Screening Threshold}$ | Routine annual screening; lifestyle and primary glycemic maintenance. |
+| **Moderate Risk** | $\text{Between thresholds}$ | Elevated risk; accelerated surveillance, medication review, and lab follow-up. |
+| **High Risk** | $> \text{Referral Threshold}$ | High complication burden; urgent specialist referral (Cardiology / Nephrology / Podiatry / Ophthalmology). |
 
 ---
 
@@ -149,8 +171,21 @@ DiaBeates utilizes a **Graceful Degradation Architecture** designed to eliminate
 ### Intended Use
 DiaBeates is designed as an **educational and clinical decision support (CDS) triage tool**, **NOT an autonomous diagnostic medical device**.
 
-### Limitations
+### Known Limitations
 1. **Cross-Sectional vs. Prospective Cohorts:** NHANES measures prevalent complication status at the time of survey. Future iterations should incorporate longitudinal electronic health records (EHR) to predict 5- and 10-year incident event horizons.
 2. **Proxy vs. Direct Diagnostic Testing:** Self-reported walking difficulty (`DiffWalk`) serves as a functional triage proxy for peripheral neuropathy, rather than an in-person 10g monofilament sensory examination; non-mydriatic survey retinal imaging acts as a microvascular screening indicator rather than a dilated biomicroscopic fundus evaluation.
 3. **Physician Supervision:** Outputs must always be interpreted in consultation with qualified healthcare professionals.
+4. **Per-Model Notes:**
+   - **Cardiovascular** (AUROC ~0.76): Intended for broad screening, not a definitive clinical diagnosis. It lacks key clinical variables like exact BP values, LDL levels, specific diabetes duration, and detailed treatment history.
+   - **Kidney** (AUROC ~0.76): The strongest screening candidate overall. It would still benefit from including actual lab values (eGFR, uACR) as features rather than just labels.
+   - **Neuropathy** (AUROC ~0.80): Actually predicts functional mobility impairment (DiffWalk), which is a proxy and not a strict clinical neuropathy diagnosis. Future work should investigate BMI-specific calibration.
+   - **Retinopathy** (AUROC ~0.64): **Experimental/Informational**. This model has the lowest discrimination and highest Brier score. The system prioritizes recommending a dilated eye exam pathway over exact probability readings.
+
+### Future Work: Full Clinical Validation
+Based on the evaluation strategy (Option B), the next steps for rigorous clinical validation include:
+- **Collect Larger Datasets**: Specifically targeting underrepresented demographics.
+- **Nested Cross-Validation**: To separate hyperparameter tuning from true generalization performance.
+- **External Validation Cohorts**: Testing the models on data from entirely different geographic regions or hospital systems.
+- **Subgroup Fairness Audits**: Ensuring equitable performance across race, ethnicity, and socioeconomic status.
+- **Monitoring Pipeline**: Implementing automated drift detection and regular retraining schedules.
 
