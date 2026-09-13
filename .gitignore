@@ -43,3 +43,5 @@ data/raw_retinopathy/
 *.log
 logs/
 node_modules/
+!static/css/tailwind.min.css
+!static/fonts/

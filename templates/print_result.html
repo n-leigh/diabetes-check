@@ -130,7 +130,7 @@
   {% if lab_assessment %}
   <section>
     <h2 class="section-title">Lab-Based Assessment (Point-of-Care Guidelines)</h2>
-    <div class="info-grid" style="margin-bottom:10px;">
+    <div class="info-grid mb-10">
       {% if lab_assessment.details.hba1c %}<div class="info-item"><div class="label">HbA1c</div><div class="value">{{ lab_assessment.details.hba1c.value }}%</div></div>{% endif %}
       {% if lab_assessment.details.systolic_bp %}<div class="info-item"><div class="label">Systolic BP</div><div class="value">{{ lab_assessment.details.systolic_bp.value }} mmHg</div></div>{% endif %}
       {% if lab_assessment.details.ldl %}<div class="info-item"><div class="label">LDL Cholesterol</div><div class="value">{{ lab_assessment.details.ldl.value }} mg/dL</div></div>{% endif %}
