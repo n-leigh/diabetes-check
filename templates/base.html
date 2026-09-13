@@ -337,6 +337,7 @@
       to { opacity: 1; transform: translateY(0) scale(1); }
     }
   </style>
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/tailwind.min.css') }}">
   {% block extra_head %}{% endblock %}
 </head>
 <body class="min-h-screen flex flex-col page-transition">
@@ -372,6 +373,7 @@
         </div>
 
         <button id="menuBtn" class="md:hidden p-2 rounded-lg text-slate-600 hover:bg-slate-100" onclick="document.getElementById('mobileMenu').classList.toggle('hidden')">
+        <button id="menuBtn" type="button" class="md:hidden p-2 rounded-lg text-slate-600 hover:bg-slate-100" aria-label="Toggle Navigation Menu">
           <svg width="20" height="20" viewBox="0 0 20 20" fill="currentColor">
             <path fill-rule="evenodd" clip-rule="evenodd" d="M3 5a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zM3 10a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zM3 15a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1z" />
           </svg>
@@ -431,6 +433,7 @@
           <p class="text-sm leading-relaxed">
             A transparent screening tool that helps users estimate diabetes complication risk using
             structured clinical indicators and predictive modeling.
+            structured clinical indicators and predictive modeling. Assessments are processed by the local Flask application on this computer. If you choose to save an assessment, it is stored in the local encrypted database and associated with this browser session.
           </p>
         </div>
         <div>
@@ -698,5 +701,7 @@
       });
     })();
   </script>
+  <script src="{{ url_for('static', filename='js/app.js') }}"></script>
+  {% block extra_scripts %}{% endblock %}
 </body>
 </html>

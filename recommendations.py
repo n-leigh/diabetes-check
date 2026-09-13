@@ -103,7 +103,7 @@ def build_recommendations(rule_results: Dict, lab_assessment: Optional[Dict] = N
     elif overall == "Moderate":
         headline = "A few areas are worth keeping an eye on."
     else:
-        headline = "Some results here are worth acting on soon."
+        headline = "Some results may be useful to discuss at a healthcare visit."
 
     # Cardiovascular guidance
     if cv_tier in ("Moderate", "High"):
@@ -126,10 +126,10 @@ def build_recommendations(rule_results: Dict, lab_assessment: Optional[Dict] = N
     # Diabetic Retinopathy / Vision guidance
     if retino_tier in ("Moderate", "High"):
         items.append({
-            "title": "Schedule a dilated eye examination",
+            "title": "Consider discussing a dilated eye examination",
             "description": "Diabetic eye changes and macular swelling can develop without noticeable pain. "
                            "An annual comprehensive dilated eye exam or retinal photography with an optometrist "
-                           "or ophthalmologist is essential for catching early retinopathy before vision is affected. "
+                           "or ophthalmologist can help identify changes before vision is affected. "
                            "Note: The retinopathy screening model has wider uncertainty than the other models "
                            "and should be considered experimental.",
         })

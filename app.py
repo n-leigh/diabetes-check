@@ -20,14 +20,20 @@ import os
 import json
 import uuid
 import secrets
+import io
 import logging
 import logging.handlers
+import platform
+import re
+import sys
+import zipfile
 from datetime import datetime, timezone
 from zoneinfo import ZoneInfo
 from dotenv import load_dotenv
 import joblib
+import numpy as np
 import pandas as pd
-from flask import Flask, render_template, request, redirect, url_for, session
+from flask import Flask, render_template, request, redirect, url_for, session, send_file
 from flask_wtf.csrf import CSRFProtect, CSRFError
 from flask_limiter import Limiter
 from flask_limiter.util import get_remote_address
@@ -121,11 +127,25 @@ def display_time(value):
 def set_security_headers(response):
     response.headers["X-Frame-Options"] = "DENY"
     response.headers["X-Content-Type-Options"] = "nosniff"
+    response.headers["X-XSS-Protection"] = "1; mode=block"
     response.headers["Referrer-Policy"] = "strict-origin-when-cross-origin"
     response.headers["Permissions-Policy"] = "geolocation=(), microphone=(), camera=()"
+    response.headers["Content-Security-Policy"] = (
+        "default-src 'self'; "
+        "script-src 'self'; "
+        "style-src 'self'; "
+        "img-src 'self' data:; "
+        "font-src 'self'; "
+        "connect-src 'self'; "
+        "frame-ancestors 'none'; "
+        "object-src 'none'; "
+        "base-uri 'self'; "
+        "form-action 'self';"
+    )
     if not DEBUG:
         response.headers["Strict-Transport-Security"] = "max-age=31536000; includeSubDomains"
     return response
+
 
 limiter = Limiter(
     app=app,
@@ -135,6 +155,7 @@ limiter = Limiter(
 )
 
 database.init_db()
+database.verify_database_integrity()
 logger.info("Database initialized successfully with non-destructive WAL mode.")
 try:
     RETENTION_DAYS = int(os.getenv("RETENTION_DAYS", "90"))
@@ -181,7 +202,10 @@ for cat in CATEGORIES:
     path = os.path.join(BASE_DIR, "model", f"{cat}_model.pkl")
     if os.path.exists(path):
         try:
-            MODELS[cat] = joblib.load(path)
+            model = joblib.load(path)
+            if hasattr(model, "classes_") and not np.array_equal(np.asarray(model.classes_), np.array([0, 1])):
+                raise ValueError("model classes_ must be [0, 1]")
+            MODELS[cat] = model
         except Exception as e:
             logger.error(f"Error loading model for {cat}: {e}")
     else:
@@ -194,25 +218,6 @@ def ensure_session_id():
         session["session_id"] = str(uuid.uuid4())
         session.permanent = True
 
-
-@app.after_request
-def add_security_headers(response):
-    response.headers["X-Frame-Options"] = "SAMEORIGIN"
-    response.headers["X-Content-Type-Options"] = "nosniff"
-    response.headers["X-XSS-Protection"] = "1; mode=block"
-    response.headers["Referrer-Policy"] = "strict-origin-when-cross-origin"
-    response.headers["Content-Security-Policy"] = (
-        "default-src 'self'; "
-        "script-src 'self' 'unsafe-inline' 'unsafe-eval' data: https:; "
-        "style-src 'self' 'unsafe-inline' https:; "
-        "img-src 'self' data: https:; "
-        "font-src 'self' data: https:; "
-        "connect-src 'self'; "
-        "frame-ancestors 'self'; "
-        "object-src 'none'; "
-        "base-uri 'self';"
-    )
-    return response
 
 
 @app.route("/", methods=["GET"])
@@ -228,6 +233,12 @@ def assessment():
 @app.route("/about", methods=["GET"])
 def about():
     return render_template("about.html")
+
+
+@app.route("/report", methods=["GET"])
+def report():
+    """Serve standalone client-side report viewer shell without medical data."""
+    return render_template("report_viewer.html")
 
 
 @app.route("/health", methods=["GET"])
@@ -252,6 +263,78 @@ def health():
         "models_expected": CATEGORIES,
         "rule_version": RULE_VERSION,
     }, status_code
+
+
+@app.route("/data/backup", methods=["GET"])
+def download_backup():
+    """Download a self-verifying encrypted backup bundle."""
+    backup_path = database.create_backup_bundle()
+    return send_file(
+        backup_path,
+        as_attachment=True,
+        download_name=os.path.basename(backup_path),
+        mimetype="application/zip",
+    )
+
+
+@app.route("/data/restore", methods=["POST"])
+def restore_backup():
+    """Restore an encrypted backup only after checksum and integrity validation."""
+    uploaded = request.files.get("backup_file")
+    if not uploaded or not uploaded.filename:
+        return "Select a DiaBeates backup file.", 400
+    temporary_path = os.path.join(database.BASE_DIR, f".restore-upload-{secrets.token_hex(8)}.zip")
+    try:
+        uploaded.save(temporary_path)
+        database.restore_backup_bundle(temporary_path)
+    except (OSError, ValueError, zipfile.BadZipFile, RuntimeError) as error:
+        logger.warning("Backup restore rejected: %s", error)
+        return "Backup restore failed validation; the current database was unchanged.", 400
+    finally:
+        if os.path.exists(temporary_path):
+            os.remove(temporary_path)
+    return redirect(url_for("history"))
+
+
+@app.route("/diagnostics/export", methods=["GET"])
+def export_diagnostics():
+    """Export technical diagnostics without database rows or patient inputs."""
+    log_path = os.path.join(log_dir, "diabetes_system.log")
+    safe_lines = []
+    if os.path.exists(log_path):
+        with open(log_path, encoding="utf-8", errors="replace") as log_file:
+            for line in log_file.readlines()[-300:]:
+                if re.search(r"patient|session|bmi|hba1c|ldl|risk_score|model_confidence|assessment_id", line, re.IGNORECASE):
+                    continue
+                safe_lines.append(line.rstrip())
+
+    metadata = {
+        "python_version": sys.version.split()[0],
+        "platform": platform.platform(),
+        "sqlcipher_version": database.get_sqlcipher_version(),
+        "database_integrity": "ok" if database.verify_database_integrity() else "failed",
+        "rule_version": RULE_VERSION,
+        "models": {
+            category: {
+                "name": MODEL_NAMES.get(category),
+                "status": getattr(MODELS.get(category), "model_status", "unavailable"),
+                "calibration_quality": getattr(MODELS.get(category), "calibration_quality", "unavailable"),
+                "uncertainty_level": getattr(MODELS.get(category), "uncertainty_level", "unavailable"),
+            }
+            for category in CATEGORIES
+        },
+    }
+    bundle = io.BytesIO()
+    with zipfile.ZipFile(bundle, "w", compression=zipfile.ZIP_DEFLATED) as archive:
+        archive.writestr("system_status.json", json.dumps(metadata, indent=2))
+        archive.writestr("sanitized_application.log", "\n".join(safe_lines) + "\n")
+    bundle.seek(0)
+    return send_file(
+        bundle,
+        as_attachment=True,
+        download_name="diabeates-diagnostics.zip",
+        mimetype="application/zip",
+    )
 
 
 def explain_patient_risk(patient: dict) -> dict:
@@ -512,12 +595,19 @@ def predict():
         for cat in CATEGORIES:
             if cat in MODELS:
                 model = MODELS[cat]
-                pred = model.predict(X)[0]
-                model_results[cat] = pred
                 if hasattr(model, "predict_proba"):
-                    proba = model.predict_proba(X)[0]
-                    risk_pct = round(proba[1] * 100, 1) if len(proba) == 2 else round(max(proba) * 100, 1)
+                    if hasattr(model, "predict_with_probability"):
+                        predictions, probabilities = model.predict_with_probability(X)
+                        pred = predictions[0]
+                        risk_pct = round(probabilities[0] * 100, 1)
+                    else:
+                        pred = model.predict(X)[0]
+                        proba = model.predict_proba(X)[0]
+                        risk_pct = round(proba[1] * 100, 1) if len(proba) == 2 else round(max(proba) * 100, 1)
+                    model_results[cat] = pred
                     model_confidences[cat] = risk_pct
+                else:
+                    model_results[cat] = model.predict(X)[0]
                 # Extract model quality metadata for UI display
                 model_metadata[cat] = {
                     "model_status": getattr(model, "model_status", "validated"),
@@ -525,19 +615,35 @@ def predict():
                     "uncertainty_level": getattr(model, "uncertainty_level", "moderate"),
                 }
 
-    assessment_id = database.save_assessment(
-        session_id=session["session_id"],
-        patient=patient,
-        rule_results=rule_results,
-        model_results=model_results,
-        lab_assessment=lab_assessment,
-        model_confidences=model_confidences,
-        model_names=MODEL_NAMES,
-        rule_version=RULE_VERSION,
-    )
+    save_history = request.form.get("save_history") == "1"
+    assessment_id = None
+    if save_history:
+        assessment_id = database.save_assessment(
+            session_id=session["session_id"],
+            patient=patient,
+            rule_results=rule_results,
+            model_results=model_results,
+            lab_assessment=lab_assessment,
+            model_confidences=model_confidences,
+            model_names=MODEL_NAMES,
+            rule_version=RULE_VERSION,
+        )
 
     recommendations = build_recommendations(rule_results, lab_assessment)
     patient_drivers = explain_patient_risk(patient)
+
+    report_payload = {
+        "v": 1,
+        "created_at": datetime.now(timezone.utc).isoformat(timespec="seconds"),
+        "rule_results": rule_results,
+        "model_results": model_results,
+        "model_confidences": model_confidences,
+        "recommendations": recommendations,
+        "patient_drivers": patient_drivers,
+        "patient_summary": describe_patient(patient),
+        "lab_assessment": lab_assessment,
+    }
+    report_payload_json = json.dumps(report_payload)
 
     return render_template(
         "result.html",
@@ -553,7 +659,9 @@ def predict():
         patient_drivers=patient_drivers,
         assessment_id=assessment_id,
         model_metadata=model_metadata,
+        report_payload_json=report_payload_json,
     )
+
 
 
 @app.route("/history", methods=["GET"])
@@ -611,6 +719,20 @@ def history_detail(assessment_id):
                 "calibration_quality": getattr(hmodel, "calibration_quality", "fair"),
                 "uncertainty_level": getattr(hmodel, "uncertainty_level", "moderate"),
             }
+    recommendations = build_recommendations(record["rule_results"], record.get("lab_assessment"))
+    report_payload = {
+        "v": 1,
+        "created_at": record["created_at"],
+        "rule_results": record["rule_results"],
+        "model_results": record["model_results"],
+        "model_confidences": record.get("model_confidences", {}),
+        "recommendations": recommendations,
+        "patient_drivers": patient_drivers,
+        "patient_summary": describe_patient(record["patient"]),
+        "lab_assessment": record.get("lab_assessment"),
+    }
+    report_payload_json = json.dumps(report_payload)
+
     return render_template(
         "result.html",
         patient=record["patient"],
@@ -621,13 +743,15 @@ def history_detail(assessment_id):
         clinical_metrics=CLINICAL_METRICS,
         categories=CATEGORIES,
         lab_assessment=record.get("lab_assessment"),
-        recommendations=build_recommendations(record["rule_results"], record.get("lab_assessment")),
+        recommendations=recommendations,
         patient_drivers=patient_drivers,
         viewing_past=True,
         created_at=record["created_at"],
         assessment_id=assessment_id,
         model_metadata=hist_model_metadata,
+        report_payload_json=report_payload_json,
     )
+
 
 
 @app.route("/history/<int:assessment_id>/print", methods=["GET"])
@@ -672,6 +796,40 @@ def feedback(assessment_id):
     helpful = request.form.get("helpful") == "yes"
     database.save_feedback(assessment_id, helpful)
     return redirect(url_for("history_detail", assessment_id=assessment_id) + "?feedback=thanks")
+
+
+@app.route("/history/export", methods=["POST"])
+def export_history():
+    """Export only the current visitor's assessment history for this session."""
+    session_id = session.get("session_id")
+    if not session_id:
+        return redirect(url_for("history"))
+    records = database.get_session_export_data(session_id)
+    payload = {
+        "export_time": datetime.now(timezone.utc).isoformat(timespec="seconds"),
+        "session_id": session_id,
+        "total_records": len(records),
+        "records": records,
+    }
+    raw_json = json.dumps(payload, indent=2)
+    buf = io.BytesIO(raw_json.encode("utf-8"))
+    filename = f"diabeates-history-{datetime.now(timezone.utc).strftime('%Y%m%d-%H%M%S')}.json"
+    return send_file(
+        buf,
+        as_attachment=True,
+        download_name=filename,
+        mimetype="application/json",
+    )
+
+
+@app.route("/history/clear", methods=["POST"])
+def clear_history():
+    """Permanently delete all assessments belonging to current session."""
+    session_id = session.get("session_id")
+    if session_id:
+        database.clear_session_assessments(session_id)
+    return redirect(url_for("history"))
+
 
 
 @app.errorhandler(CSRFError)

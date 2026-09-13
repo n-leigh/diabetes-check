@@ -50,20 +50,30 @@ class ClinicalRiskWrapper(BaseEstimator, ClassifierMixin):
 
     def predict_proba(self, X):
         X_sub = X[self.feature_subset]
-        return self.base_estimator.predict_proba(X_sub)
+        probabilities = self.base_estimator.predict_proba(X_sub)
+        if probabilities.ndim != 2 or probabilities.shape[1] != 2:
+            raise ValueError("Clinical risk models must produce binary probabilities")
+        if not np.array_equal(np.asarray(self.classes_), np.array([0, 1])):
+            raise ValueError("Clinical risk models must define classes_ as [0, 1]")
+        return probabilities
+
+    def predict_with_probability(self, X):
+        """Return model category labels and positive-class probabilities together."""
+        probabilities = self.predict_proba(X)[:, 1]
+        labels = []
+        for probability in probabilities:
+            if probability <= self.screening_threshold:
+                labels.append("Lower Estimated Risk")
+            elif probability <= self.referral_threshold:
+                labels.append("Moderate Estimated Risk")
+            else:
+                labels.append("Higher Estimated Risk")
+        return np.array(labels), probabilities
 
     def predict(self, X):
         """Predict risk tier labels based on dual thresholds."""
-        proba = self.predict_proba(X)[:, 1]
-        preds = []
-        for p in proba:
-            if p <= self.screening_threshold:
-                preds.append("Lower Estimated Risk")
-            elif p <= self.referral_threshold:
-                preds.append("Moderate Estimated Risk")
-            else:
-                preds.append("Higher Estimated Risk")
-        return np.array(preds)
+        labels, _ = self.predict_with_probability(X)
+        return labels
 
     # Backward-compatible properties for old low_threshold / high_threshold access
     @property

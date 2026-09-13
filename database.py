@@ -25,34 +25,311 @@ SCHEMA_VERSION is tracked with SQLite's built-in PRAGMA user_version.
 Migrations are additive and preserve existing assessment data.
 """
 
-import sqlite3
+import hashlib
 import json
 import os
+import ctypes
 import getpass
 import platform
+import secrets
+import sqlite3
+import shutil
 import subprocess
+import tempfile
+import zipfile
 from datetime import datetime, timedelta, timezone
+from ctypes import wintypes
+
+import sqlcipher3
 
 from rule_matrix import compute_lab_assessment
 
 DB_PATH = os.path.join(os.path.dirname(os.path.abspath(__file__)), "diabetes_system.db")
+KEY_PATH = os.path.join(os.path.dirname(os.path.abspath(__file__)), ".db.key")
+PROTECTED_KEY_PATH = os.path.join(os.path.dirname(os.path.abspath(__file__)), ".db.key.dpapi")
+BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 SCHEMA_VERSION = 4
+_KEY_ENVIRONMENT_VARIABLE = "DIABEATES_DB_KEY"
 
 
-def get_connection():
-    conn = sqlite3.connect(DB_PATH, timeout=10.0)
-    conn.row_factory = sqlite3.Row
-    conn.execute("PRAGMA foreign_keys = ON")
-    conn.execute("PRAGMA journal_mode = WAL")
+def get_sqlcipher_version() -> str:
+    conn = _open_cipher_connection(DB_PATH, _load_database_key())
+    try:
+        return str(conn.execute("PRAGMA cipher_version").fetchone()[0])
+    finally:
+        conn.close()
+
+
+def _sql_literal(value: str) -> str:
+    return "'" + value.replace("'", "''") + "'"
+
+
+if platform.system() == "Windows":
+    class _DataBlob(ctypes.Structure):
+        _fields_ = [("cbData", wintypes.DWORD), ("pbData", ctypes.POINTER(ctypes.c_ubyte))]
+
+
+def _dpapi_protect(value: str) -> bytes:
+    if platform.system() != "Windows":
+        raise RuntimeError("Windows DPAPI is required for local database key storage")
+    raw = value.encode("utf-8")
+    raw_buffer = (ctypes.c_ubyte * len(raw)).from_buffer_copy(raw)
+    input_blob = _DataBlob(len(raw), raw_buffer)
+    output_blob = _DataBlob()
+    if not ctypes.windll.crypt32.CryptProtectData(
+        ctypes.byref(input_blob), "DiaBeates database key", None, None, None, 0, ctypes.byref(output_blob)
+    ):
+        raise ctypes.WinError()
+    try:
+        return ctypes.string_at(output_blob.pbData, output_blob.cbData)
+    finally:
+        ctypes.windll.kernel32.LocalFree(output_blob.pbData)
+
+
+def _dpapi_unprotect(protected: bytes) -> str:
+    if platform.system() != "Windows":
+        raise RuntimeError("Windows DPAPI is required for local database key storage")
+    protected_buffer = (ctypes.c_ubyte * len(protected)).from_buffer_copy(protected)
+    input_blob = _DataBlob(len(protected), protected_buffer)
+    output_blob = _DataBlob()
+    if not ctypes.windll.crypt32.CryptUnprotectData(
+        ctypes.byref(input_blob), None, None, None, None, 0, ctypes.byref(output_blob)
+    ):
+        raise ctypes.WinError()
+    try:
+        return ctypes.string_at(output_blob.pbData, output_blob.cbData).decode("utf-8")
+    finally:
+        ctypes.windll.kernel32.LocalFree(output_blob.pbData)
+
+
+def _write_protected_key(key: str) -> None:
+    protected = _dpapi_protect(key)
+    temporary_path = f"{PROTECTED_KEY_PATH}.tmp-{secrets.token_hex(8)}"
+    try:
+        with open(temporary_path, "wb") as key_file:
+            key_file.write(protected)
+        restrict_database_permissions(temporary_path)
+        os.replace(temporary_path, PROTECTED_KEY_PATH)
+        restrict_database_permissions(PROTECTED_KEY_PATH)
+    finally:
+        if os.path.exists(temporary_path):
+            os.remove(temporary_path)
+
+
+def _load_database_key() -> str:
+    key = os.getenv(_KEY_ENVIRONMENT_VARIABLE, "").strip()
+    if key:
+        return key
+    if os.path.exists(PROTECTED_KEY_PATH):
+        with open(PROTECTED_KEY_PATH, "rb") as key_file:
+            key = _dpapi_unprotect(key_file.read()).strip()
+        if key:
+            return key
+    if os.path.exists(KEY_PATH):
+        with open(KEY_PATH, encoding="utf-8") as key_file:
+            key = key_file.read().strip()
+        if key:
+            _write_protected_key(key)
+            os.remove(KEY_PATH)
+            return key
+    if platform.system() != "Windows":
+        raise RuntimeError("DIABEATES_DB_KEY is required outside Windows; refusing unprotected key storage")
+    key = secrets.token_hex(32)
+    _write_protected_key(key)
+    return key
+
+
+def _apply_key(conn, key: str) -> None:
+    conn.execute(f"PRAGMA key = {_sql_literal(key)}")
+
+
+def _open_cipher_connection(path: str, key: str):
+    conn = sqlcipher3.connect(path, timeout=10.0)
+    _apply_key(conn, key)
     conn.execute("PRAGMA busy_timeout = 5000")
     return conn
 
 
-def restrict_database_permissions():
+def _database_is_readable(path: str, key: str) -> bool:
+    conn = None
+    try:
+        conn = _open_cipher_connection(path, key)
+        conn.execute("SELECT count(*) FROM sqlite_master").fetchone()
+        return True
+    except Exception:
+        return False
+    finally:
+        if conn is not None:
+            conn.close()
+
+
+def _database_is_plaintext(path: str) -> bool:
+    conn = None
+    try:
+        conn = sqlite3.connect(path, timeout=10.0)
+        conn.execute("SELECT count(*) FROM sqlite_master").fetchone()
+        return True
+    except Exception:
+        return False
+    finally:
+        if conn is not None:
+            conn.close()
+
+
+def _copy_legacy_database(path: str) -> str:
+    backup_path = f"{path}.plaintext-backup-{datetime.now(timezone.utc).strftime('%Y%m%d%H%M%S')}"
+    shutil.copy2(path, backup_path)
+    for suffix in ("-wal", "-shm"):
+        sidecar = f"{path}{suffix}"
+        if os.path.exists(sidecar):
+            shutil.copy2(sidecar, f"{backup_path}{suffix}")
+    restrict_database_permissions(backup_path)
+    return backup_path
+
+
+def migrate_plaintext_database(path: str = None, key: str = None) -> bool:
+    """Convert a legacy SQLite file to SQLCipher without replacing its source early."""
+    path = path or DB_PATH
+    key = key or _load_database_key()
+    if not os.path.exists(path) or _database_is_readable(path, key):
+        return False
+    if not _database_is_plaintext(path):
+        raise RuntimeError(f"Database is neither valid SQLCipher nor readable legacy SQLite: {path}")
+
+    legacy_backup = _copy_legacy_database(path)
+    temporary_path = f"{path}.sqlcipher-migration-{secrets.token_hex(8)}.tmp"
+    try:
+        source = sqlite3.connect(path, timeout=10.0)
+        source.execute("PRAGMA wal_checkpoint(TRUNCATE)")
+        source_schema_version = source.execute("PRAGMA user_version").fetchone()[0]
+        destination = _open_cipher_connection(temporary_path, key)
+        try:
+            destination.executescript("\n".join(source.iterdump()))
+            destination.commit()
+        finally:
+            destination.close()
+            source.close()
+
+        encrypted = _open_cipher_connection(temporary_path, key)
+        try:
+            encrypted.execute(f"PRAGMA user_version = {int(source_schema_version)}")
+            encrypted.commit()
+            verify_database_integrity(encrypted)
+        finally:
+            encrypted.close()
+        os.replace(temporary_path, path)
+        restrict_database_permissions(path)
+        return True
+    except Exception:
+        if os.path.exists(temporary_path):
+            os.remove(temporary_path)
+        raise RuntimeError(
+            f"SQLCipher migration failed; original database preserved at {legacy_backup}"
+        ) from None
+
+
+def verify_database_integrity(conn=None) -> bool:
+    owns_connection = conn is None
+    conn = conn or get_connection()
+    try:
+        result = conn.execute("PRAGMA quick_check").fetchone()[0]
+        if str(result).lower() != "ok":
+            raise RuntimeError(f"Database integrity check failed: {result}")
+        return True
+    finally:
+        if owns_connection:
+            conn.close()
+
+
+def _encrypted_database_copy() -> str:
+    temporary_path = f"{DB_PATH}.backup-{secrets.token_hex(8)}.tmp"
+    source = get_connection()
+    destination = _open_cipher_connection(temporary_path, _load_database_key())
+    source.backup(destination)
+    destination.close()
+    source.close()
+    copy_connection = _open_cipher_connection(temporary_path, _load_database_key())
+    try:
+        verify_database_integrity(copy_connection)
+    finally:
+        copy_connection.close()
+    return temporary_path
+
+
+def create_backup_bundle(output_path: str = None) -> str:
+    """Create a self-verifying ZIP containing only an encrypted database."""
+    if output_path is None:
+        backup_directory = os.path.join(BASE_DIR, "backups")
+        os.makedirs(backup_directory, exist_ok=True)
+        output_path = os.path.join(
+            backup_directory,
+            f"diabeates-backup-{datetime.now(timezone.utc).strftime('%Y%m%d-%H%M%S')}.zip",
+        )
+    encrypted_copy = _encrypted_database_copy()
+    try:
+        with open(encrypted_copy, "rb") as db_file:
+            digest = hashlib.sha256(db_file.read()).hexdigest()
+        with zipfile.ZipFile(output_path, "w", compression=zipfile.ZIP_DEFLATED) as bundle:
+            bundle.write(encrypted_copy, arcname="diabetes_system.db")
+            bundle.writestr("SHA256SUM", f"{digest}  diabetes_system.db\n")
+        restrict_database_permissions(output_path)
+        return output_path
+    finally:
+        if os.path.exists(encrypted_copy):
+            os.remove(encrypted_copy)
+
+
+def restore_backup_bundle(bundle_path: str) -> None:
+    """Validate and atomically restore an encrypted backup bundle."""
+    with zipfile.ZipFile(bundle_path, "r") as bundle:
+        names = set(bundle.namelist())
+        if names != {"diabetes_system.db", "SHA256SUM"}:
+            raise ValueError("Backup bundle contains unexpected files")
+        database_bytes = bundle.read("diabetes_system.db")
+        manifest = bundle.read("SHA256SUM").decode("ascii").strip().split()
+        if len(manifest) != 2 or manifest[1] != "diabetes_system.db":
+            raise ValueError("Backup checksum manifest is invalid")
+        if hashlib.sha256(database_bytes).hexdigest() != manifest[0]:
+            raise ValueError("Backup checksum verification failed")
+
+    temporary_path = f"{DB_PATH}.restore-{secrets.token_hex(8)}.tmp"
+    with open(temporary_path, "wb") as database_file:
+        database_file.write(database_bytes)
+    restrict_database_permissions(temporary_path)
+    candidate = None
+    try:
+        candidate = _open_cipher_connection(temporary_path, _load_database_key())
+        verify_database_integrity(candidate)
+        if candidate.execute("SELECT name FROM sqlite_master WHERE type = 'table' AND name = 'assessments'").fetchone() is None:
+            raise ValueError("Backup database is missing the assessments table")
+        candidate.close()
+        candidate = None
+        os.replace(temporary_path, DB_PATH)
+        restrict_database_permissions(DB_PATH)
+    finally:
+        if candidate is not None:
+            candidate.close()
+        if os.path.exists(temporary_path):
+            os.remove(temporary_path)
+
+
+def get_connection():
+    if not os.path.exists(DB_PATH):
+        _load_database_key()
+    migrate_plaintext_database(DB_PATH)
+    conn = _open_cipher_connection(DB_PATH, _load_database_key())
+    conn.row_factory = sqlcipher3.Row
+    conn.execute("PRAGMA foreign_keys = ON")
+    conn.execute("PRAGMA journal_mode = WAL")
+    return conn
+
+
+def restrict_database_permissions(path: str = None):
     """Best-effort: restrict SQLite files to the current OS user (where supported)."""
 
-    for path in (DB_PATH, f"{DB_PATH}-wal", f"{DB_PATH}-shm"):
-        if not os.path.exists(path):
+    paths = (path,) if path else (DB_PATH, f"{DB_PATH}-wal", f"{DB_PATH}-shm", KEY_PATH)
+    for current_path in paths:
+        if not os.path.exists(current_path):
 
             continue
 
@@ -61,7 +338,7 @@ def restrict_database_permissions():
         if platform.system() == "Windows":
 
             subprocess.run(
-                ["icacls", path, "/inheritance:r", "/grant:r", f"{getpass.getuser()}:F"],
+                ["icacls", current_path, "/inheritance:r", "/grant:r", f"{getpass.getuser()}:F"],
                 check=False,
                 capture_output=True,
                 text=True,
@@ -70,7 +347,7 @@ def restrict_database_permissions():
 
             try:
 
-                os.chmod(path, 0o600)
+                os.chmod(current_path, 0o600)
 
             except OSError:
 
@@ -363,3 +640,53 @@ def prune_expired_assessments(days: int = 90) -> int:
     conn.commit()
     conn.close()
     return deleted_count
+
+
+def get_session_export_data(session_id: str) -> list:
+    """Exports all assessments and child records for the given session_id."""
+    conn = get_connection()
+    try:
+        rows = conn.execute(
+            "SELECT * FROM assessments WHERE session_id = ? ORDER BY id ASC",
+            (session_id,)
+        ).fetchall()
+        export_records = []
+        for r in rows:
+            rec = _reconstruct(conn, r)
+            fb_rows = conn.execute(
+                "SELECT helpful, comment, created_at FROM feedback WHERE assessment_id = ? ORDER BY id ASC",
+                (r["id"],)
+            ).fetchall()
+            rec["feedback"] = [
+                {"helpful": bool(fb["helpful"]), "comment": fb["comment"], "created_at": fb["created_at"]}
+                for fb in fb_rows
+            ]
+            export_records.append(rec)
+        return export_records
+    finally:
+        conn.close()
+
+
+def clear_session_assessments(session_id: str) -> int:
+    """Permanently deletes all assessments, feedback, lab assessments, and risk results
+    belonging to session_id. Returns count of deleted assessments."""
+    conn = get_connection()
+    try:
+        rows = conn.execute(
+            "SELECT id FROM assessments WHERE session_id = ?",
+            (session_id,)
+        ).fetchall()
+        if not rows:
+            return 0
+        ids = [r["id"] for r in rows]
+        placeholders = ",".join("?" for _ in ids)
+        conn.execute(f"DELETE FROM feedback WHERE assessment_id IN ({placeholders})", ids)
+        conn.execute(f"DELETE FROM lab_assessments WHERE assessment_id IN ({placeholders})", ids)
+        conn.execute(f"DELETE FROM risk_results WHERE assessment_id IN ({placeholders})", ids)
+        cur = conn.execute(f"DELETE FROM assessments WHERE id IN ({placeholders})", ids)
+        deleted_count = cur.rowcount
+        conn.commit()
+        return deleted_count
+    finally:
+        conn.close()
+

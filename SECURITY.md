@@ -1,176 +1,57 @@
-# Security, Operations & Configuration Guide
+# Security and Operations
 
-## Overview
+## Configuration
 
-This document outlines security controls, defensive countermeasures, operational configurations, and deployment architectures implemented for the Diabetes Complication Prediction System (**DiaBeates**).
+| Variable | Default | Use |
+|---|---|---|
+| `SECRET_KEY` | generated and persisted to `.secret_key` when absent | Flask session signing |
+| `DEBUG` | `False` | Flask debug behavior |
+| `SESSION_COOKIE_SECURE` | `False` | HTTPS-only session cookies when true |
+| `DISPLAY_TIMEZONE` | `Asia/Manila` | History timestamp display |
+| `RETENTION_DAYS` | `90` | Startup data-pruning horizon |
+| `PORT` | `5000` | Waitress port |
 
----
+Set a unique production secret with `python -c "import secrets; print(secrets.token_hex(32))"`. The repository contains `.env.example`, not a committed `.env`. Set `SESSION_COOKIE_SECURE=True` when HTTPS is active.
 
-## Configuration & Environment Management
+## Controls
 
-### Environment Variables (`.env`)
+- Flask-WTF provides global CSRF protection for state-changing requests (including `/history/export` and `/history/clear`).
+- Flask-Limiter applies `300 per day` and `100 per hour` by remote address; `/health` is exempt.
+- `validation.py` revalidates every submitted field on the server.
+- Assessment reads, exports, and purges are strictly filtered by an anonymous session UUID.
+- Assessments are processed in-memory by default and persisted to the local encrypted database only when explicitly opted in by the user.
+- Decentralized report sharing utilizes client-side URL hash fragments (`#report=` and `#encrypted=v1.<salt>.<iv>.<ciphertext>`), preventing report data from ever being sent across the network. Encrypted reports use WebCrypto AES-256-GCM with PBKDF2 (310,000 iterations).
+- Unexpected exceptions are logged with stack traces while users receive generic errors.
+- SQLCipher uses foreign keys, WAL mode, and a busy timeout; the database key is protected with Windows DPAPI for local Windows deployments.
+- Startup pruning uses `RETENTION_DAYS`; archive is soft state and delete is permanent.
+- Logs rotate at 10 MB with five backups in `logs/diabetes_system.log`.
 
-Application secrets and deployment flags are configured via `.env`:
+## Headers & Content Security Policy
 
-```bash
-# Flask Session Security Key
-SECRET_KEY=<generate-a-strong-random-hex-key>
+The application sets strict production security headers via a unified `@app.after_request` handler:
+- `X-Frame-Options`: `DENY`
+- `X-Content-Type-Options`: `nosniff`
+- `Referrer-Policy`: `strict-origin-when-cross-origin`
+- `Permissions-Policy`: `camera=(), microphone=(), geolocation=(), payment=(), usb=()`
+- `Cross-Origin-Opener-Policy`: `same-origin`
+- `Cross-Origin-Resource-Policy`: `same-origin`
+- `Cross-Origin-Embedder-Policy`: `require-corp`
+- Strict Content Security Policy (`default-src 'self'`, `script-src 'self'`, `style-src 'self'`, `img-src 'self' data:`, `font-src 'self'`, `connect-src 'self'`, `object-src 'none'`, `frame-ancestors 'none'`, `base-uri 'self'`, `form-action 'self'`).
+  - **Zero `'unsafe-inline'`** across all scripts and styles.
+  - **Zero `'unsafe-eval'`**.
+  - **Zero external CDN, remote font, or remote image dependencies**.
 
-# Deployment Mode (set False in production)
-DEBUG=False
+## Deployment
 
-# Cookie Security (set True when HTTPS is enabled)
-SESSION_COOKIE_SECURE=True
+The Docker image is single-stage, based on `python:3.11-slim`, runs as non-root `appuser`, exposes port 5000 bound strictly to `127.0.0.1:5000`, and checks `/health`. Compose mounts the database, database keys, and log directory; supply secrets, TLS, and secure-cookie settings separately.
 
-# Application Port
-PORT=5000
+## Pre-Production Checklist
 
-# Display Timezone for Audit and History (default Asia/Manila / PHT)
-DISPLAY_TIMEZONE=Asia/Manila
-```
-
-### Secret Key & Session Hardening
-
-The `SECRET_KEY` cryptographically signs Flask session cookies to protect client-side session states:
-- **Defense in Depth**:
-  - `SESSION_COOKIE_HTTPONLY=True`: Prevents client-side scripts from reading session cookies, thwarting XSS session extraction.
-  - `SESSION_COOKIE_SAMESITE="Lax"`: Mitigates Cross-Site Request Forgery (CSRF) on ambient browser requests.
-  - `SESSION_COOKIE_SECURE`: Conditionally enforces HTTPS-only cookie transmission when running behind TLS.
-  - `PERMANENT_SESSION_LIFETIME=86400`: Caps session lifespan to 24 hours.
-  - **Startup Verification**: The application logs a high-severity alert if `DEFAULT_SECRET_KEY` is detected while `DEBUG=False`.
-
-To generate a cryptographically strong secret:
-```bash
-python -c "import secrets; print(secrets.token_hex(32))"
-```
-
----
-
-## Defensive Countermeasures & Security Headers
-
-### 1. HTTP Security Headers
-Every HTTP response is injected with defensive headers in `app.py`:
-- `X-Frame-Options: DENY`: Blocks clickjacking attacks by forbidding iframe embedding.
-- `X-Content-Type-Options: nosniff`: Prevents MIME-type sniffing vulnerabilities.
-- `Referrer-Policy: strict-origin-when-cross-origin`: Restricts leaking sensitive URL parameters to third parties.
-- `Permissions-Policy: geolocation=(), microphone=(), camera=()`: Disables unneeded browser capabilities.
-- `Strict-Transport-Security: max-age=31536000; includeSubDomains`: Enforces HTTPS for all client communication in production.
-
-### 2. Cross-Site Request Forgery (CSRF) Protection
-- Implemented globally via **Flask-WTF** (`CSRFProtect(app)`).
-- Every POST request (`/predict`, `/history/<id>/archive`, `/history/<id>/delete`) requires a valid CSRF token.
-- Invalid or missing tokens trigger HTTP 400 Bad Request responses with audit log entries.
-
-### 3. Rate Limiting
-- Enforced via **Flask-Limiter** using client remote addresses (`get_remote_address`).
-- Default limit: `300 per day`, `100 per hour` across public routes.
-- Protects clinical triage endpoints against brute-force abuse and Denial of Service (DoS).
-
----
-
-## Production Runtime & Containerization
-
-### 1. Multi-Stage Docker Deployment
-- **Base Image**: `python:3.11-slim` for minimal surface area and vulnerability reduction.
-- **Unprivileged Execution**: Drops privileges to `appuser` (created without home directory and non-root UID).
-- **Environment Isolation**: Bytecode caching disabled (`PYTHONDONTWRITEBYTECODE=1`), unbuffered logging enabled (`PYTHONUNBUFFERED=1`).
-- **Volume Mounts**: Isolated persistent storage for `diabetes_system.db` and `/app/logs`.
-
-### 2. Multi-Threaded WSGI Server (Waitress)
-- Entrypoint [`wsgi.py`](wsgi.py) replaces development servers with production Waitress:
-```python
-serve(app, host='0.0.0.0', port=5000, threads=8)
-```
-- Provides stable concurrent connection handling without thread starvation.
-
-### 3. Automated Liveness & Readiness Healthcheck (`/health`)
-- Exposes an operational monitoring endpoint at `/health`.
-- Verifies:
-  1. Database read/write connectivity.
-  2. All 4 clinical risk models (`cardiovascular`, `general_burden`, `neuropathy_mobility`, `retinopathy`) loaded in memory.
-- Integrated into Docker container health probes (`HEALTHCHECK` in `Dockerfile`).
-
----
-
-## Data Privacy, Storage & Retention
-
-### 1. Anonymous Session Isolation
-- Assessments are keyed to an anonymous UUID string stored in the user's session (`session["session_id"]`).
-- No personally identifiable information (PII) such as patient names, emails, national IDs, or IP addresses are persisted in the assessment database.
-- Database queries enforce strict `session_id` filtering, preventing cross-tenant record leakage.
-
-### 2. Database Reliability (SQLite WAL Mode)
-- Configured with `PRAGMA journal_mode = WAL` (Write-Ahead Logging).
-- Allows concurrent readers while a single writer commits, preventing table locking.
-- Safe, non-destructive schema migrations ensure columns (`diabetes_duration`, `blurry_vision`, `archived`) are added idempotently without data loss.
-
-### 3. Automated Data Retention Pruning
-- Implemented via `prune_expired_assessments(days=90)` in [`database.py`](database.py).
-- Runs during application startup and can be configured with the `RETENTION_DAYS` environment variable.
-- Purges stale records and associated risk entries exceeding the retention horizon, complying with data minimization principles.
-
-### 4. Patient Audit Trail & UX
-- Assessment history supports chronological sorting (newest first / oldest first).
-- Stable sequential display numbering (`#1`, `#2`, ...).
-- Timestamps converted to localized Philippine Standard Time (PHT / UTC+8).
-- Deletion operations protected with accessible modal dialogs that enforce keyboard focus trapping and explicit user confirmation.
-
----
-
-## Input Validation & Bounds Checking
-
-All inputs submitted to `/predict` are validated server-side in [`validation.py`](validation.py) before execution:
-
-| Parameter | Allowed Range / Types | Validation Policy |
-|---|:---:|---|
-| **Age** | 1 – 13 (BRFSS age bands) | Integer bounds |
-| **Sex** | 0 (Female), 1 (Male) | Binary integer |
-| **BMI** | 10.0 – 80.0 | Floating-point range |
-| **Diabetes Duration** | 0 – 4 (<1 yr, 1–5 yrs, 5–10 yrs, 10–20 yrs, 20+ yrs) | Categorical band |
-| **HighBP / HighChol / Smoker / Stroke** | 0 or 1 | Binary integer |
-| **HeartDiseaseorAttack / DiffWalk / BlurryVision** | 0 or 1 | Binary integer |
-| **PhysHlth / MentHlth** | 0 – 30 days | Integer day bounds |
-| **GenHlth** | 1 – 5 | Categorical integer |
-| **NoDocbcCost** | 0 or 1 | Binary integer |
-| **HbA1c (Optional)** | 3.0 – 20.0% | Optional floating-point |
-| **Systolic BP (Optional)** | 60 – 250 mmHg | Optional integer |
-| **LDL Cholesterol (Optional)** | 20 – 400 mg/dL | Optional integer |
-
----
-
-## Logging & Auditing
-
-- **Log File**: `logs/diabetes_system.log`
-- **Rotation Policy**: Rotates at 10MB with 5 archived backups (50MB maximum ceiling).
-- **Log Events**:
-  - Application startup, configuration warnings, and loaded model summaries.
-  - CSRF verification errors.
-  - Validation failures and malformed payloads.
-  - Model inference executions and database transaction status.
-
-```bash
-# View real-time logs on Windows PowerShell
-Get-Content .\logs\diabetes_system.log -Tail 50 -Wait
-
-# Search for security warnings or errors
-Select-String "WARNING|ERROR|CSRF" .\logs\diabetes_system.log
-```
-
----
-
-## Production Security Checklist
-
-- [x] CSRF protection enabled across all form endpoints (Flask-WTF)
-- [x] Server-side bounds checking for all 15 clinical indicators and optional lab values
-- [x] Multi-stage Docker container build running as non-root user (`appuser`)
-- [x] Multi-threaded production WSGI server via Waitress (`wsgi.py`)
-- [x] Operational health check probe (`/health`)
-- [x] Defensive HTTP security headers (`X-Frame-Options`, `X-Content-Type-Options`, `Referrer-Policy`, `HSTS`)
-- [x] Rate limiting on public prediction endpoints (Flask-Limiter)
-- [x] Automated 90-day data retention pruning (`prune_expired_assessments`)
-- [x] Rotating file logger with 10MB limit and 5 backups
-- [x] SQLite WAL mode enabled for concurrent performance and non-destructive migrations
-- [ ] Set unique `SECRET_KEY` in production `.env`
-- [ ] Set `DEBUG=False` in production `.env`
-- [ ] Terminate TLS/HTTPS via reverse proxy (Nginx, Traefik, or Caddy)
-
+- Set a unique `SECRET_KEY` outside source control.
+- Keep `DEBUG=False` and enable `SESSION_COOKIE_SECURE` with HTTPS.
+- Restrict database, `.secret_key`, logs, and model permissions.
+- Confirm `/health` returns 200 with all four models loaded.
+- Confirm strict CSP (`'self'` only, zero `'unsafe-inline'`) is active.
+- Verify localhost binding on port 5000 (`127.0.0.1:5000`).
+- Test retention, export, clear, and backup/restore procedures.
+- Run `python test_clinical_system.py`, `python test_privacy_hardening.py`, and `python verify_browser_behavior.py` after deployment changes.

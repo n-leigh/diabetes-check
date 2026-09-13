@@ -8,13 +8,17 @@
   <section class="relative isolate overflow-hidden py-16 sm:py-20 px-4 border-b border-slate-200/80">
     <img class="absolute inset-0 -z-20 h-full w-full object-cover" src="https://images.unsplash.com/photo-1641679103706-fc8542e2a97a?auto=format&amp;fit=crop&amp;w=2000&amp;q=85" alt="A pile of white sugar cubes representing blood sugar levels" />
     <div class="absolute inset-0 -z-10" style="background: rgba(6, 49, 84, 0.65);"></div>
+    <div class="absolute inset-0 -z-20 bg-gradient-to-br from-[#063154] via-[#044c68] to-[#03bdcd]"></div>
+    <div class="absolute inset-0 -z-10 bg-[#063154]/60 backdrop-blur-xs"></div>
     <div class="max-w-4xl mx-auto text-center relative z-10">
       <div class="inline-block border border-white/30 text-white font-semibold rounded-full px-4 py-1 text-xs uppercase tracking-wider mb-6" style="background: linear-gradient(135deg, rgba(3, 189, 205, 0.55) 0%, rgba(6, 49, 84, 0.55) 100%); box-shadow: 0 0 0 1px rgba(255,255,255,0.05); backdrop-filter: blur(2px);">
+      <div class="inline-block border border-white/30 text-white font-semibold rounded-full px-4 py-1 text-xs uppercase tracking-wider mb-6 bg-gradient-to-r from-teal-500/60 to-[#063154]/70 shadow-sm backdrop-blur-sm">
         Health Screening
       </div>
       <h1 class="font-display text-4xl sm:text-5xl font-extrabold mb-5 tracking-tight">
         <span class="text-white">Understand your risk</span><br>
         <span class="text-gradient-hero">before complications advance</span>
+        <span class="text-cyan-300">before complications advance</span>
       </h1>
       <p class="text-white/90 text-base max-w-2xl mx-auto leading-relaxed">
         DiaBeates is a web-based diabetes risk screening tool that helps individuals estimate their
@@ -124,6 +128,7 @@
               device. Risk levels shown are statistical estimates, not diagnoses. Results should never
               replace evaluation by a licensed healthcare provider, and no treatment decision should be
               made on this tool's output alone.
+              DiaBeates is a clinical decision-support and screening tool, not a diagnostic device. Risk levels shown are statistical estimates, not medical diagnoses. Results should never replace evaluation by a licensed healthcare provider, and no treatment decision should be made on this tool's output alone.
             </p>
           </div>
         </div>
@@ -144,11 +149,13 @@
 
         <div class="bg-slate-50 border border-slate-200 rounded-2xl p-6">
           <h3 class="font-display font-bold text-slate-800 mb-2">Data handling</h3>
+          <h3 class="font-display font-bold text-slate-800 mb-2">Data Processing &amp; Local Storage</h3>
           <p class="text-sm text-slate-600 leading-relaxed">
             Assessments entered into this system are stored locally in the app's own database for
             demonstration purposes (e.g. the History page). No real patient data, consent process, or
             production-grade privacy safeguards are involved, this system is not intended for
             deployment with real patient records without further ethical review and safeguards.
+            Assessments are processed by the local Flask application on this computer. If you choose to save an assessment, it is stored in the local encrypted database and associated with this browser session. Data is not sent to external clouds, remote APIs, third-party analytics, or remote fonts.
           </p>
         </div>
 

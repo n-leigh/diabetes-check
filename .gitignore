@@ -29,6 +29,12 @@ Thumbs.db
 .env
 logs/
 .secret_key
+.db.key
+.db.key.dpapi
+*.plaintext-backup-*
+*.sqlcipher-migration-*.tmp
+*.restore-*.tmp
+backups/
 
 # Raw external datasets (auto-downloaded/cached locally)
 data/raw_retinopathy/
@@ -36,3 +42,4 @@ data/raw_retinopathy/
 *.db
 *.log
 logs/
+node_modules/

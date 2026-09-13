@@ -3,117 +3,13 @@
 <head>
   <meta charset="UTF-8">
   <title>DiaBeates Risk Summary — {{ created_at|display_time }} PHT</title>
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;700;800&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
-  <style>
-    * { box-sizing: border-box; }
-    body {
-      font-family: 'Inter', sans-serif;
-      color: #1e293b;
-      max-width: 780px;
-      margin: 0 auto;
-      padding: 40px 32px;
-      line-height: 1.5;
-    }
-    h1, h2, h3, .display { font-family: 'Plus Jakarta Sans', sans-serif; }
-
-    .print-toolbar {
-      background: #0d9488;
-      color: white;
-      padding: 14px 20px;
-      border-radius: 12px;
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      margin-bottom: 28px;
-    }
-    .print-toolbar button {
-      background: white;
-      color: #0d9488;
-      border: none;
-      padding: 9px 18px;
-      border-radius: 8px;
-      font-weight: 700;
-      font-size: 13px;
-      cursor: pointer;
-      font-family: 'Inter', sans-serif;
-    }
-    .print-toolbar button:hover { background: #f0fdfa; }
-
-    .header {
-      display: flex;
-      justify-content: space-between;
-      align-items: flex-start;
-      border-bottom: 3px solid #0d9488;
-      padding-bottom: 16px;
-      margin-bottom: 24px;
-    }
-    .brand { display: flex; align-items: center; gap: 10px; }
-    .brand img { width: 34px; height: 34px; border-radius: 50%; }
-    .brand-name { font-size: 20px; font-weight: 800; }
-    .brand-name .accent { color: #0d9488; }
-    .meta { text-align: right; font-size: 12px; color: #64748b; }
-
-    h1.title { font-size: 22px; font-weight: 800; margin: 0 0 4px 0; }
-    .subtitle { font-size: 13px; color: #64748b; margin: 0 0 24px 0; }
-
-    section { margin-bottom: 26px; break-inside: avoid; }
-    h2.section-title {
-      font-size: 12px;
-      text-transform: uppercase;
-      letter-spacing: 0.06em;
-      color: #64748b;
-      font-weight: 700;
-      margin: 0 0 12px 0;
-      padding-bottom: 6px;
-      border-bottom: 1px solid #e2e8f0;
-    }
-
-    .info-grid { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 12px 24px; }
-    .info-item .label { font-size: 11px; color: #94a3b8; margin-bottom: 2px; }
-    .info-item .value { font-size: 14px; font-weight: 600; color: #1e293b; }
-
-    .risk-factors-list { font-size: 13px; color: #334155; margin-top: 10px; }
-    .risk-factors-list span { display: inline-block; background: #f1f5f9; padding: 3px 10px; border-radius: 999px; margin: 2px 4px 2px 0; font-size: 12px; }
-
-    table.risk-table { width: 100%; border-collapse: collapse; font-size: 13px; }
-    table.risk-table th {
-      text-align: left; font-size: 11px; text-transform: uppercase; letter-spacing: 0.04em;
-      color: #94a3b8; padding: 6px 10px; border-bottom: 1px solid #e2e8f0;
-    }
-    table.risk-table td { padding: 10px; border-bottom: 1px solid #f1f5f9; }
-    .tier-badge {
-      display: inline-block; padding: 2px 10px; border-radius: 999px;
-      font-size: 12px; font-weight: 700; border: 1.5px solid;
-    }
-    .tier-Low { color: #15803d; border-color: #86efac; background: #f0fdf4; }
-    .tier-Moderate { color: #b45309; border-color: #fcd34d; background: #fffbeb; }
-    .tier-High { color: #b91c1c; border-color: #fca5a5; background: #fef2f2; }
-
-    .rec-item { padding: 10px 0; border-bottom: 1px solid #f1f5f9; }
-    .rec-item:last-child { border-bottom: none; }
-    .rec-item .rec-title { font-weight: 700; font-size: 13px; margin-bottom: 2px; }
-    .rec-item .rec-desc { font-size: 12.5px; color: #475569; line-height: 1.5; }
-
-    .disclaimer {
-      margin-top: 30px; padding: 14px 16px; background: #fffbeb; border: 1px solid #fde68a;
-      border-radius: 10px; font-size: 11.5px; color: #92400e; line-height: 1.5;
-    }
-    .footer-note { text-align: center; font-size: 11px; color: #94a3b8; margin-top: 24px; }
-
-    @media print {
-      body { padding: 0 24px; }
-      .print-toolbar { display: none; }
-      section { break-inside: avoid; }
-      a { color: inherit; text-decoration: none; }
-    }
-  </style>
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/print.css') }}">
 </head>
 <body>
 
   <div class="print-toolbar">
     <span>This is your printable summary, use your browser's print dialog to print or save as PDF.</span>
-    <button onclick="window.print()">Print / Save as PDF</button>
+    <button id="printTriggerBtn" type="button">Print / Save as PDF</button>
   </div>
 
   <div class="header">
@@ -142,7 +38,7 @@
     </div>
     {% if patient_display.risk_factors %}
     <div class="risk-factors-list">
-      <div class="label" style="font-size:11px;color:#94a3b8;margin-bottom:4px;">Reported risk factors</div>
+      <div class="label-subdued">Reported risk factors</div>
       {% for rf in patient_display.risk_factors %}<span>{{ rf }}</span>{% endfor %}
     </div>
     {% endif %}
@@ -150,16 +46,21 @@
 
   <section>
     <h2 class="section-title">Complication Risk Results</h2>
+    <div class="method-note">
+      <strong>How to read this table:</strong> The rule-matrix score is a points-based summary of reported factors.
+      The calibrated ML probability is an estimate from the named model and is not a diagnosis. These outputs use
+      different methods and should not be compared as if they were the same scale.
+    </div>
     <table class="risk-table">
       <thead>
-        <tr><th>Category</th><th>Clinical Rule</th><th>Estimated Risk</th><th>Risk Level</th></tr>
+        <tr><th>Category</th><th>Rule-Matrix Result</th><th>Calibrated ML Result</th><th>Methods' Categories</th></tr>
       </thead>
       <tbody>
         {% for cat in categories %}
         {% set res = rule_results.get(cat) %}
         {% if res %}
         <tr>
-          <td style="font-weight:600;">
+          <td class="cat-name">
             {% if cat == 'cardiovascular' %}
               Cardiovascular (ACC/AHA)
             {% elif cat == 'general_burden' %}
@@ -170,22 +71,35 @@
               Diabetic Retinopathy (ADA)
             {% endif %}
           </td>
-          <td>{{ res.score }} pts ({{ res.percentage }}%)</td>
+          <td>
+            <strong>{{ res.score }} pts</strong><br>
+            <span class="risk-subtext">{{ res.percentage }}% of rule maximum</span><br>
+            <span class="tier-badge tier-{{ res.label }}">Rule: {% if res.label == 'Low' %}Lower{% elif res.label == 'Moderate' %}Moderate{% else %}Higher{% endif %}</span>
+          </td>
           <td>
             {% set cal_qual = model_metadata.get(cat, {}).get('calibration_quality', 'fair') if model_metadata is defined else 'fair' %}
-            {{ model_results.get(cat, '—') }}
-            {% if model_confidences and model_confidences.get(cat) and cal_qual != 'weak' %}
-              <span style="color:#64748b; font-size:11.5px;">({{ model_confidences[cat] }}%)</span>
+            {% if model_confidences and model_confidences.get(cat) is not none %}
+              <strong>{{ model_confidences[cat] }}%</strong><br>
+              <span class="risk-subtext">Calibrated ML probability</span><br>
+            {% else %}
+              <strong>Not available</strong><br>
+            {% endif %}
+            <span class="risk-model-name">{{ model_names.get(cat, 'Model unavailable') }}</span>
+            {% if model_confidences and model_confidences.get(cat) is not none and cal_qual != 'weak' %}
+              <br><span class="risk-subtext-detail">Calibration: {{ cal_qual }}</span>
             {% endif %}
             {% if model_metadata is defined and model_metadata.get(cat) %}
               {% set unc = model_metadata[cat].get('uncertainty_level', 'moderate') %}
-              <span style="color:#94a3b8; font-size:10.5px;">· Uncertainty: {{ unc }}</span>
+              <span class="risk-uncertainty">· Uncertainty: {{ unc }}</span>
               {% if model_metadata[cat].model_status == 'experimental' %}
-              <span style="color:#b45309; font-size:10.5px; font-weight:600;"> · Experimental</span>
+              <span class="risk-experimental"> · Experimental</span>
               {% endif %}
             {% endif %}
           </td>
-          <td><span class="tier-badge tier-{{ res.label }}">{% if res.label == 'Low' %}Lower{% elif res.label == 'Moderate' %}Moderate{% else %}Higher{% endif %} Est. Risk</span></td>
+          <td>
+            <span class="tier-badge tier-{{ res.label }}">Rule: {% if res.label == 'Low' %}Lower{% elif res.label == 'Moderate' %}Moderate{% else %}Higher{% endif %}</span><br>
+            <span class="risk-model-name">ML: {{ model_results.get(cat, 'Not available') }}</span>
+          </td>
         </tr>
         {% endif %}
         {% endfor %}
@@ -196,15 +110,15 @@
   {% if patient_drivers %}
   <section>
     <h2 class="section-title">Key Clinical Risk Drivers (Individual Feature Attribution)</h2>
-    <div style="display:grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); gap:12px; font-size:12px;">
+    <div class="drivers-grid">
       {% for cat in categories %}
-      <div style="background:#f8fafc; border:1px solid #e2e8f0; border-radius:8px; padding:10px;">
-        <div style="font-weight:700; color:#334155; margin-bottom:6px; font-size:11px; text-transform:uppercase;">
+      <div class="driver-card">
+        <div class="driver-title">
           {% if cat == 'cardiovascular' %}Cardiovascular{% elif cat == 'general_burden' %}Nephropathy{% elif cat == 'neuropathy_mobility' %}Neuropathy{% else %}Retinopathy{% endif %}
         </div>
-        <ul style="margin:0; padding-left:14px; color:#475569; font-size:11px;">
+        <ul class="driver-list">
           {% for d in patient_drivers.get(cat, []) %}
-          <li style="margin-bottom:4px;"><strong>{{ d.factor }}</strong> ({{ d.impact }}): {{ d.detail }}</li>
+          <li class="driver-item"><strong>{{ d.factor }}</strong> ({{ d.impact }}): {{ d.detail }}</li>
           {% endfor %}
         </ul>
       </div>
@@ -226,6 +140,18 @@
   {% endif %}
 
   <section>
+    <h2 class="section-title">Clinician Review Notes</h2>
+    <div class="review-grid">
+      <div class="review-field"><div class="label">Reviewed by</div></div>
+      <div class="review-field"><div class="label">Review date</div></div>
+      <div class="review-field"><div class="label">Follow-up or action discussed</div></div>
+      <div class="review-field"><div class="label">Next review date</div></div>
+    </div>
+    <div class="label-clinical-notes">Clinical notes</div>
+    <div class="review-notes" aria-label="Blank area for clinician review notes"></div>
+  </section>
+
+  <section>
     <h2 class="section-title">What You Can Do</h2>
     {% for item in recommendations.steps %}
     <div class="rec-item">
@@ -238,12 +164,14 @@
   <div class="disclaimer">
     <strong>Screening tool — not a medical diagnosis.</strong> This summary is generated for educational and preliminary screening
     purposes. It estimates complication risk using statistical models trained on population health data (CDC NHANES and BRFSS
-    clinical cohorts) and evidence-aligned clinical rule scoring. A higher result may justify discussing follow-up testing with
-    a healthcare professional. A lower result does not rule out disease, and a higher result does not confirm disease.
+    clinical cohorts) and evidence-aligned clinical rule scoring. The rule-based score and model estimate use different
+    methods and should not be compared directly. These results support screening and education, not diagnosis. A lower
+    estimate does not rule out disease, and a higher estimate does not confirm disease.
     Please share this summary with a licensed healthcare provider for interpretation and any decisions about your care.
   </div>
 
   <p class="footer-note">DiaBeates — Dual-engine clinical decision support and diabetes complication risk screening.</p>
 
+  <script src="{{ url_for('static', filename='js/print.js') }}"></script>
 </body>
 </html>

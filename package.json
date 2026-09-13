@@ -1,0 +1,13 @@
+{
+  "name": "diabeates",
+  "version": "2.0.0",
+  "private": true,
+  "description": "DiaBeates clinical decision-support application",
+  "scripts": {
+    "build:css": "tailwindcss -i input.css -o static/css/tailwind.min.css --content \"templates/**/*.html\" --minify"
+    "build:css": "tailwindcss -i input.css -o static/css/tailwind.min.css --content \"templates/**/*.html\" --content \"static/js/**/*.js\" --minify"
+  },
+  "devDependencies": {
+    "tailwindcss": "3.4.17"
+  }
+}

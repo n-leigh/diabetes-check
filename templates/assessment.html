@@ -218,7 +218,7 @@
                      {{ 'checked' if form_data and form_data.get(field) }}>
               <span class="text-xs sm:text-sm">{{ cb_label }}</span>
             </div>
-            <span class="relative group/info shrink-0 ml-1 inline-flex items-center" onclick="event.stopPropagation();">
+            <span class="relative group/info shrink-0 ml-1 inline-flex items-center js-stop-propagation">
               <button type="button" class="inline-flex items-center justify-center w-4 h-4 rounded-full bg-slate-100 hover:bg-teal-100 text-slate-400 hover:text-teal-700 transition-colors focus:outline-none focus:ring-2 focus:ring-teal-400/50 cursor-help select-none" aria-label="Why this is asked: {{ cb_label }}" tabindex="0">
                 <svg class="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5" aria-hidden="true">
                   <circle cx="12" cy="12" r="9" />
@@ -308,6 +308,20 @@
               {{ info_tooltip('ADA 2026 lipid target guidelines: <70 mg/dL optimal primary prevention for diabetes (Rec 10.20), 70–99 mg/dL borderline, ≥100 mg/dL elevated atherogenic risk.', align='right') }}
             </p>
           </div>
+        </div>
+
+        <!-- History Storage Option -->
+        <div class="p-4 rounded-2xl bg-slate-50 border border-slate-200/80 mb-6">
+          <label for="save_history" class="flex items-start gap-3 cursor-pointer select-none">
+            <input type="checkbox" id="save_history" name="save_history" value="1"
+                   class="mt-1 w-4 h-4 rounded border-slate-300 text-teal-600 focus:ring-teal-400/50 shrink-0">
+            <div>
+              <span class="text-sm font-semibold text-slate-800 block">Save assessment to local history</span>
+              <span class="text-xs text-slate-500 leading-relaxed block mt-0.5">
+                Assessments are processed by the local Flask application on this computer. If you choose to save an assessment, it is stored in the local encrypted database and associated with this browser session. If unchecked, results are calculated and displayed without creating new database rows.
+              </span>
+            </div>
+          </label>
         </div>
 
         <button type="submit" class="w-full flex items-center justify-center gap-2 px-7 py-3.5 rounded-xl gradient-primary text-white text-sm font-bold hover:opacity-90 transition-opacity shadow-md cursor-pointer">
@@ -421,220 +435,9 @@
     </div>
   </div>
 </dialog>
-
-<script>
-  (function() {
-    const modal = document.getElementById('bmiModal');
-    const openBtn = document.getElementById('openBmiCalcBtn');
-    const closeBtn = document.getElementById('closeBmiModalBtn');
-    const cancelBtn = document.getElementById('cancelBmiBtn');
-    const applyBtn = document.getElementById('applyBmiBtn');
-
-    const tabMetric = document.getElementById('tabMetric');
-    const tabImperial = document.getElementById('tabImperial');
-    const panelMetric = document.getElementById('panelMetric');
-    const panelImperial = document.getElementById('panelImperial');
-
-    const metricHeight = document.getElementById('bmiMetricHeight');
-    const metricWeight = document.getElementById('bmiMetricWeight');
-    const impFt = document.getElementById('bmiImpFt');
-    const impIn = document.getElementById('bmiImpIn');
-    const impLbs = document.getElementById('bmiImpLbs');
-
-    const previewBox = document.getElementById('bmiPreviewBox');
-    const previewNum = document.getElementById('bmiPreviewNum');
-    const previewCat = document.getElementById('bmiPreviewCategory');
-    const errorMsg = document.getElementById('bmiModalError');
-
-    const targetBmiInput = document.getElementById('BMI');
-
-    let currentUnit = 'metric';
-
-    function setTab(unit) {
-      currentUnit = unit;
-      if (unit === 'metric') {
-        tabMetric.setAttribute('aria-selected', 'true');
-        tabMetric.classList.add('bg-white', 'text-teal-700', 'shadow-xs');
-        tabMetric.classList.remove('text-slate-600');
-
-        tabImperial.setAttribute('aria-selected', 'false');
-        tabImperial.classList.remove('bg-white', 'text-teal-700', 'shadow-xs');
-        tabImperial.classList.add('text-slate-600');
-
-        panelMetric.classList.remove('hidden');
-        panelImperial.classList.add('hidden');
-        metricHeight.focus();
-      } else {
-        tabImperial.setAttribute('aria-selected', 'true');
-        tabImperial.classList.add('bg-white', 'text-teal-700', 'shadow-xs');
-        tabImperial.classList.remove('text-slate-600');
-
-        tabMetric.setAttribute('aria-selected', 'false');
-        tabMetric.classList.remove('bg-white', 'text-teal-700', 'shadow-xs');
-        tabMetric.classList.add('text-slate-600');
-
-        panelImperial.classList.remove('hidden');
-        panelMetric.classList.add('hidden');
-        impFt.focus();
-      }
-      updateCalculation();
-    }
-
-    if (tabMetric && tabImperial) {
-      tabMetric.addEventListener('click', () => setTab('metric'));
-      tabImperial.addEventListener('click', () => setTab('imperial'));
-    }
-
-    function calculateBmi() {
-      if (currentUnit === 'metric') {
-        const h = parseFloat(metricHeight.value);
-        const w = parseFloat(metricWeight.value);
-        if (!h || h <= 0 || !w || w <= 0) return null;
-        const hm = h / 100;
-        return w / (hm * hm);
-      } else {
-        const ft = parseFloat(impFt.value) || 0;
-        const inches = parseFloat(impIn.value) || 0;
-        const totalIn = ft * 12 + inches;
-        const lbs = parseFloat(impLbs.value);
-        if (totalIn <= 0 || !lbs || lbs <= 0) return null;
-        const hm = totalIn * 0.0254;
-        const wkg = lbs * 0.45359237;
-        return wkg / (hm * hm);
-      }
-    }
-
-    function getBmiCategory(bmi) {
-      if (bmi < 18.5) return { label: 'Underweight (< 18.5)', color: 'text-amber-600' };
-      if (bmi < 25.0) return { label: 'Normal weight (18.5 – 24.9)', color: 'text-teal-600' };
-      if (bmi < 30.0) return { label: 'Overweight (25.0 – 29.9)', color: 'text-amber-600' };
-      return { label: 'Obese (≥ 30.0)', color: 'text-rose-600' };
-    }
-
-    function updateCalculation() {
-      if (!errorMsg || !previewBox || !previewNum || !previewCat) return;
-      errorMsg.classList.add('hidden');
-      errorMsg.textContent = '';
-      const bmi = calculateBmi();
-      if (bmi !== null && !isNaN(bmi) && isFinite(bmi) && bmi >= 5 && bmi <= 120) {
-        const cat = getBmiCategory(bmi);
-        previewNum.textContent = bmi.toFixed(1);
-        previewCat.textContent = cat.label;
-        previewCat.className = 'text-xs font-semibold ' + cat.color;
-        previewBox.classList.remove('hidden');
-      } else {
-        previewBox.classList.add('hidden');
-      }
-    }
-
-    [metricHeight, metricWeight, impFt, impIn, impLbs].forEach(input => {
-      if (input) {
-        input.addEventListener('input', updateCalculation);
-      }
-    });
-
-    function openModal() {
-      if (!modal) return;
-      if (typeof modal.showModal === 'function') {
-        modal.showModal();
-      } else {
-        modal.setAttribute('open', '');
-      }
-      updateCalculation();
-      if (currentUnit === 'metric' && metricHeight) {
-        metricHeight.focus();
-      } else if (impFt) {
-        impFt.focus();
-      }
-    }
-
-    function closeModal() {
-      if (!modal) return;
-      if (typeof modal.close === 'function') {
-        modal.close();
-      } else {
-        modal.removeAttribute('open');
-      }
-      if (openBtn) {
-        openBtn.focus();
-      }
-    }
-
-    if (openBtn) openBtn.addEventListener('click', openModal);
-    if (closeBtn) closeBtn.addEventListener('click', closeModal);
-    if (cancelBtn) cancelBtn.addEventListener('click', closeModal);
-
-    if (modal) {
-      modal.addEventListener('click', (event) => {
-        if (event.target === modal) {
-          closeModal();
-        }
-      });
-      modal.addEventListener('cancel', () => {
-        if (openBtn) {
-          setTimeout(() => openBtn.focus(), 0);
-        }
-      });
-    }
-
-    if (applyBtn) {
-      applyBtn.addEventListener('click', () => {
-        const bmi = calculateBmi();
-        if (bmi === null || isNaN(bmi) || !isFinite(bmi) || bmi <= 0) {
-          if (errorMsg) {
-            errorMsg.textContent = 'Please enter valid height and weight values.';
-            errorMsg.classList.remove('hidden');
-          }
-          return;
-        }
-        if (targetBmiInput) {
-          targetBmiInput.value = bmi.toFixed(1);
-          targetBmiInput.dispatchEvent(new Event('input', { bubbles: true }));
-          targetBmiInput.dispatchEvent(new Event('change', { bubbles: true }));
-        }
-        closeModal();
-        if (targetBmiInput) {
-          targetBmiInput.focus();
-        }
-      });
-    }
-
-    // Real-time soft warning for 30-day health indicators (PhysHlth & MentHlth)
-    function setupThirtyDayLimitWarning(inputId, warningId, capBtnId) {
-      const input = document.getElementById(inputId);
-      const warning = document.getElementById(warningId);
-      const capBtn = document.getElementById(capBtnId);
-      if (!input || !warning) return;
-
-      function checkValue() {
-        const raw = input.value.trim();
-        const val = parseFloat(raw);
-        if (raw !== '' && !isNaN(val) && val > 30) {
-          warning.classList.remove('hidden');
-          input.classList.add('border-amber-400', 'ring-2', 'ring-amber-400/50');
-        } else {
-          warning.classList.add('hidden');
-          input.classList.remove('border-amber-400', 'ring-2', 'ring-amber-400/50');
-        }
-      }
-
-      input.addEventListener('input', checkValue);
-      input.addEventListener('change', checkValue);
-
-      if (capBtn) {
-        capBtn.addEventListener('click', () => {
-          input.value = 30;
-          checkValue();
-          input.focus();
-        });
-      }
-
-      // Check on initial render if prefilled
-      checkValue();
-    }
-
-    setupThirtyDayLimitWarning('PhysHlth', 'physhlth-warning', 'capPhysHlthBtn');
-    setupThirtyDayLimitWarning('MentHlth', 'menthlth-warning', 'capMentHlthBtn');
-  })();
-</script>
 {% endblock %}
+
+{% block extra_scripts %}
+<script src="{{ url_for('static', filename='js/assessment.js') }}"></script>
+{% endblock %}
+
