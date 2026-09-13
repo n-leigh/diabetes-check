@@ -312,16 +312,19 @@
 
         <!-- History Storage Option -->
         <div class="p-4 rounded-2xl bg-slate-50 border border-slate-200/80 mb-6">
-          <label for="save_history" class="flex items-start gap-3 cursor-pointer select-none">
-            <input type="checkbox" id="save_history" name="save_history" value="1"
-                   class="mt-1 w-4 h-4 rounded border-slate-300 text-teal-600 focus:ring-teal-400/50 shrink-0">
-            <div>
-              <span class="text-sm font-semibold text-slate-800 block">Save assessment to local history</span>
-              <span class="text-xs text-slate-500 leading-relaxed block mt-0.5">
+          <div class="flex items-start gap-3">
+            <input type="checkbox" id="save_history" name="save_history" value="1" autocomplete="off"
+                   aria-describedby="save_history_help"
+                   class="mt-1 w-4 h-4 rounded border-slate-300 text-teal-600 focus:ring-teal-400/50 shrink-0 cursor-pointer">
+            <div class="min-w-0 flex-1">
+              <label for="save_history" class="text-sm font-semibold text-slate-800 cursor-pointer hover:text-slate-900 inline-block select-none">
+                Save assessment to local history
+              </label>
+              <p id="save_history_help" class="text-xs text-slate-500 leading-relaxed mt-0.5 cursor-default select-text">
                 Assessments are processed by the local Flask application on this computer. If you choose to save an assessment, it is stored in the local encrypted database and associated with this browser session. If unchecked, results are calculated and displayed without creating new database rows.
-              </span>
+              </p>
             </div>
-          </label>
+          </div>
         </div>
 
         <button type="submit" class="w-full flex items-center justify-center gap-2 px-7 py-3.5 rounded-xl gradient-primary text-white text-sm font-bold hover:opacity-90 transition-opacity shadow-md cursor-pointer">

@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -7,7 +8,9 @@
   <link rel="icon" type="image/svg+xml" href="{{ url_for('static', filename='logo.svg') }}">
 
   <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800&family=Plus+Jakarta+Sans:ital,wght@0,400;0,500;0,600;0,700;0,800;1,400&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link
+    href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800&family=Plus+Jakarta+Sans:ital,wght@0,400;0,500;0,600;0,700;0,800;1,400&family=Inter:wght@400;500;600;700&display=swap"
+    rel="stylesheet">
   <script src="https://cdn.tailwindcss.com"></script>
   <script>
     tailwind.config = {
@@ -27,19 +30,47 @@
       --page-transition-ease: cubic-bezier(0.22, 1, 0.36, 1);
     }
 
-    body { font-family: 'Inter', sans-serif; background-color: #f8fafc; color: #1e293b; -webkit-font-smoothing: antialiased; }
-    h1, h2, h3, h4, h5, h6, .font-display { font-family: 'Plus Jakarta Sans', sans-serif; }
+    body {
+      font-family: 'Inter', sans-serif;
+      background-color: #f8fafc;
+      color: #1e293b;
+      -webkit-font-smoothing: antialiased;
+    }
 
-    .gradient-primary { background: linear-gradient(135deg, #03bdcd 0%, #063154 100%); }
-    .gradient-hero { background: linear-gradient(135deg, #03bdcd 0%, #063154 100%); }
-    .gradient-card { background: linear-gradient(135deg, rgba(3,189,205,0.08) 0%, rgba(6,49,84,0.08) 100%); }
+    h1,
+    h2,
+    h3,
+    h4,
+    h5,
+    h6,
+    .font-display {
+      font-family: 'Plus Jakarta Sans', sans-serif;
+    }
+
+    .gradient-primary {
+      background: linear-gradient(135deg, #03bdcd 0%, #063154 100%);
+    }
+
+    .gradient-hero {
+      background: linear-gradient(135deg, #03bdcd 0%, #063154 100%);
+    }
+
+    .gradient-card {
+      background: linear-gradient(135deg, rgba(3, 189, 205, 0.08) 0%, rgba(6, 49, 84, 0.08) 100%);
+    }
+
     .text-gradient {
       background: linear-gradient(135deg, #03bdcd, #063154);
-      -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
     }
+
     .text-gradient-hero {
       background: #03bdcd;
-      -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
     }
 
     .animated-border-card {
@@ -57,15 +88,13 @@
       inset: -1px;
       border-radius: inherit;
       padding: 1px;
-      background: conic-gradient(
-        from 0deg,
-        rgba(3, 189, 205, 0) 0deg,
-        rgba(3, 189, 205, 0.92) 35deg,
-        rgba(255, 255, 255, 0.98) 70deg,
-        rgba(3, 189, 205, 0.22) 130deg,
-        rgba(6, 49, 84, 0.9) 220deg,
-        rgba(3, 189, 205, 0) 360deg
-      );
+      background: conic-gradient(from 0deg,
+          rgba(3, 189, 205, 0) 0deg,
+          rgba(3, 189, 205, 0.92) 35deg,
+          rgba(255, 255, 255, 0.98) 70deg,
+          rgba(3, 189, 205, 0.22) 130deg,
+          rgba(6, 49, 84, 0.9) 220deg,
+          rgba(3, 189, 205, 0) 360deg);
       -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
       -webkit-mask-composite: xor;
       mask-composite: exclude;
@@ -73,7 +102,7 @@
       pointer-events: none;
     }
 
-    .animated-border-card > .card-inner {
+    .animated-border-card>.card-inner {
       position: relative;
       z-index: 1;
       background: rgba(255, 255, 255, 0.96);
@@ -94,15 +123,13 @@
       inset: 0;
       border-radius: inherit;
       padding: 1px;
-      background: conic-gradient(
-        from 0deg,
-        rgba(3, 189, 205, 0) 0deg,
-        rgba(255, 255, 255, 0.9) 38deg,
-        rgba(3, 189, 205, 0.9) 78deg,
-        rgba(6, 49, 84, 0.3) 140deg,
-        rgba(3, 189, 205, 0) 220deg,
-        rgba(3, 189, 205, 0) 360deg
-      );
+      background: conic-gradient(from 0deg,
+          rgba(3, 189, 205, 0) 0deg,
+          rgba(255, 255, 255, 0.9) 38deg,
+          rgba(3, 189, 205, 0.9) 78deg,
+          rgba(6, 49, 84, 0.3) 140deg,
+          rgba(3, 189, 205, 0) 220deg,
+          rgba(3, 189, 205, 0) 360deg);
       -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
       -webkit-mask-composite: xor;
       mask-composite: exclude;
@@ -119,38 +146,93 @@
     }
 
     @keyframes borderSpin {
-      0% { transform: rotate(0deg); }
-      100% { transform: rotate(360deg); }
+      0% {
+        transform: rotate(0deg);
+      }
+
+      100% {
+        transform: rotate(360deg);
+      }
     }
 
     @keyframes borderSweep {
-      0% { transform: rotate(0deg); }
-      100% { transform: rotate(360deg); }
+      0% {
+        transform: rotate(0deg);
+      }
+
+      100% {
+        transform: rotate(360deg);
+      }
     }
 
     @keyframes floatOrb1 {
-      0% { transform: translate(0px, 0px) scale(1); }
-      50% { transform: translate(35px, -25px) scale(1.08); }
-      100% { transform: translate(-25px, 20px) scale(0.95); }
+      0% {
+        transform: translate(0px, 0px) scale(1);
+      }
+
+      50% {
+        transform: translate(35px, -25px) scale(1.08);
+      }
+
+      100% {
+        transform: translate(-25px, 20px) scale(0.95);
+      }
     }
+
     @keyframes floatOrb2 {
-      0% { transform: translate(0px, 0px) scale(1); }
-      50% { transform: translate(-30px, 30px) scale(1.1); }
-      100% { transform: translate(25px, -20px) scale(0.92); }
+      0% {
+        transform: translate(0px, 0px) scale(1);
+      }
+
+      50% {
+        transform: translate(-30px, 30px) scale(1.1);
+      }
+
+      100% {
+        transform: translate(25px, -20px) scale(0.92);
+      }
     }
+
     @keyframes floatOrb3 {
-      0% { transform: translate(0px, 0px) scale(1); }
-      50% { transform: translate(20px, 35px) scale(1.05); }
-      100% { transform: translate(-25px, -25px) scale(1.08); }
+      0% {
+        transform: translate(0px, 0px) scale(1);
+      }
+
+      50% {
+        transform: translate(20px, 35px) scale(1.05);
+      }
+
+      100% {
+        transform: translate(-25px, -25px) scale(1.08);
+      }
     }
+
     @keyframes pulseGlow {
-      0%, 100% { opacity: 0.25; transform: scale(1); }
-      50% { opacity: 0.45; transform: scale(1.06); }
+
+      0%,
+      100% {
+        opacity: 0.25;
+        transform: scale(1);
+      }
+
+      50% {
+        opacity: 0.45;
+        transform: scale(1.06);
+      }
     }
+
     @keyframes gradientShift {
-      0% { background-position: 0% 50%; }
-      50% { background-position: 100% 50%; }
-      100% { background-position: 0% 50%; }
+      0% {
+        background-position: 0% 50%;
+      }
+
+      50% {
+        background-position: 100% 50%;
+      }
+
+      100% {
+        background-position: 0% 50%;
+      }
     }
 
     .floating-bg {
@@ -158,15 +240,40 @@
       background-size: 200% 200%;
       animation: gradientShift 14s ease infinite;
     }
-    .floating-orb-1 { animation: floatOrb1 10s ease-in-out infinite alternate; }
-    .floating-orb-2 { animation: floatOrb2 14s ease-in-out infinite alternate; }
-    .floating-orb-3 { animation: floatOrb3 12s ease-in-out infinite alternate; }
-    .floating-glow { animation: pulseGlow 6s ease-in-out infinite; }
 
-    ::-webkit-scrollbar { width: 6px; height: 6px; }
-    ::-webkit-scrollbar-track { background: transparent; }
-    ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 3px; }
-    ::-webkit-scrollbar-thumb:hover { background: #94a3b8; }
+    .floating-orb-1 {
+      animation: floatOrb1 10s ease-in-out infinite alternate;
+    }
+
+    .floating-orb-2 {
+      animation: floatOrb2 14s ease-in-out infinite alternate;
+    }
+
+    .floating-orb-3 {
+      animation: floatOrb3 12s ease-in-out infinite alternate;
+    }
+
+    .floating-glow {
+      animation: pulseGlow 6s ease-in-out infinite;
+    }
+
+    ::-webkit-scrollbar {
+      width: 6px;
+      height: 6px;
+    }
+
+    ::-webkit-scrollbar-track {
+      background: transparent;
+    }
+
+    ::-webkit-scrollbar-thumb {
+      background: #cbd5e1;
+      border-radius: 3px;
+    }
+
+    ::-webkit-scrollbar-thumb:hover {
+      background: #94a3b8;
+    }
 
     body.page-transition {
       opacity: 1;
@@ -219,7 +326,7 @@
       border-radius: inherit;
     }
 
-    body.page-transition > *:not(.page-transition-overlay) {
+    body.page-transition>*:not(.page-transition-overlay) {
       transition:
         transform var(--page-transition-duration) var(--page-transition-ease),
         opacity var(--page-transition-duration) var(--page-transition-ease),
@@ -227,7 +334,7 @@
       transform-origin: center center;
     }
 
-    body.page-transition.is-transitioning > *:not(.page-transition-overlay) {
+    body.page-transition.is-transitioning>*:not(.page-transition-overlay) {
       opacity: 0;
       transform: translateY(14px) scale(0.985);
       filter: blur(2px);
@@ -245,7 +352,7 @@
       transform: scale(1);
     }
 
-    body.page-transition.is-revealing > *:not(.page-transition-overlay) {
+    body.page-transition.is-revealing>*:not(.page-transition-overlay) {
       animation: pageReveal var(--page-transition-duration) var(--page-transition-ease) both;
     }
 
@@ -265,6 +372,7 @@
         transform: translateY(12px) scale(0.988);
         filter: blur(2px);
       }
+
       100% {
         opacity: 1;
         transform: translateY(0) scale(1);
@@ -273,25 +381,39 @@
     }
 
     @keyframes logoBreath {
-      0% { transform: scale(1); }
-      100% { transform: scale(1.06); }
+      0% {
+        transform: scale(1);
+      }
+
+      100% {
+        transform: scale(1.06);
+      }
     }
 
     @keyframes logoGlowPulse {
-      0% { opacity: 0.65; transform: scale(0.98); }
-      100% { opacity: 1; transform: scale(1.08); }
+      0% {
+        opacity: 0.65;
+        transform: scale(0.98);
+      }
+
+      100% {
+        opacity: 1;
+        transform: scale(1.08);
+      }
     }
 
     @media (prefers-reduced-motion: reduce) {
-      body.page-transition > *:not(.page-transition-overlay) {
+      body.page-transition>*:not(.page-transition-overlay) {
         transition: none;
         animation: none;
       }
-      body.page-transition.is-transitioning > *:not(.page-transition-overlay) {
+
+      body.page-transition.is-transitioning>*:not(.page-transition-overlay) {
         opacity: 1;
         transform: none;
         filter: none;
       }
+
       .page-transition-overlay,
       .page-transition-logo,
       .page-transition-logo::before,
@@ -314,7 +436,9 @@
       -webkit-backdrop-filter: blur(8px);
     }
 
-    .disclaimer-backdrop[hidden] { display: none; }
+    .disclaimer-backdrop[hidden] {
+      display: none;
+    }
 
     .disclaimer-dialog {
       width: min(100%, 34rem);
@@ -326,20 +450,32 @@
       box-shadow: 0 24px 70px rgba(6, 49, 84, 0.3);
     }
 
-    .disclaimer-dialog:focus { outline: none; }
+    .disclaimer-dialog:focus {
+      outline: none;
+    }
 
     @media (prefers-reduced-motion: no-preference) {
-      .disclaimer-dialog { animation: disclaimerEnter 180ms ease-out both; }
+      .disclaimer-dialog {
+        animation: disclaimerEnter 180ms ease-out both;
+      }
     }
 
     @keyframes disclaimerEnter {
-      from { opacity: 0; transform: translateY(10px) scale(0.98); }
-      to { opacity: 1; transform: translateY(0) scale(1); }
+      from {
+        opacity: 0;
+        transform: translateY(10px) scale(0.98);
+      }
+
+      to {
+        opacity: 1;
+        transform: translateY(0) scale(1);
+      }
     }
   </style>
   <link rel="stylesheet" href="{{ url_for('static', filename='css/tailwind.min.css') }}">
   {% block extra_head %}{% endblock %}
 </head>
+
 <body class="min-h-screen flex flex-col page-transition">
   <div class="page-transition-overlay" aria-hidden="true">
     <div class="page-transition-logo">
@@ -358,61 +494,90 @@
         </a>
 
         <div class="hidden md:flex items-center gap-1">
-          <a href="/" class="px-4 py-2 rounded-lg text-sm font-medium transition-colors duration-150 {{ 'bg-teal-50 text-teal-700' if active_page == 'home' else 'text-slate-600 hover:text-slate-900 hover:bg-slate-50' }}">
+          <a href="/"
+            class="px-4 py-2 rounded-lg text-sm font-medium transition-colors duration-150 {{ 'bg-teal-50 text-teal-700' if active_page == 'home' else 'text-slate-600 hover:text-slate-900 hover:bg-slate-50' }}">
             Home
           </a>
-          <a href="/assessment" class="px-4 py-2 rounded-lg text-sm font-medium transition-colors duration-150 {{ 'bg-teal-50 text-teal-700' if active_page == 'assessment' else 'text-slate-600 hover:text-slate-900 hover:bg-slate-50' }}">
+          <a href="/assessment"
+            class="px-4 py-2 rounded-lg text-sm font-medium transition-colors duration-150 {{ 'bg-teal-50 text-teal-700' if active_page == 'assessment' else 'text-slate-600 hover:text-slate-900 hover:bg-slate-50' }}">
             Risk Assessment
           </a>
-          <a href="/history" class="px-4 py-2 rounded-lg text-sm font-medium transition-colors duration-150 {{ 'bg-teal-50 text-teal-700' if active_page == 'history' else 'text-slate-600 hover:text-slate-900 hover:bg-slate-50' }}">
+          <a href="/history"
+            class="px-4 py-2 rounded-lg text-sm font-medium transition-colors duration-150 {{ 'bg-teal-50 text-teal-700' if active_page == 'history' else 'text-slate-600 hover:text-slate-900 hover:bg-slate-50' }}">
             History
           </a>
-          <a href="/about" class="px-4 py-2 rounded-lg text-sm font-medium transition-colors duration-150 {{ 'bg-teal-50 text-teal-700' if active_page == 'about' else 'text-slate-600 hover:text-slate-900 hover:bg-slate-50' }}">
+          <a href="/about"
+            class="px-4 py-2 rounded-lg text-sm font-medium transition-colors duration-150 {{ 'bg-teal-50 text-teal-700' if active_page == 'about' else 'text-slate-600 hover:text-slate-900 hover:bg-slate-50' }}">
             About
           </a>
         </div>
 
-        <button id="menuBtn" class="md:hidden p-2 rounded-lg text-slate-600 hover:bg-slate-100" onclick="document.getElementById('mobileMenu').classList.toggle('hidden')">
-        <button id="menuBtn" type="button" class="md:hidden p-2 rounded-lg text-slate-600 hover:bg-slate-100" aria-label="Toggle Navigation Menu">
-          <svg width="20" height="20" viewBox="0 0 20 20" fill="currentColor">
-            <path fill-rule="evenodd" clip-rule="evenodd" d="M3 5a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zM3 10a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zM3 15a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1z" />
-          </svg>
-        </button>
+        <button id="menuBtn" class="md:hidden p-2 rounded-lg text-slate-600 hover:bg-slate-100"
+          onclick="document.getElementById('mobileMenu').classList.toggle('hidden')">
+          <button id="menuBtn" type="button" class="md:hidden p-2 rounded-lg text-slate-600 hover:bg-slate-100"
+            aria-label="Toggle Navigation Menu">
+            <svg width="20" height="20" viewBox="0 0 20 20" fill="currentColor">
+              <path fill-rule="evenodd" clip-rule="evenodd"
+                d="M3 5a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zM3 10a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zM3 15a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1z" />
+            </svg>
+          </button>
       </div>
 
       <div id="mobileMenu" class="hidden md:hidden pb-4 space-y-1">
-        <a href="/" class="block px-4 py-2.5 rounded-lg text-sm font-medium {{ 'bg-teal-50 text-teal-700' if active_page == 'home' else 'text-slate-600 hover:bg-slate-50' }}">Home</a>
-        <a href="/assessment" class="block px-4 py-2.5 rounded-lg text-sm font-medium {{ 'bg-teal-50 text-teal-700' if active_page == 'assessment' else 'text-slate-600 hover:bg-slate-50' }}">Risk Assessment</a>
-        <a href="/history" class="block px-4 py-2.5 rounded-lg text-sm font-medium {{ 'bg-teal-50 text-teal-700' if active_page == 'history' else 'text-slate-600 hover:bg-slate-50' }}">History</a>
-        <a href="/about" class="block px-4 py-2.5 rounded-lg text-sm font-medium {{ 'bg-teal-50 text-teal-700' if active_page == 'about' else 'text-slate-600 hover:bg-slate-50' }}">About</a>
+        <a href="/"
+          class="block px-4 py-2.5 rounded-lg text-sm font-medium {{ 'bg-teal-50 text-teal-700' if active_page == 'home' else 'text-slate-600 hover:bg-slate-50' }}">Home</a>
+        <a href="/assessment"
+          class="block px-4 py-2.5 rounded-lg text-sm font-medium {{ 'bg-teal-50 text-teal-700' if active_page == 'assessment' else 'text-slate-600 hover:bg-slate-50' }}">Risk
+          Assessment</a>
+        <a href="/history"
+          class="block px-4 py-2.5 rounded-lg text-sm font-medium {{ 'bg-teal-50 text-teal-700' if active_page == 'history' else 'text-slate-600 hover:bg-slate-50' }}">History</a>
+        <a href="/about"
+          class="block px-4 py-2.5 rounded-lg text-sm font-medium {{ 'bg-teal-50 text-teal-700' if active_page == 'about' else 'text-slate-600 hover:bg-slate-50' }}">About</a>
       </div>
     </div>
   </nav>
 
   <div id="disclaimerModal" class="disclaimer-backdrop" role="presentation" hidden>
-    <section class="disclaimer-dialog" role="dialog" aria-modal="true" aria-labelledby="disclaimerTitle" aria-describedby="disclaimerDescription" tabindex="-1">
+    <section class="disclaimer-dialog" role="dialog" aria-modal="true" aria-labelledby="disclaimerTitle"
+      aria-describedby="disclaimerDescription" tabindex="-1">
       <div class="p-6 sm:p-8">
         <div class="flex items-start justify-between gap-5">
           <div class="flex items-start gap-3">
-            <div class="w-10 h-10 rounded-xl bg-amber-100 text-amber-700 flex items-center justify-center shrink-0" aria-hidden="true">
+            <div class="w-10 h-10 rounded-xl bg-amber-100 text-amber-700 flex items-center justify-center shrink-0"
+              aria-hidden="true">
               <svg width="21" height="21" viewBox="0 0 24 24" fill="currentColor">
-                <path fill-rule="evenodd" d="M9.401 3.003c.75-1.334 2.657-1.334 3.407 0l7.09 12.604c.746 1.327-.212 2.968-1.703 2.968H4.014c-1.49 0-2.449-1.641-1.703-2.968L9.401 3.003ZM12 8a1 1 0 0 1 1 1v3a1 1 0 1 1-2 0V9a1 1 0 0 1 1-1Zm0 8a1 1 0 1 0 0-2 1 1 0 0 0 0 2Z" clip-rule="evenodd" />
+                <path fill-rule="evenodd"
+                  d="M9.401 3.003c.75-1.334 2.657-1.334 3.407 0l7.09 12.604c.746 1.327-.212 2.968-1.703 2.968H4.014c-1.49 0-2.449-1.641-1.703-2.968L9.401 3.003ZM12 8a1 1 0 0 1 1 1v3a1 1 0 1 1-2 0V9a1 1 0 0 1 1-1Zm0 8a1 1 0 1 0 0-2 1 1 0 0 0 0 2Z"
+                  clip-rule="evenodd" />
               </svg>
             </div>
-            <h2 id="disclaimerTitle" class="font-display text-xl sm:text-2xl font-extrabold text-slate-900 leading-tight pt-1">Intended Use &amp; Clinical Disclaimer</h2>
+            <h2 id="disclaimerTitle"
+              class="font-display text-xl sm:text-2xl font-extrabold text-slate-900 leading-tight pt-1">Intended Use
+              &amp; Clinical Disclaimer</h2>
           </div>
-          <button type="button" id="disclaimerClose" class="p-2 -mr-2 -mt-2 rounded-lg text-slate-400 hover:bg-slate-100 hover:text-slate-700 transition-colors" aria-label="Close disclaimer">
-            <svg width="20" height="20" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="m5 5 10 10M15 5 5 15" /></svg>
+          <button type="button" id="disclaimerClose"
+            class="p-2 -mr-2 -mt-2 rounded-lg text-slate-400 hover:bg-slate-100 hover:text-slate-700 transition-colors"
+            aria-label="Close disclaimer">
+            <svg width="20" height="20" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="2"
+              stroke-linecap="round">
+              <path d="m5 5 10 10M15 5 5 15" />
+            </svg>
           </button>
         </div>
         <div id="disclaimerDescription" class="mt-5 space-y-3 text-sm text-slate-600 leading-relaxed">
-          <p>DiaBeates is a preliminary screening and risk projection tool designed for educational and informational use. It is <strong class="text-slate-800">not a diagnostic device</strong>.</p>
-          <p>The results provided do not constitute medical advice or a formal clinical diagnosis. They should not be used alone to make decisions about treatment or care.</p>
-          <p>Always consult a licensed healthcare professional for medical evaluation, interpretation of your results, and guidance about your health.</p>
+          <p>DiaBeates is a preliminary screening and risk projection tool designed for educational and informational
+            use. It is <strong class="text-slate-800">not a diagnostic device</strong>.</p>
+          <p>The results provided do not constitute medical advice or a formal clinical diagnosis. They should not be
+            used alone to make decisions about treatment or care.</p>
+          <p>Always consult a licensed healthcare professional for medical evaluation, interpretation of your results,
+            and guidance about your health.</p>
         </div>
         <div class="mt-7 flex flex-col-reverse sm:flex-row sm:justify-end gap-3">
-          <button type="button" id="disclaimerCancel" class="px-5 py-3 rounded-xl border border-slate-200 text-slate-600 text-sm font-semibold hover:bg-slate-50 transition-colors">Cancel</button>
-          <button type="button" id="disclaimerAgree" class="px-5 py-3 rounded-xl gradient-primary text-white text-sm font-bold hover:opacity-90 transition-opacity shadow-md">I Understand &amp; Agree</button>
+          <button type="button" id="disclaimerCancel"
+            class="px-5 py-3 rounded-xl border border-slate-200 text-slate-600 text-sm font-semibold hover:bg-slate-50 transition-colors">Cancel</button>
+          <button type="button" id="disclaimerAgree"
+            class="px-5 py-3 rounded-xl gradient-primary text-white text-sm font-bold hover:opacity-90 transition-opacity shadow-md">I
+            Understand &amp; Agree</button>
         </div>
       </div>
     </section>
@@ -432,8 +597,9 @@
           </div>
           <p class="text-sm leading-relaxed">
             A transparent screening tool that helps users estimate diabetes complication risk using
-            structured clinical indicators and predictive modeling.
-            structured clinical indicators and predictive modeling. Assessments are processed by the local Flask application on this computer. If you choose to save an assessment, it is stored in the local encrypted database and associated with this browser session.
+            structured clinical indicators and predictive modeling. Assessments are processed by the local Flask
+            application on this computer. If you choose to save an assessment, it is stored in the local encrypted
+            database and associated with this browser session.
           </p>
         </div>
         <div>
@@ -455,7 +621,8 @@
         </div>
       </div>
       <div class="border-t border-slate-800 pt-6 text-xs text-slate-500 text-center">
-        © <span id="currentYear"></span> DiaBeates — Dual-engine clinical decision support and diabetes complication risk screening.
+        © <span id="currentYear"></span> DiaBeates — Dual-engine clinical decision support and diabetes complication
+        risk screening.
       </div>
     </div>
   </footer>
@@ -704,4 +871,5 @@
   <script src="{{ url_for('static', filename='js/app.js') }}"></script>
   {% block extra_scripts %}{% endblock %}
 </body>
+
 </html>
