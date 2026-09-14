@@ -55,3 +55,11 @@ The Docker image is single-stage, based on `python:3.11-slim`, runs as non-root 
 - Verify localhost binding on port 5000 (`127.0.0.1:5000`).
 - Test retention, export, clear, and backup/restore procedures.
 - Run `python test_clinical_system.py`, `python test_privacy_hardening.py`, and `python verify_browser_behavior.py` after deployment changes.
+
+## Security Architecture Decisions
+
+The following explicit tradeoffs and decisions define the security boundaries of the system:
+
+- **SQLCipher Version**: Inertia/oversight. We currently use SQLCipher 3, but plan to upgrade to SQLCipher 4 for stronger default KDF iteration counts and page sizing.
+- **Hash-Fragment Key Exchange**: The decryption key is derived locally from a user-chosen passphrase shared out-of-band, rather than exposed raw in the URL.
+- **Audit Trails vs. Anonymity**: We accept no audit trail. The system is intentionally anonymous-by-default, explicitly trading clinical auditability ("who saw what, when") for maximum patient privacy.

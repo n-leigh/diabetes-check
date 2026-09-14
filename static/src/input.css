@@ -318,6 +318,42 @@
     outline: none;
   }
 
+  /* Generic Modal Styles */
+  .modal-backdrop {
+    position: fixed;
+    inset: 0;
+    z-index: 10000;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 1rem;
+    background: rgba(6, 49, 84, 0.6);
+    backdrop-filter: blur(6px);
+    -webkit-backdrop-filter: blur(6px);
+    opacity: 0;
+    transition: opacity 200ms cubic-bezier(0.16, 1, 0.3, 1);
+  }
+  .modal-backdrop.is-open {
+    opacity: 1;
+  }
+  .modal-backdrop[hidden] {
+    display: none;
+  }
+  .modal-dialog {
+    position: relative;
+    background: #ffffff;
+    border-radius: 1.25rem;
+    border: 1px solid rgba(226, 232, 240, 0.9);
+    box-shadow: 0 25px 50px -12px rgba(6, 49, 84, 0.25), 0 0 0 1px rgba(6, 49, 84, 0.05);
+    transform: scale(0.96) translateY(8px);
+    transition: transform 200ms cubic-bezier(0.16, 1, 0.3, 1), opacity 200ms ease-out;
+    opacity: 0;
+  }
+  .modal-backdrop.is-open .modal-dialog {
+    transform: scale(1) translateY(0);
+    opacity: 1;
+  }
+
   @media (prefers-reduced-motion: no-preference) {
     .disclaimer-dialog {
       @apply animate-disclaimerEnter;

@@ -643,7 +643,7 @@ def predict():
         "patient_summary": describe_patient(patient),
         "lab_assessment": lab_assessment,
     }
-    report_payload_json = json.dumps(report_payload)
+    report_payload_json = json.dumps(report_payload).replace("</", "<\\/")
 
     return render_template(
         "result.html",
@@ -731,7 +731,7 @@ def history_detail(assessment_id):
         "patient_summary": describe_patient(record["patient"]),
         "lab_assessment": record.get("lab_assessment"),
     }
-    report_payload_json = json.dumps(report_payload)
+    report_payload_json = json.dumps(report_payload).replace("</", "<\\/")
 
     return render_template(
         "result.html",
