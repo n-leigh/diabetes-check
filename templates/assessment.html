@@ -362,58 +362,49 @@
       </button>
     </div>
 
-    <!-- Unit switch tabs -->
-    <div class="flex p-1 bg-slate-100 rounded-xl mb-4" role="tablist" aria-label="Measurement units">
-      <button type="button" role="tab" id="tabMetric" aria-selected="true" aria-controls="panelMetric"
-              class="flex-1 py-1.5 px-3 rounded-lg text-xs font-semibold transition-all bg-white text-teal-700 shadow-xs focus:outline-none focus:ring-2 focus:ring-teal-400/50 cursor-pointer">
-        Metric (cm / kg)
-      </button>
-      <button type="button" role="tab" id="tabImperial" aria-selected="false" aria-controls="panelImperial"
-              class="flex-1 py-1.5 px-3 rounded-lg text-xs font-semibold transition-all text-slate-600 hover:text-slate-900 focus:outline-none focus:ring-2 focus:ring-teal-400/50 cursor-pointer">
-        Imperial (ft, in / lbs)
-      </button>
-    </div>
-
-    <!-- Metric Panel -->
-    <div id="panelMetric" role="tabpanel" aria-labelledby="tabMetric" class="space-y-3">
+    <!-- Independent unit options -->
+    <div class="space-y-4">
       <div>
-        <label for="bmiMetricHeight" class="block text-xs font-semibold text-slate-700 mb-1 font-display">Height (cm)</label>
-        <input type="number" id="bmiMetricHeight" min="50" max="250" placeholder="e.g. 175"
+        <label for="bmiHeightUnit" class="block text-xs font-semibold text-slate-700 mb-1 font-display">Height unit</label>
+        <select id="bmiHeightUnit" class="w-full px-3.5 py-2 rounded-xl border border-slate-200 text-sm text-slate-800 bg-white focus:outline-none focus:ring-2 focus:ring-teal-400/50 focus:border-teal-400 transition-all">
+          <option value="cm">Centimeters (cm)</option>
+          <option value="ftin">Feet and inches (ft / in)</option>
+        </select>
+      </div>
+
+      <div id="bmiCmHeightGroup">
+        <label for="bmiHeightCm" class="block text-xs font-semibold text-slate-700 mb-1 font-display">Height (cm)</label>
+        <input type="number" id="bmiHeightCm" min="50" max="250" step="0.1" placeholder="e.g. 175"
                class="w-full px-3.5 py-2 rounded-xl border border-slate-200 text-sm text-slate-800 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-teal-400/50 focus:border-teal-400 transition-all">
       </div>
-      <div>
-        <label for="bmiMetricWeight" class="block text-xs font-semibold text-slate-700 mb-1 font-display">Weight (kg)</label>
-        <input type="number" id="bmiMetricWeight" min="20" max="300" step="0.1" placeholder="e.g. 70"
-               class="w-full px-3.5 py-2 rounded-xl border border-slate-200 text-sm text-slate-800 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-teal-400/50 focus:border-teal-400 transition-all">
-      </div>
-    </div>
 
-    <!-- Imperial Panel -->
-    <div id="panelImperial" role="tabpanel" aria-labelledby="tabImperial" class="space-y-3 hidden">
-      <div>
+      <div id="bmiFeetInchesGroup" class="hidden">
         <span class="block text-xs font-semibold text-slate-700 mb-1 font-display">Height</span>
         <div class="grid grid-cols-2 gap-2">
           <div>
-            <label for="bmiImpFt" class="sr-only">Height Feet</label>
-            <div class="relative">
-              <input type="number" id="bmiImpFt" min="1" max="8" placeholder="5"
-                     class="w-full px-3.5 py-2 pr-8 rounded-xl border border-slate-200 text-sm text-slate-800 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-teal-400/50 focus:border-teal-400 transition-all">
-              <span class="absolute right-3 top-2 text-xs text-slate-400 pointer-events-none">ft</span>
-            </div>
+            <label for="bmiHeightFt" class="sr-only">Height feet</label>
+            <input type="number" id="bmiHeightFt" min="1" max="8" placeholder="feet"
+                   class="w-full px-3.5 py-2 rounded-xl border border-slate-200 text-sm text-slate-800 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-teal-400/50 focus:border-teal-400 transition-all">
           </div>
           <div>
-            <label for="bmiImpIn" class="sr-only">Height Inches</label>
-            <div class="relative">
-              <input type="number" id="bmiImpIn" min="0" max="11" placeholder="9"
-                     class="w-full px-3.5 py-2 pr-8 rounded-xl border border-slate-200 text-sm text-slate-800 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-teal-400/50 focus:border-teal-400 transition-all">
-              <span class="absolute right-3 top-2 text-xs text-slate-400 pointer-events-none">in</span>
-            </div>
+            <label for="bmiHeightIn" class="sr-only">Height inches</label>
+            <input type="number" id="bmiHeightIn" min="0" max="11" step="0.1" placeholder="inches"
+                   class="w-full px-3.5 py-2 rounded-xl border border-slate-200 text-sm text-slate-800 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-teal-400/50 focus:border-teal-400 transition-all">
           </div>
         </div>
       </div>
+
       <div>
-        <label for="bmiImpLbs" class="block text-xs font-semibold text-slate-700 mb-1 font-display">Weight (lbs)</label>
-        <input type="number" id="bmiImpLbs" min="40" max="600" step="0.1" placeholder="e.g. 154"
+        <label for="bmiWeightUnit" class="block text-xs font-semibold text-slate-700 mb-1 font-display">Weight unit</label>
+        <select id="bmiWeightUnit" class="w-full px-3.5 py-2 rounded-xl border border-slate-200 text-sm text-slate-800 bg-white focus:outline-none focus:ring-2 focus:ring-teal-400/50 focus:border-teal-400 transition-all">
+          <option value="kg">Kilograms (kg)</option>
+          <option value="lbs">Pounds (lbs)</option>
+        </select>
+      </div>
+
+      <div>
+        <label for="bmiWeight" class="block text-xs font-semibold text-slate-700 mb-1 font-display">Weight</label>
+        <input type="number" id="bmiWeight" min="20" max="600" step="0.1" placeholder="e.g. 70"
                class="w-full px-3.5 py-2 rounded-xl border border-slate-200 text-sm text-slate-800 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-teal-400/50 focus:border-teal-400 transition-all">
       </div>
     </div>

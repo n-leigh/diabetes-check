@@ -16,16 +16,14 @@
   const cancelBtn = document.getElementById('cancelBmiBtn');
   const applyBtn = document.getElementById('applyBmiBtn');
 
-  const tabMetric = document.getElementById('tabMetric');
-  const tabImperial = document.getElementById('tabImperial');
-  const panelMetric = document.getElementById('panelMetric');
-  const panelImperial = document.getElementById('panelImperial');
-
-  const metricHeight = document.getElementById('bmiMetricHeight');
-  const metricWeight = document.getElementById('bmiMetricWeight');
-  const impFt = document.getElementById('bmiImpFt');
-  const impIn = document.getElementById('bmiImpIn');
-  const impLbs = document.getElementById('bmiImpLbs');
+  const heightUnit = document.getElementById('bmiHeightUnit');
+  const weightUnit = document.getElementById('bmiWeightUnit');
+  const cmHeightGroup = document.getElementById('bmiCmHeightGroup');
+  const feetInchesGroup = document.getElementById('bmiFeetInchesGroup');
+  const heightCm = document.getElementById('bmiHeightCm');
+  const heightFt = document.getElementById('bmiHeightFt');
+  const heightIn = document.getElementById('bmiHeightIn');
+  const weight = document.getElementById('bmiWeight');
 
   const previewBox = document.getElementById('bmiPreviewBox');
   const previewNum = document.getElementById('bmiPreviewNum');
@@ -34,60 +32,36 @@
 
   const targetBmiInput = document.getElementById('BMI');
 
-  let currentUnit = 'metric';
-
-  function setTab(unit) {
-    currentUnit = unit;
-    if (unit === 'metric') {
-      tabMetric.setAttribute('aria-selected', 'true');
-      tabMetric.classList.add('bg-white', 'text-teal-700', 'shadow-xs');
-      tabMetric.classList.remove('text-slate-600');
-
-      tabImperial.setAttribute('aria-selected', 'false');
-      tabImperial.classList.remove('bg-white', 'text-teal-700', 'shadow-xs');
-      tabImperial.classList.add('text-slate-600');
-
-      panelMetric.classList.remove('hidden');
-      panelImperial.classList.add('hidden');
-      if (metricHeight) metricHeight.focus();
-    } else {
-      tabImperial.setAttribute('aria-selected', 'true');
-      tabImperial.classList.add('bg-white', 'text-teal-700', 'shadow-xs');
-      tabImperial.classList.remove('text-slate-600');
-
-      tabMetric.setAttribute('aria-selected', 'false');
-      tabMetric.classList.remove('bg-white', 'text-teal-700', 'shadow-xs');
-      tabMetric.classList.add('text-slate-600');
-
-      panelImperial.classList.remove('hidden');
-      panelMetric.classList.add('hidden');
-      if (impFt) impFt.focus();
-    }
+  function updateHeightInputs() {
+    const usesFeetAndInches = heightUnit.value === 'ftin';
+    cmHeightGroup.classList.toggle('hidden', usesFeetAndInches);
+    feetInchesGroup.classList.toggle('hidden', !usesFeetAndInches);
     updateCalculation();
+    if (usesFeetAndInches) heightFt.focus();
+    else heightCm.focus();
   }
 
-  if (tabMetric && tabImperial) {
-    tabMetric.addEventListener('click', () => setTab('metric'));
-    tabImperial.addEventListener('click', () => setTab('imperial'));
-  }
+  if (heightUnit) heightUnit.addEventListener('change', updateHeightInputs);
+  if (weightUnit) weightUnit.addEventListener('change', updateCalculation);
 
   function calculateBmi() {
-    if (currentUnit === 'metric') {
-      const h = parseFloat(metricHeight.value);
-      const w = parseFloat(metricWeight.value);
-      if (!h || h <= 0 || !w || w <= 0) return null;
-      const hm = h / 100;
-      return w / (hm * hm);
+    let heightMeters;
+    if (heightUnit.value === 'cm') {
+      const centimeters = parseFloat(heightCm.value);
+      if (!centimeters || centimeters <= 0) return null;
+      heightMeters = centimeters / 100;
     } else {
-      const ft = parseFloat(impFt.value) || 0;
-      const inches = parseFloat(impIn.value) || 0;
-      const totalIn = ft * 12 + inches;
-      const lbs = parseFloat(impLbs.value);
-      if (totalIn <= 0 || !lbs || lbs <= 0) return null;
-      const hm = totalIn * 0.0254;
-      const wkg = lbs * 0.45359237;
-      return wkg / (hm * hm);
+      const feet = parseFloat(heightFt.value) || 0;
+      const inches = parseFloat(heightIn.value) || 0;
+      const totalInches = feet * 12 + inches;
+      if (totalInches <= 0) return null;
+      heightMeters = totalInches * 0.0254;
     }
+
+    const enteredWeight = parseFloat(weight.value);
+    if (!enteredWeight || enteredWeight <= 0) return null;
+    const weightKg = weightUnit.value === 'lbs' ? enteredWeight * 0.45359237 : enteredWeight;
+    return weightKg / (heightMeters * heightMeters);
   }
 
   function getBmiCategory(bmi) {
@@ -113,7 +87,7 @@
     }
   }
 
-  [metricHeight, metricWeight, impFt, impIn, impLbs].forEach(input => {
+  [heightCm, heightFt, heightIn, weight].forEach(input => {
     if (input) {
       input.addEventListener('input', updateCalculation);
     }
@@ -127,11 +101,8 @@
       modal.setAttribute('open', '');
     }
     updateCalculation();
-    if (currentUnit === 'metric' && metricHeight) {
-      metricHeight.focus();
-    } else if (impFt) {
-      impFt.focus();
-    }
+    if (heightUnit.value === 'cm' && heightCm) heightCm.focus();
+    else if (heightFt) heightFt.focus();
   }
 
   function closeModal() {

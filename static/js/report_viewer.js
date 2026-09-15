@@ -338,7 +338,7 @@
     // Static Medical Disclaimer
     const disc = document.createElement('div');
     disc.className = 'bg-amber-50 border border-amber-200 rounded-2xl p-5 text-xs text-amber-900 leading-relaxed';
-    disc.textContent = 'Non-Diagnostic Clinical Screening Notice: DiaBeates is an evidence-aligned risk assessment tool designed for educational and clinical decision-support purposes. Predictions and risk estimates are not medical diagnoses. Consult a licensed physician for clinical diagnosis and therapy.';
+    disc.textContent = 'Non-Diagnostic Clinical Screening Notice: DiaBeates is an evidence-aligned health screening tool designed for educational and informational use. Predictions and risk estimates are not medical diagnoses. Consult a licensed physician for clinical diagnosis and therapy.';
     container.appendChild(disc);
 
     root.appendChild(container);

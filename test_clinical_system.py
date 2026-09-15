@@ -146,6 +146,37 @@ def test_historical_lab_legend_points():
         print("Historical lab values reconstruct their correct guideline points.")
 
 
+def test_regulatory_positioning_copy_consistency():
+    client = app.test_client()
+
+    home_html = client.get("/").get_data(as_text=True)
+    about_html = client.get("/about").get_data(as_text=True)
+    result_html = client.get("/assessment").get_data(as_text=True)
+
+    assert "health screening aid" in home_html.lower() or "health screening aid" in about_html.lower()
+    assert "not a diagnostic device" in about_html.lower()
+    assert "clinical decision-support tool" not in about_html.lower()
+    assert "clinical decision support" not in result_html.lower()
+    assert "screening aid" in about_html.lower() or "screening aid" in home_html.lower()
+    print("Positioning copy consistency verified: user-facing pages frame DiaBeates as a health screening aid rather than a diagnostic or clinical decision-support tool.")
+
+
+def test_bmi_calculator_supports_mixed_units():
+    client = app.test_client()
+    assess_html = client.get("/assessment").get_data(as_text=True)
+
+    assert 'id="bmiHeightUnit"' in assess_html
+    assert 'value="cm"' in assess_html
+    assert 'value="ftin"' in assess_html
+    assert 'id="bmiWeightUnit"' in assess_html
+    assert 'value="kg"' in assess_html
+    assert 'value="lbs"' in assess_html
+    assert 'id="bmiHeightCm"' in assess_html
+    assert 'id="bmiHeightFt"' in assess_html
+    assert 'id="bmiWeight"' in assess_html
+    print("BMI calculator provides independent height and weight unit options.")
+
+
 def test_flask_endpoints():
     print("\n--- 3. Testing Flask Web Application Endpoints ---")
     with isolated_database_environment():
