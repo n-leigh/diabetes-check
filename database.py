@@ -44,10 +44,12 @@ import sqlcipher3
 
 from rule_matrix import compute_lab_assessment
 
-DB_PATH = os.path.join(os.path.dirname(os.path.abspath(__file__)), "diabetes_system.db")
-KEY_PATH = os.path.join(os.path.dirname(os.path.abspath(__file__)), ".db.key")
-PROTECTED_KEY_PATH = os.path.join(os.path.dirname(os.path.abspath(__file__)), ".db.key.dpapi")
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
+DATA_DIR = os.getenv("DIABEATES_DATA_DIR", BASE_DIR)
+os.makedirs(DATA_DIR, exist_ok=True)
+DB_PATH = os.path.join(DATA_DIR, "diabetes_system.db")
+KEY_PATH = os.path.join(DATA_DIR, ".db.key")
+PROTECTED_KEY_PATH = os.path.join(DATA_DIR, ".db.key.dpapi")
 SCHEMA_VERSION = 4
 _KEY_ENVIRONMENT_VARIABLE = "DIABEATES_DB_KEY"
 

@@ -50,7 +50,21 @@ docker compose logs -f
 docker compose down
 ```
 
-The Dockerfile is single-stage, based on `python:3.11-slim`, runs as `appuser`, exposes port 5000 strictly bound to `127.0.0.1`, persists `logs/` and `diabetes_system.db`, and checks `/health`.
+The Dockerfile is single-stage, based on `python:3.11-slim`, runs as `appuser`, exposes the Render-provided port on `0.0.0.0`, persists the database under `/var/lib/diabeates`, and checks `/health`.
+
+## Render Deployment
+
+Deploy the Dockerfile as a Render Web Service with one persistent disk mounted at `/var/lib/diabeates`. The image binds Waitress to `0.0.0.0` and stores the SQLCipher database on that disk. Configure these Render environment variables:
+
+```text
+DEBUG=False
+SECRET_KEY=<unique production secret>
+DIABEATES_DB_KEY=<unique database encryption key>
+DIABEATES_DATA_DIR=/var/lib/diabeates
+SESSION_COOKIE_SECURE=True
+```
+
+Render supplies `PORT` automatically. Set the health check path to `/health`. Keep the service at one instance while it uses SQLite; multiple instances require moving storage to a shared database service.
 
 ## Health Endpoint
 

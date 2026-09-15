@@ -2,7 +2,9 @@ FROM python:3.11-slim
 
 # Prevent Python from writing .pyc files and enable unbuffered output for log streaming
 ENV PYTHONDONTWRITEBYTECODE=1 \
-    PYTHONUNBUFFERED=1
+    PYTHONUNBUFFERED=1 \
+    HOST=0.0.0.0 \
+    DIABEATES_DATA_DIR=/var/lib/diabeates
 
 WORKDIR /app
 
@@ -14,9 +16,9 @@ RUN pip install --no-cache-dir -r requirements.txt
 COPY . .
 
 # Create logs directory and ensure appropriate ownership for non-root execution
-RUN mkdir -p /app/logs \
+RUN mkdir -p /app/logs /var/lib/diabeates \
     && useradd --system --user-group --no-create-home appuser \
-    && chown -R appuser:appuser /app
+    && chown -R appuser:appuser /app /var/lib/diabeates
 
 # Switch to non-root user
 USER appuser
