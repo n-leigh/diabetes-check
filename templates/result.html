@@ -366,31 +366,6 @@
     </div>
     {% endif %}
 
-    {% if request.args.get('feedback') == 'thanks' %}
-    <div class="bg-teal-600 text-white rounded-xl p-3 text-center text-sm font-medium mb-6">
-      Thanks for letting us know — your feedback is saved.
-    </div>
-    {% elif assessment_id %}
-    <div class="bg-white rounded-2xl border border-slate-200 shadow-sm p-5 mb-8 flex items-center justify-between flex-wrap gap-3">
-      <p class="text-sm font-medium text-slate-700">Was this assessment helpful?</p>
-      <div class="flex gap-2">
-        <form action="/feedback/{{ assessment_id }}" method="post">
-          <input type="hidden" name="csrf_token" value="{{ csrf_token() }}" />
-          <input type="hidden" name="helpful" value="yes">
-          <button type="submit" class="px-4 py-2 rounded-lg border border-slate-200 text-sm font-medium text-slate-600 hover:bg-teal-50 hover:border-teal-300 hover:text-teal-700 transition-all">
-            👍 Yes
-          </button>
-        </form>
-        <form action="/feedback/{{ assessment_id }}" method="post">
-          <input type="hidden" name="csrf_token" value="{{ csrf_token() }}" />
-          <input type="hidden" name="helpful" value="no">
-          <button type="submit" class="px-4 py-2 rounded-lg border border-slate-200 text-sm font-medium text-slate-600 hover:bg-red-50 hover:border-red-300 hover:text-red-700 transition-all">
-            👎 No
-          </button>
-        </form>
-      </div>
-    </div>
-    {% endif %}
 
     <div class="bg-teal-50 border border-teal-200 rounded-xl p-4 flex items-start gap-3 mb-8">
       <svg width="20" height="20" viewBox="0 0 20 20" fill="currentColor" class="text-teal-500 shrink-0 mt-0.5">
