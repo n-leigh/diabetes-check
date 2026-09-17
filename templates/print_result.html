@@ -18,7 +18,11 @@
       <span class="brand-name">Dia<span class="accent">Beates</span></span>
     </div>
     <div class="meta">
+      {% if assessment_id %}
       Assessment #{{ assessment_id }}<br>
+      {% else %}
+      In-Memory Assessment Summary<br>
+      {% endif %}
       {{ created_at|display_time }} PHT
     </div>
   </div>

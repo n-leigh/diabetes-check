@@ -27,13 +27,14 @@ import platform
 import re
 import sys
 import zipfile
+import threading
 from datetime import datetime, timezone
 from zoneinfo import ZoneInfo
 from dotenv import load_dotenv
 import joblib
 import numpy as np
 import pandas as pd
-from flask import Flask, render_template, request, redirect, url_for, session, send_file
+from flask import Flask, render_template, request, redirect, url_for, session, send_file, abort
 from flask_wtf.csrf import CSRFProtect, CSRFError
 from flask_limiter import Limiter
 from flask_limiter.util import get_remote_address
@@ -110,6 +111,39 @@ app.config.update(
 )
 csrf = CSRFProtect(app)
 
+# ===== IN-MEMORY ASSESSMENT STORE =====
+# Single-process deployment constraint:
+# This in-process memory model assumes single-process multi-threaded deployment 
+# (Waitress on 127.0.0.1:5000 with 8 worker threads per wsgi.py). 
+# Scaling to multiple worker processes requires a shared server-side store (e.g. Redis).
+_IN_MEMORY_ASSESSMENTS = {}
+_IN_MEMORY_LOCK = threading.Lock()
+IN_MEMORY_TTL_SECONDS = 900  # 15 minutes
+PRINT_TOKEN_TTL_SECONDS = 300 # 5 minutes
+MAX_IN_MEMORY_ITEMS = 500
+
+def _prune_in_memory_assessments():
+    """Purge expired assessments and enforce LRU eviction limit."""
+    now = datetime.now(timezone.utc).timestamp()
+    with _IN_MEMORY_LOCK:
+        # Step 1: Purge expired
+        expired = [
+            sid for sid, data in _IN_MEMORY_ASSESSMENTS.items() 
+            if (now - data['timestamp']) > (PRINT_TOKEN_TTL_SECONDS if data.get("is_print_token") else IN_MEMORY_TTL_SECONDS)
+        ]
+        for sid in expired:
+            del _IN_MEMORY_ASSESSMENTS[sid]
+        
+        # Step 2: LRU eviction if over capacity
+        if len(_IN_MEMORY_ASSESSMENTS) >= MAX_IN_MEMORY_ITEMS:
+            # Sort by timestamp ascending (oldest first)
+            sorted_items = sorted(_IN_MEMORY_ASSESSMENTS.items(), key=lambda item: item[1]['timestamp'])
+            # Remove oldest items until we are below capacity (e.g., 499 to allow 1 new write)
+            while len(_IN_MEMORY_ASSESSMENTS) >= MAX_IN_MEMORY_ITEMS:
+                oldest_sid = sorted_items.pop(0)[0]
+                if oldest_sid in _IN_MEMORY_ASSESSMENTS:
+                    del _IN_MEMORY_ASSESSMENTS[oldest_sid]
+
 
 @app.template_filter("display_time")
 def display_time(value):
@@ -144,6 +178,12 @@ def set_security_headers(response):
     )
     if not DEBUG:
         response.headers["Strict-Transport-Security"] = "max-age=31536000; includeSubDomains"
+
+    # Enforce strict Cache-Control for sensitive clinical routes
+    if request.path == "/predict" or request.path.startswith("/print") or request.path.startswith("/history") or request.path.startswith("/result"):
+        response.headers["Cache-Control"] = "no-store, no-cache, must-revalidate, max-age=0"
+        response.headers["Pragma"] = "no-cache"
+
     return response
 
 
@@ -645,6 +685,24 @@ def predict():
     }
     report_payload_json = json.dumps(report_payload).replace("</", "<\\/")
 
+    # Always generate a print token so the print button has a valid in-memory link,
+    # regardless of whether the assessment was saved to the database.
+    _prune_in_memory_assessments()
+    print_id = str(uuid.uuid4())
+    with _IN_MEMORY_LOCK:
+        _IN_MEMORY_ASSESSMENTS[print_id] = {
+            "is_print_token": True,
+            "originating_session": session.get("session_id"),
+            "patient": patient,
+            "rule_results": rule_results,
+            "model_results": model_results,
+            "model_confidences": model_confidences,
+            "model_names": MODEL_NAMES,
+            "lab_assessment": lab_assessment,
+            "created_at": report_payload["created_at"],
+            "timestamp": datetime.now(timezone.utc).timestamp(),
+        }
+
     return render_template(
         "result.html",
         patient=patient,
@@ -658,10 +716,55 @@ def predict():
         recommendations=recommendations,
         patient_drivers=patient_drivers,
         assessment_id=assessment_id,
+        print_id=print_id,
         model_metadata=model_metadata,
         report_payload_json=report_payload_json,
     )
 
+
+@app.route("/print/<print_id>", methods=["GET"])
+def print_current(print_id):
+    _prune_in_memory_assessments()
+    with _IN_MEMORY_LOCK:
+        record = _IN_MEMORY_ASSESSMENTS.get(print_id)
+    
+    if not record:
+        return redirect(url_for("assessment"))
+        
+    had_cookie = app.config.get("SESSION_COOKIE_NAME", "session") in request.cookies
+    if had_cookie and session.get("session_id") != record.get("originating_session"):
+        abort(403)
+        
+    # Don't pop the token here — let TTL-based expiration handle cleanup.
+    # This allows the user to re-open the print page within the TTL window
+    # (e.g. if the browser print dialog was dismissed accidentally).
+
+    patient_drivers = explain_patient_risk(record["patient"])
+    print_model_metadata = {}
+    for pcat in CATEGORIES:
+        if pcat in MODELS:
+            pmodel = MODELS[pcat]
+            print_model_metadata[pcat] = {
+                "model_status": getattr(pmodel, "model_status", "validated"),
+                "calibration_quality": getattr(pmodel, "calibration_quality", "fair"),
+                "uncertainty_level": getattr(pmodel, "uncertainty_level", "moderate"),
+            }
+            
+    return render_template(
+        "print_result.html",
+        assessment_id=None,
+        created_at=record["created_at"],
+        patient_display=describe_patient(record["patient"]),
+        rule_results=record["rule_results"],
+        model_results=record["model_results"],
+        model_confidences=record.get("model_confidences", {}),
+        model_names=record.get("model_names") or MODEL_NAMES,
+        categories=CATEGORIES,
+        lab_assessment=record.get("lab_assessment"),
+        recommendations=build_recommendations(record["rule_results"], record.get("lab_assessment")),
+        patient_drivers=patient_drivers,
+        model_metadata=print_model_metadata,
+    )
 
 
 @app.route("/history", methods=["GET"])
@@ -828,6 +931,13 @@ def clear_history():
     session_id = session.get("session_id")
     if session_id:
         database.clear_session_assessments(session_id)
+        with _IN_MEMORY_LOCK:
+            keys_to_delete = [
+                pid for pid, pdata in _IN_MEMORY_ASSESSMENTS.items()
+                if pdata.get("originating_session") == session_id
+            ]
+            for k in keys_to_delete:
+                del _IN_MEMORY_ASSESSMENTS[k]
     return redirect(url_for("history"))
 
 
@@ -844,6 +954,9 @@ def handle_csrf_error(e):
 
 @app.errorhandler(Exception)
 def handle_unexpected_error(e):
+    from werkzeug.exceptions import HTTPException
+    if isinstance(e, HTTPException):
+        return e
     logger.exception("Unexpected server error")
     return render_template(
         "assessment.html",

@@ -190,5 +190,116 @@
 
   setupThirtyDayLimitWarning('PhysHlth', 'physhlth-warning', 'capPhysHlthBtn');
   setupThirtyDayLimitWarning('MentHlth', 'menthlth-warning', 'capMentHlthBtn');
-})();
 
+  // Form Validation Logic
+  const form = document.querySelector('form[action="/predict"]');
+  const topErrorBanner = document.getElementById('formTopErrorBanner');
+  const closeTopErrorBtn = document.getElementById('closeFormTopErrorBannerBtn');
+
+  if (closeTopErrorBtn && topErrorBanner) {
+    closeTopErrorBtn.addEventListener('click', () => {
+      topErrorBanner.classList.add('hidden');
+      topErrorBanner.classList.remove('flex');
+    });
+  }
+
+  const validationRules = [
+    { id: 'BMI', required: true, min: 10.0, max: 80.0, msg: "Please enter your BMI (10.0 to 80.0)." },
+    { id: 'Age', required: true, msg: "Please select your age range." },
+    { id: 'GenHlth', required: true, msg: "Please rate your general health." },
+    { id: 'Sex', required: true, msg: "Please select your biological sex." },
+    { id: 'DiabetesDuration', required: true, msg: "Please select how long you've had diabetes." },
+    { id: 'PhysHlth', required: true, min: 0, max: 30, msg: "Please enter days of poor physical health (0 to 30)." },
+    { id: 'MentHlth', required: true, min: 0, max: 30, msg: "Please enter days of poor mental health (0 to 30)." },
+    { id: 'LabHbA1c', required: false, min: 3.0, max: 20.0, msg: "Please enter a valid HbA1c (3.0 to 20.0)." },
+    { id: 'LabSystolicBP', required: false, min: 60, max: 250, msg: "Please enter a valid Systolic BP (60 to 250)." },
+    { id: 'LabLDL', required: false, min: 20, max: 400, msg: "Please enter a valid LDL cholesterol (20 to 400)." }
+  ];
+
+  function clearErrorState(input, errorEl) {
+    input.classList.remove('border-rose-400', 'bg-rose-50/50', 'ring-2', 'ring-rose-400/50', 'border-teal-400');
+    input.setAttribute('aria-invalid', 'false');
+    if (errorEl) {
+      errorEl.textContent = '';
+      errorEl.classList.add('hidden');
+    }
+  }
+
+  function setErrorState(input, errorEl, msg) {
+    input.classList.add('border-rose-400', 'bg-rose-50/50');
+    input.classList.remove('border-teal-400');
+    input.setAttribute('aria-invalid', 'true');
+    if (errorEl) {
+      errorEl.textContent = msg;
+      errorEl.classList.remove('hidden');
+    }
+  }
+
+  validationRules.forEach(rule => {
+    const input = document.getElementById(rule.id);
+    if (input) {
+      input.addEventListener('input', () => {
+        const errorEl = document.getElementById(rule.id.toLowerCase() + '-error');
+        clearErrorState(input, errorEl);
+      });
+      input.addEventListener('change', () => {
+        const errorEl = document.getElementById(rule.id.toLowerCase() + '-error');
+        clearErrorState(input, errorEl);
+      });
+    }
+  });
+
+  if (form) {
+    form.addEventListener('submit', (e) => {
+      let isValid = true;
+      let firstInvalidInput = null;
+
+      validationRules.forEach(rule => {
+        const input = document.getElementById(rule.id);
+        if (!input) return;
+        const errorEl = document.getElementById(rule.id.toLowerCase() + '-error');
+        
+        let val = input.value.trim();
+        let hasError = false;
+
+        if (val === '') {
+          if (rule.required) {
+            hasError = true;
+          }
+        } else {
+          let numVal = parseFloat(val);
+          if (isNaN(numVal)) {
+            hasError = true;
+          } else if (rule.min !== undefined && numVal < rule.min) {
+            hasError = true;
+          } else if (rule.max !== undefined && numVal > rule.max) {
+            hasError = true;
+          }
+        }
+
+        if (hasError) {
+          setErrorState(input, errorEl, rule.msg);
+          isValid = false;
+          if (!firstInvalidInput) {
+            firstInvalidInput = input;
+          }
+        } else {
+          clearErrorState(input, errorEl);
+        }
+      });
+
+      if (!isValid) {
+        e.preventDefault();
+        if (topErrorBanner) {
+          topErrorBanner.classList.remove('hidden');
+          topErrorBanner.classList.add('flex');
+        }
+        if (firstInvalidInput) {
+          firstInvalidInput.scrollIntoView({ behavior: 'smooth', block: 'center' });
+          firstInvalidInput.focus({ preventScroll: true });
+        }
+      }
+    });
+  }
+
+})();

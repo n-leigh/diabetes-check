@@ -10,5 +10,12 @@
       window.print();
     });
   }
+
+  const urlParams = new URLSearchParams(window.location.search);
+  if (urlParams.get('auto') === '1') {
+    setTimeout(function() {
+      window.print();
+    }, 500);
+  }
 })();
 

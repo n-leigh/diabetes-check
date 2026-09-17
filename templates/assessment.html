@@ -41,21 +41,17 @@
     <div class="animated-border-card">
       <div class="card-inner p-6 sm:p-8">
 
-      {% if errors %}
-      <div role="alert" aria-live="assertive" class="mb-6 bg-red-50 border border-red-200 rounded-xl p-4 flex items-start gap-3">
-        <svg width="20" height="20" viewBox="0 0 20 20" fill="currentColor" class="text-red-500 shrink-0 mt-0.5" aria-hidden="true">
-          <path fill-rule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clip-rule="evenodd"/>
-        </svg>
-        <div class="text-sm text-red-700">
-          <strong class="font-semibold">Please fix the following:</strong>
-          <ul class="mt-1 list-disc list-inside space-y-0.5">
-            {% for e in errors %}
-            <li>{{ e }}</li>
-            {% endfor %}
-          </ul>
+      <div id="formTopErrorBanner" role="alert" aria-live="assertive" class="{% if errors %}flex{% else %}hidden{% endif %} mb-6 bg-rose-50 border border-rose-200 rounded-xl p-3 items-center justify-between gap-3 transition-all">
+        <div class="flex items-center gap-2.5">
+          <svg width="18" height="18" viewBox="0 0 20 20" fill="currentColor" class="text-rose-500 shrink-0" aria-hidden="true">
+            <path fill-rule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clip-rule="evenodd"/>
+          </svg>
+          <span class="text-sm text-rose-700 font-medium">Please correct the highlighted fields below.</span>
         </div>
+        <button type="button" id="closeFormTopErrorBannerBtn" class="text-rose-400 hover:text-rose-600 focus:outline-none p-1 rounded-lg hover:bg-rose-100 transition-colors" aria-label="Dismiss error">
+          <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/></svg>
+        </button>
       </div>
-      {% endif %}
 
       <form action="/predict" method="post" novalidate>
         <input type="hidden" name="csrf_token" value="{{ csrf_token() }}" />
@@ -76,10 +72,11 @@
                 Calculate BMI
               </button>
             </div>
-            <input type="number" step="0.1" min="10" max="80" name="BMI" id="BMI" aria-describedby="bmi-help"
+            <input type="number" step="0.1" min="10" max="80" name="BMI" id="BMI" aria-describedby="bmi-help bmi-error" aria-invalid="false"
                    value="{{ form_data.get('BMI', '') if form_data else '' }}"
                    placeholder="e.g. 24.5"
                    class="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 text-sm text-slate-800 bg-white placeholder-slate-400/60 focus:outline-none focus:ring-2 focus:ring-teal-400/50 focus:border-teal-400 transition-all" required>
+            <p id="bmi-error" class="field-error-msg hidden mt-1 text-xs text-rose-600 font-medium"></p>
             <p id="bmi-help" class="text-xs text-slate-400 leading-snug">
               Don't know it? It's weight (kg) ÷ height (m)², or ask your doctor at your last checkup.
               {{ info_tooltip('BMI is used in our cardiovascular and mobility risk models. Higher BMI (≥25 or ≥30) indicates elevated vascular resistance, metabolic load, and joint stress.', align='left') }}
@@ -88,7 +85,7 @@
 
           <div class="space-y-1.5 col-span-2 sm:col-span-1">
             <label for="Age" class="block text-sm font-semibold text-slate-700 font-display">Age range <span class="text-red-500">*</span></label>
-            <select name="Age" id="Age" aria-describedby="age-help" required
+            <select name="Age" id="Age" aria-describedby="age-help age-error" aria-invalid="false" required
                     class="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 text-sm text-slate-800 bg-white cursor-pointer focus:outline-none focus:ring-2 focus:ring-teal-400/50 focus:border-teal-400 transition-all">
               <option value="" disabled {{ 'selected' if not (form_data and form_data.get('Age')) }}>Select your age range</option>
               {% set age_ranges = [
@@ -100,6 +97,7 @@
               <option value="{{ val }}" {{ 'selected' if form_data and form_data.get('Age') == val }}>{{ label_text }}</option>
               {% endfor %}
             </select>
+            <p id="age-error" class="field-error-msg hidden mt-1 text-xs text-rose-600 font-medium"></p>
             <p id="age-help" class="text-xs text-slate-400 leading-snug">
               Just pick the range you fall into.
               {{ info_tooltip('Age is a major risk multiplier in our cardiovascular and neuropathy models. Complication risks increase with longer cumulative exposure to vascular and glycemic strain.', align='left') }}
@@ -108,7 +106,7 @@
 
           <div class="space-y-1.5 col-span-2 sm:col-span-1">
             <label for="GenHlth" class="block text-sm font-semibold text-slate-700 font-display">How would you rate your general health? <span class="text-red-500">*</span></label>
-            <select name="GenHlth" id="GenHlth" aria-describedby="genhlth-help" required
+            <select name="GenHlth" id="GenHlth" aria-describedby="genhlth-help genhlth-error" aria-invalid="false" required
                     class="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 text-sm text-slate-800 bg-white cursor-pointer focus:outline-none focus:ring-2 focus:ring-teal-400/50 focus:border-teal-400 transition-all">
               <option value="" disabled {{ 'selected' if not (form_data and form_data.get('GenHlth')) }}>Select one</option>
               {% set health_ratings = [('1','Excellent'), ('2','Very good'), ('3','Good'), ('4','Fair'), ('5','Poor')] %}
@@ -116,6 +114,7 @@
               <option value="{{ val }}" {{ 'selected' if form_data and form_data.get('GenHlth') == val }}>{{ label_text }}</option>
               {% endfor %}
             </select>
+            <p id="genhlth-error" class="field-error-msg hidden mt-1 text-xs text-rose-600 font-medium"></p>
             <p id="genhlth-help" class="text-xs text-slate-400 leading-snug">
               Your own honest sense of it, no test needed.
               {{ info_tooltip('Self-reported health is a proven clinical proxy for overall physiological resilience and multi-system complication burden in CDC BRFSS epidemiological models.', align='left') }}
@@ -124,12 +123,13 @@
 
           <div class="space-y-1.5 col-span-2 sm:col-span-1">
             <label for="Sex" class="block text-sm font-semibold text-slate-700 font-display">Sex <span class="text-red-500">*</span></label>
-            <select name="Sex" id="Sex" aria-describedby="sex-help" required
+            <select name="Sex" id="Sex" aria-describedby="sex-help sex-error" aria-invalid="false" required
                     class="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 text-sm text-slate-800 bg-white cursor-pointer focus:outline-none focus:ring-2 focus:ring-teal-400/50 focus:border-teal-400 transition-all">
               <option value="" disabled {{ 'selected' if not (form_data and form_data.get('Sex') in ['0', '1', 0, 1]) }}>Select your sex</option>
               <option value="0" {{ 'selected' if form_data and form_data.get('Sex')|string == '0' }}>Female</option>
               <option value="1" {{ 'selected' if form_data and form_data.get('Sex')|string == '1' }}>Male</option>
             </select>
+            <p id="sex-error" class="field-error-msg hidden mt-1 text-xs text-rose-600 font-medium"></p>
             <p id="sex-help" class="text-xs text-slate-400 leading-snug">
               Biological sex assigned at birth (used by epidemiological risk models).
               {{ info_tooltip('Used by our trained classification models to adjust for baseline epidemiological differences in complication presentation and risk profiles.', align='left') }}
@@ -138,7 +138,7 @@
 
           <div class="space-y-1.5 col-span-2 sm:col-span-1">
             <label for="DiabetesDuration" class="block text-sm font-semibold text-slate-700 font-display">Years with diabetes <span class="text-red-500">*</span></label>
-            <select name="DiabetesDuration" id="DiabetesDuration" aria-describedby="duration-help" required
+            <select name="DiabetesDuration" id="DiabetesDuration" aria-describedby="duration-help duration-error" aria-invalid="false" required
                     class="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 text-sm text-slate-800 bg-white cursor-pointer focus:outline-none focus:ring-2 focus:ring-teal-400/50 focus:border-teal-400 transition-all">
               <option value="" disabled {{ 'selected' if not (form_data and form_data.get('DiabetesDuration') is not none and form_data.get('DiabetesDuration') != '') }}>Select duration</option>
               <option value="0" {{ 'selected' if form_data and form_data.get('DiabetesDuration')|string == '0' }}>Less than 1 year (Newly diagnosed)</option>
@@ -146,6 +146,7 @@
               <option value="2" {{ 'selected' if form_data and form_data.get('DiabetesDuration')|string == '2' }}>5 to 9 years (Elevated risk threshold)</option>
               <option value="3" {{ 'selected' if form_data and form_data.get('DiabetesDuration')|string == '3' }}>10 or more years (High microvascular risk)</option>
             </select>
+            <p id="duration-error" class="field-error-msg hidden mt-1 text-xs text-rose-600 font-medium"></p>
             <p id="duration-help" class="text-xs text-slate-400 leading-snug">
               Roughly how long you have had diagnosed diabetes.
               {{ info_tooltip('Duration of diabetes is the single strongest clinical predictor of diabetic retinopathy and microvascular capillary breakdown in ADA and UKPDS clinical guidelines.', align='left') }}
@@ -154,10 +155,11 @@
 
           <div class="space-y-1.5 col-span-2 sm:col-span-1">
             <label for="PhysHlth" class="block text-sm font-semibold text-slate-700 font-display">Days of poor physical health <span class="text-red-500">*</span></label>
-            <input type="number" min="0" max="30" name="PhysHlth" id="PhysHlth" aria-describedby="physhlth-help physhlth-warning"
+            <input type="number" min="0" max="30" name="PhysHlth" id="PhysHlth" aria-describedby="physhlth-help physhlth-warning physhlth-error" aria-invalid="false"
                    value="{{ form_data.get('PhysHlth', '') if form_data else '' }}"
                    placeholder="e.g. 3"
                    class="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 text-sm text-slate-800 bg-white placeholder-slate-400/60 focus:outline-none focus:ring-2 focus:ring-teal-400/50 focus:border-teal-400 transition-all" required>
+            <p id="physhlth-error" class="field-error-msg hidden mt-1 text-xs text-rose-600 font-medium"></p>
             <p id="physhlth-help" class="text-xs text-slate-400 leading-snug">
               Out of the last 30 days, physical illness or injury. Enter 0 if none.
               {{ info_tooltip('Frequent physical illness days (≥5 or ≥15 days/month) directly feed into our neuropathy and mobility risk model as an indicator of functional limitation.', align='left') }}
@@ -175,10 +177,11 @@
 
           <div class="space-y-1.5 col-span-2 sm:col-span-1">
             <label for="MentHlth" class="block text-sm font-semibold text-slate-700 font-display">Days of poor mental health <span class="text-red-500">*</span></label>
-            <input type="number" min="0" max="30" name="MentHlth" id="MentHlth" aria-describedby="menthlth-help menthlth-warning"
+            <input type="number" min="0" max="30" name="MentHlth" id="MentHlth" aria-describedby="menthlth-help menthlth-warning menthlth-error" aria-invalid="false"
                    value="{{ form_data.get('MentHlth', '') if form_data else '' }}"
                    placeholder="e.g. 3"
                    class="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 text-sm text-slate-800 bg-white placeholder-slate-400/60 focus:outline-none focus:ring-2 focus:ring-teal-400/50 focus:border-teal-400 transition-all" required>
+            <p id="menthlth-error" class="field-error-msg hidden mt-1 text-xs text-rose-600 font-medium"></p>
             <p id="menthlth-help" class="text-xs text-slate-400 leading-snug">
               Out of the last 30 days, stress, depression, emotional struggles. Enter 0 if none.
               {{ info_tooltip('Chronic mental distress (≥15 days/month) feeds into the general complication burden score, reflecting diabetes distress and self-management strain.', align='left') }}
@@ -261,10 +264,11 @@
                 (Standard % DCCT/NGSP | Note: 7.0% ≈ 53 mmol/mol IFCC)
               </span>
             </div>
-            <input type="number" step="0.1" min="3" max="20" name="LabHbA1c" id="LabHbA1c" aria-describedby="labhba1c-help"
+            <input type="number" step="0.1" min="3" max="20" name="LabHbA1c" id="LabHbA1c" aria-describedby="labhba1c-help labhba1c-error" aria-invalid="false"
                    value="{{ form_data.get('LabHbA1c', '') if form_data else '' }}"
                    placeholder="e.g. 7.2"
                    class="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 text-sm text-slate-800 bg-white placeholder-slate-400/60 focus:outline-none focus:ring-2 focus:ring-teal-400/50 focus:border-teal-400 transition-all">
+            <p id="labhba1c-error" class="field-error-msg hidden mt-1 text-xs text-rose-600 font-medium"></p>
             <p id="labhba1c-help" class="text-xs text-slate-400 leading-snug">
               A blood test showing average blood sugar over ~3 months.
               {{ info_tooltip('ADA 2026 Standards of Care benchmarks: <7.0% optimal for nonpregnant adults (Rec 6.3a), 7.0–7.9% suboptimal, ≥8.0% elevated risk for microvascular damage.', align='left') }}
@@ -280,10 +284,11 @@
                 (mmHg)
               </span>
             </div>
-            <input type="number" min="60" max="250" name="LabSystolicBP" id="LabSystolicBP" aria-describedby="labsystolicbp-help"
+            <input type="number" min="60" max="250" name="LabSystolicBP" id="LabSystolicBP" aria-describedby="labsystolicbp-help labsystolicbp-error" aria-invalid="false"
                    value="{{ form_data.get('LabSystolicBP', '') if form_data else '' }}"
                    placeholder="e.g. 138"
                    class="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 text-sm text-slate-800 bg-white placeholder-slate-400/60 focus:outline-none focus:ring-2 focus:ring-teal-400/50 focus:border-teal-400 transition-all">
+            <p id="labsystolicbp-error" class="field-error-msg hidden mt-1 text-xs text-rose-600 font-medium"></p>
             <p id="labsystolicbp-help" class="text-xs text-slate-400 leading-snug">
               The top number in a blood pressure reading, e.g. the 138 in 138/85.
               {{ info_tooltip('KDIGO 2024 and ADA 2026 benchmarks: <120 mmHg optimal for renal/CVD protection, 120–129 mmHg elevated, ≥130 mmHg hypertension.', align='left') }}
@@ -299,10 +304,11 @@
                 (mg/dL | Note: 100 mg/dL ≈ 2.6 mmol/L)
               </span>
             </div>
-            <input type="number" min="20" max="400" name="LabLDL" id="LabLDL" aria-describedby="labldl-help"
+            <input type="number" min="20" max="400" name="LabLDL" id="LabLDL" aria-describedby="labldl-help labldl-error" aria-invalid="false"
                    value="{{ form_data.get('LabLDL', '') if form_data else '' }}"
                    placeholder="e.g. 130"
                    class="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 text-sm text-slate-800 bg-white placeholder-slate-400/60 focus:outline-none focus:ring-2 focus:ring-teal-400/50 focus:border-teal-400 transition-all">
+            <p id="labldl-error" class="field-error-msg hidden mt-1 text-xs text-rose-600 font-medium"></p>
             <p id="labldl-help" class="text-xs text-slate-400 leading-snug">
               Circulating atherogenic lipid particles ("bad cholesterol").
               {{ info_tooltip('ADA 2026 lipid target guidelines: <70 mg/dL optimal primary prevention for diabetes (Rec 10.20), 70–99 mg/dL borderline, ≥100 mg/dL elevated atherogenic risk.', align='right') }}

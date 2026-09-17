@@ -66,7 +66,7 @@ def client():
 # 1. Runtime header assertions — hits real routes, not just static scan.
 # --------------------------------------------------------------------- #
 
-@pytest.mark.parametrize("route", ["/", "/assessment", "/about"])
+@pytest.mark.parametrize("route", ["/", "/assessment", "/about", "/print"])
 def test_csp_header_present_and_strict(client, route):
     resp = client.get(route)
     csp = resp.headers.get("Content-Security-Policy")
@@ -87,6 +87,23 @@ def test_no_external_domains_in_csp_header(client):
     csp = resp.headers.get("Content-Security-Policy", "")
     for domain in BANNED_DOMAINS:
         assert domain not in csp, f"{domain} referenced directly in CSP header"
+
+@pytest.mark.parametrize("route", ["/print/test-uuid", "/history", "/result/test-uuid"])
+def test_sensitive_routes_no_store_get(client, route):
+    resp = client.get(route)
+    cache_control = resp.headers.get("Cache-Control", "")
+    assert "no-store" in cache_control.lower(), f"Cache-Control: no-store missing on GET {route}"
+    assert "no-cache" in cache_control.lower(), f"Cache-Control: no-cache missing on GET {route}"
+    assert resp.headers.get("Pragma", "").lower() == "no-cache", f"Pragma: no-cache missing on GET {route}"
+
+def test_sensitive_routes_no_store_predict_post(client):
+    # Send a POST request to /predict with minimal data.
+    # Even if it returns 400 due to validation or CSRF, the after_request hook adds Cache-Control.
+    resp = client.post("/predict", data={"BMI": "25"})
+    cache_control = resp.headers.get("Cache-Control", "")
+    assert "no-store" in cache_control.lower(), "Cache-Control: no-store missing on POST /predict"
+    assert "no-cache" in cache_control.lower(), "Cache-Control: no-cache missing on POST /predict"
+    assert resp.headers.get("Pragma", "").lower() == "no-cache", "Pragma: no-cache missing on POST /predict"
 
 
 # --------------------------------------------------------------------- #

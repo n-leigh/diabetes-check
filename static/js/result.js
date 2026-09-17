@@ -128,16 +128,47 @@
       unencryptedLinkInput.value = unencryptedUrl;
     }
 
+    const focusableSelectors = 'button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])';
+    let firstFocusable, lastFocusable;
+
+    const updateFocusable = () => {
+      const focusableElements = shareModal.querySelectorAll(focusableSelectors);
+      const visibleFocusable = Array.from(focusableElements).filter(el => el.offsetWidth > 0 || el.offsetHeight > 0);
+      firstFocusable = visibleFocusable[0];
+      lastFocusable = visibleFocusable[visibleFocusable.length - 1];
+    };
+
+    const handleTabKey = (e) => {
+      if (e.key !== 'Tab') return;
+      updateFocusable();
+      if (!firstFocusable || !lastFocusable) return;
+      if (e.shiftKey) {
+        if (document.activeElement === firstFocusable) {
+          lastFocusable.focus();
+          e.preventDefault();
+        }
+      } else {
+        if (document.activeElement === lastFocusable) {
+          firstFocusable.focus();
+          e.preventDefault();
+        }
+      }
+    };
+
     const openModal = () => {
       shareModal.hidden = false;
       document.body.classList.add('overflow-hidden');
+      shareModal.addEventListener('keydown', handleTabKey);
       requestAnimationFrame(() => {
         shareModal.classList.add('is-open');
+        updateFocusable();
+        if (firstFocusable) firstFocusable.focus();
       });
     };
 
     const closeModal = () => {
       shareModal.classList.remove('is-open');
+      shareModal.removeEventListener('keydown', handleTabKey);
       setTimeout(() => {
         shareModal.hidden = true;
         document.body.classList.remove('overflow-hidden');
