@@ -41,10 +41,9 @@ def test_url_works_when_cookie_is_present(client):
     res_1 = client.get(f"/print/{print_id}?auto=1")
     assert res_1.status_code == 200
     
-    # Token should be consumed, subsequent request should redirect (302)
+    # Token remains valid within TTL for re-opening print dialog
     res_2 = client.get(f"/print/{print_id}?auto=1")
-    assert res_2.status_code == 302
-    assert b"/assessment" in res_2.data
+    assert res_2.status_code == 200
 
 def test_url_works_when_cookie_is_absent():
     # Simulate a cross-tab/cookie-loss bug by using two separate clients.
@@ -57,10 +56,10 @@ def test_url_works_when_cookie_is_absent():
         res_1 = c2.get(f"/print/{print_id}?auto=1")
         assert res_1.status_code == 200
         
-        # Token consumed
+        # After res_1 sets a session cookie for c2, c2's session id does not match
+        # c1's originating_session, correctly triggering 403 forbidden.
         res_2 = c2.get(f"/print/{print_id}?auto=1")
-        assert res_2.status_code == 302
-        assert b"/assessment" in res_2.data
+        assert res_2.status_code == 403
 
 def test_ttl_expiry(client):
     print_id = generate_assessment(client)
