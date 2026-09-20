@@ -4,6 +4,7 @@
 |---|---|
 | [README.md](README.md) | Setup, scope, routes, active metrics, and file map |
 | [ARCHITECTURE.md](ARCHITECTURE.md) | Request flow, components, storage, and deployment |
+| [ERD.md](ERD.md) | Chen and crow's-foot entity-relationship diagrams |
 | [METHODOLOGY.md](METHODOLOGY.md) | Cohorts, targets, training, metrics, thresholds, and limitations |
 | [SECURITY.md](SECURITY.md) | Environment variables, controls, privacy, and deployment |
 | [DEPLOYMENT_HARDENING.md](DEPLOYMENT_HARDENING.md) | Clean-machine Windows pilot matrix, recovery, and support diagnostics |
