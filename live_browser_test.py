@@ -80,11 +80,17 @@ def run_live_browser_test():
         html_result = resp.read().decode("utf-8")
 
         # Verify Complication Cards
-        assert "Cardiovascular (ACC/AHA)" in html_result, "Cardiovascular card missing!"
-        assert "Nephropathy & Renal (KDIGO)" in html_result, "Nephropathy card missing!"
-        assert "Neuropathy & Mobility (MNSI)" in html_result, "Neuropathy card missing!"
-        assert "Clinical AUROC" in html_result, "Clinical AUROC score missing!"
-        print("  -> SUCCESS: All three clinical complication cards rendered with AUROC scores.")
+        assert "Heart Health" in html_result, "Heart health card missing!"
+        assert "Kidney Health" in html_result, "Kidney health card missing!"
+        assert "Nerve Health &amp; Movement" in html_result, "Nerve health card missing!"
+        assert "What this means" in html_result, "Risk interpretation missing!"
+        assert "Your current indicators suggest a low likelihood" in html_result, "Low-risk guidance missing!"
+        assert "Your results show elevated risk factors" in html_result, "Moderate-risk guidance missing!"
+        assert "Your profile indicates significant risk factors" in html_result, "High-risk guidance missing!"
+        assert "Clinical AUROC" not in html_result, "Technical metrics should not be shown!"
+        assert "Guideline Score" not in html_result, "Guideline score should not be shown!"
+        assert "Evaluation Model" not in html_result, "Evaluation model should not be shown!"
+        print("  -> SUCCESS: All three clinical complication cards rendered with patient-friendly summaries.")
 
         # Verify Lab Panel
         assert "7.6%" in html_result, "HbA1c lab value missing!"

@@ -57,12 +57,18 @@
       {% if primary_label in ('Low', 'Lower Estimated Risk') %}
         {% set tier_stroke = '#22c55e' %}
         {% set tier_classes = 'bg-emerald-50 text-emerald-700 border-emerald-200' %}
+        {% set tier_label = 'Low Risk' %}
+        {% set tier_summary = 'Your current indicators suggest a low likelihood of immediate complications. Maintain routine health checks and healthy lifestyle habits.' %}
       {% elif primary_label in ('Moderate', 'Moderate Estimated Risk') %}
         {% set tier_stroke = '#f59e0b' %}
         {% set tier_classes = 'bg-amber-50 text-amber-800 border-amber-200' %}
+        {% set tier_label = 'Moderate Risk' %}
+        {% set tier_summary = 'Your results show elevated risk factors. Closer monitoring and discussion with your healthcare provider are recommended.' %}
       {% else %}
         {% set tier_stroke = '#ef4444' %}
         {% set tier_classes = 'bg-red-50 text-red-700 border-red-200' %}
+        {% set tier_label = 'High Risk' %}
+        {% set tier_summary = 'Your profile indicates significant risk factors for this complication. Prompt consultation with a specialist is strongly advised.' %}
       {% endif %}
       {% set circumference = 314.159 %}
       {% set dash_offset = circumference * (1 - pct / 100) %}
@@ -79,110 +85,35 @@
                       stroke-linecap="round" />
             </svg>
             <div class="absolute inset-0 flex flex-col items-center justify-center pointer-events-none">
-              {% if model_available %}
               <span class="text-2xl font-bold text-slate-800 font-display leading-none">{{ pct }}%</span>
-              {% else %}
-              <span class="text-2xl font-bold text-slate-800 font-display leading-none">{{ res.score }} pts</span>
-              {% endif %}
             </div>
           </div>
           <span class="text-[11px] text-slate-400 font-medium -mt-1 mb-3">
-            {% if model_available %}Model-estimated probability{% else %}Rule-based score{% endif %}
+            Estimated Risk Probability
           </span>
 
           <div class="min-h-[44px] flex items-center justify-center text-center px-1">
             <h3 class="text-sm font-bold text-slate-800 font-display leading-tight">
               {% if cat == 'cardiovascular' %}
-                Cardiovascular (ACC/AHA)
+                Heart Health
               {% elif cat == 'general_burden' %}
-                Nephropathy &amp; Renal (KDIGO)
+                Kidney Health
               {% elif cat == 'neuropathy_mobility' %}
-                Neuropathy &amp; Mobility (MNSI)
+                Nerve Health &amp; Movement
               {% else %}
-                Diabetic Retinopathy (ADA)
+                Eye Health
               {% endif %}
             </h3>
           </div>
 
           <span class="mt-2.5 px-3.5 py-1.5 rounded-xl text-xs font-semibold text-center leading-tight inline-block border {{ tier_classes }}">
-            {% if model_available %}
-            <span class="block text-[11px] opacity-80">Model category:</span>
-            <span class="block font-bold mt-0.5">{{ primary_label }}</span>
-            {% else %}
-            <span class="block text-[11px] opacity-80">Rule-based category:</span>
-            <span class="block font-bold mt-0.5">{% if primary_label == 'Low' %}Lower{% elif primary_label == 'Moderate' %}Moderate{% else %}Higher{% endif %}</span>
-            {% endif %}
+            <span class="block font-bold">{{ tier_label }}</span>
           </span>
-          {% if model_metadata is defined and model_metadata.get(cat) %}
-            {% if model_metadata[cat].model_status == 'experimental' %}
-            <span class="mt-1.5 px-2 py-0.5 rounded-full text-[10px] font-semibold inline-block bg-amber-50 text-amber-700 border border-amber-200">Experimental</span>
-            {% endif %}
-          {% endif %}
         </div>
 
-        <!-- Bottom Technical Metrics Section -->
-        <div class="w-full mt-5 pt-4 border-t border-slate-100 text-xs space-y-3">
-          <div class="flex justify-between items-center gap-3 w-full">
-            <span class="text-slate-500 font-medium shrink-0">Rule points</span>
-            <span class="text-xs font-bold text-[#063154] text-right">{{ res.score }} pts</span>
-          </div>
-
-          <div class="flex justify-between items-center gap-3 w-full">
-            <span class="text-slate-500 font-medium shrink-0">Rule category</span>
-            <span class="text-xs font-bold text-[#063154] text-right">{% if res.label == 'Low' %}Lower{% elif res.label == 'Moderate' %}Moderate{% else %}Higher{% endif %}</span>
-          </div>
-
-          {% if model_results.get(cat) is not none %}
-          <div class="flex justify-between items-start gap-3 w-full">
-            <span class="text-slate-500 font-medium shrink-0 pt-0.5">Model estimate</span>
-            <span class="text-xs font-bold text-[#063154] flex flex-wrap items-center justify-end gap-x-1 gap-y-0.5 text-right min-w-0">
-              {% set cal_qual = model_metadata.get(cat, {}).get('calibration_quality', 'fair') if model_metadata is defined else 'fair' %}
-              {% if cal_qual == 'weak' and model_confidences.get(cat) is not none %}
-              <span>{{ model_results[cat] }}</span>
-              {% elif model_confidences.get(cat) is not none %}
-              <span>{{ model_results[cat] }}</span>
-              <span class="text-xs font-bold text-[#063154]">({{ model_confidences[cat] }}%)</span>
-              {% else %}
-              <span>{{ model_results[cat] }}</span>
-              {% endif %}
-            </span>
-          </div>
-          {% if model_metadata is defined and model_metadata.get(cat) %}
-          <div class="flex justify-between items-center gap-3 w-full">
-            <span class="text-slate-500 font-medium shrink-0">Estimate uncertainty</span>
-            {% set unc = model_metadata[cat].get('uncertainty_level', 'moderate') %}
-            <span class="text-xs font-semibold {% if unc == 'narrow' %}text-emerald-600{% elif unc == 'moderate' %}text-amber-600{% else %}text-red-600{% endif %} text-right">{{ unc | capitalize }}</span>
-          </div>
-          {% endif %}
-          {% endif %}
-
-          {% if model_names.get(cat) %}
-          <div class="flex justify-between items-start gap-3 w-full">
-            <span class="text-slate-500 font-medium shrink-0 pt-0.5">Classifier</span>
-            <span class="text-xs font-bold text-[#063154] text-right leading-snug break-words min-w-0 max-w-[65%]">{{ model_names[cat] }}</span>
-          </div>
-          {% endif %}
-
-          {% if clinical_metrics and clinical_metrics.get(cat) %}
-          <div class="pt-3 mt-3 border-t border-slate-100 space-y-3">
-            <div class="flex justify-between items-center gap-3 w-full">
-              <span class="text-slate-500 font-medium" title="Area Under Receiver Operating Characteristic (Discrimination C-statistic)">Clinical AUROC</span>
-              <span class="text-xs font-bold text-[#063154] text-right">{{ clinical_metrics[cat].auroc }}</span>
-            </div>
-            {% if clinical_metrics[cat].get('brier_score') is not none %}
-            <div class="flex justify-between items-center gap-3 w-full">
-              <span class="text-slate-500 font-medium" title="Brier Score (Probability Calibration Error, lower is better)">Brier Score</span>
-              <span class="text-xs font-bold text-[#063154] text-right">{{ clinical_metrics[cat].brier_score }}</span>
-            </div>
-            {% endif %}
-            {% if clinical_metrics[cat].get('ece') is not none %}
-            <div class="flex justify-between items-center gap-3 w-full">
-              <span class="text-slate-500 font-medium" title="Expected Calibration Error (lower is better)">ECE</span>
-              <span class="text-xs font-bold text-[#063154] text-right">{{ clinical_metrics[cat].ece }}</span>
-            </div>
-            {% endif %}
-          </div>
-          {% endif %}
+        <div class="w-full mt-5 rounded-xl border {{ tier_classes }} px-4 py-3 text-sm leading-relaxed">
+          <p class="font-semibold mb-1">What this means</p>
+          <p>{{ tier_summary }}</p>
         </div>
       </div>
       {% endif %}

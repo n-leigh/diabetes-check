@@ -231,14 +231,28 @@ def test_flask_endpoints():
         assert res_predict.status_code == 200
         html = res_predict.get_data(as_text=True)
         assert "Complication Risk Results" in html
-        assert "Clinical AUROC" in html
-        assert "ACC/AHA" in html
-        assert "KDIGO" in html
-        assert "MNSI" in html
-        assert "Retinopathy" in html
+        assert "Estimated Risk Probability" in html
+        assert "What this means" in html
+        assert "Your current indicators suggest a low likelihood" in html
+        assert "Your results show elevated risk factors" in html
+        assert "Your profile indicates significant risk factors" in html
+        assert "Clinical AUROC" not in html
+        assert "Brier Score" not in html
+        assert "Estimate uncertainty" not in html
+        assert "Model estimate" not in html
+        assert "Rule points" not in html
+        assert "Rule category" not in html
+        assert "Guideline Score" not in html
+        assert "Guideline Category" not in html
+        assert "Evaluation Model" not in html
+        assert "Classifier" not in html
+        assert "Heart Health" in html
+        assert "Kidney Health" in html
+        assert "Nerve Health &amp; Movement" in html
+        assert "Eye Health" in html
         assert "Patient-Specific Risk Drivers" in html
-        assert html.count("Model-estimated probability") == 4
-        assert html.count("Model category:") == 4
+        assert html.count("Estimated Risk Probability") == 4
+        assert html.count("Low Risk") + html.count("Moderate Risk") + html.count("High Risk") >= 4
         print("POST /predict with valid CSRF returned 200 OK with all 4 complication domains rendered.")
 
         res_hist_desc = client.get("/history?sort=desc")
