@@ -143,6 +143,45 @@
     };
   }
 
+  function getMlTierClasses(mlLabel) {
+    if (!mlLabel || mlLabel.toLowerCase().includes('lower')) {
+      return {
+        bg: 'bg-emerald-50',
+        border: 'border-emerald-200',
+        text: 'text-emerald-700',
+        sub: 'text-emerald-600',
+        head: 'text-emerald-500'
+      };
+    }
+    if (mlLabel.toLowerCase().includes('moderate')) {
+      return {
+        bg: 'bg-amber-50',
+        border: 'border-amber-200',
+        text: 'text-amber-800',
+        sub: 'text-amber-700',
+        head: 'text-amber-600'
+      };
+    }
+    // Higher Estimated Risk
+    return {
+      bg: 'bg-red-50',
+      border: 'border-red-200',
+      text: 'text-red-700',
+      sub: 'text-red-600',
+      head: 'text-red-500'
+    };
+  }
+
+  // Maps an ML category label string → canonical tier ('Low' | 'Moderate' | 'High')
+  function mlLabelToTier(mlLabel) {
+    if (!mlLabel) return null;
+    const l = mlLabel.toLowerCase();
+    if (l.includes('lower')) return 'Low';
+    if (l.includes('moderate')) return 'Moderate';
+    if (l.includes('higher')) return 'High';
+    return null;
+  }
+
   const DOMAIN_LABELS = {
     cardiovascular: 'Cardiovascular Risk (ASCVD)',
     general_burden: 'Kidney / Multisystem Risk (CKD)',
@@ -218,7 +257,11 @@
       const rule = data.rule_results[cat];
       const mlProb = data.model_confidences[cat];
       const mlLabel = data.model_results ? data.model_results[cat] : null;
-      const tierStyles = getTierClasses(rule.label);
+
+      // Badge driven by ML model classification; fall back to rule label if unavailable
+      const mlTier = mlLabelToTier(mlLabel);
+      const badgeTier = mlTier || rule.label;
+      const tierStyles = getTierClasses(badgeTier);
 
       const card = document.createElement('div');
       card.className = 'bg-white rounded-3xl border border-slate-200 p-6 shadow-sm flex flex-col justify-between';
@@ -233,7 +276,7 @@
 
       const tierBadge = document.createElement('span');
       tierBadge.className = 'px-3 py-1 rounded-full text-xs font-semibold ' + tierStyles.badge;
-      tierBadge.textContent = rule.label + ' Risk';
+      tierBadge.textContent = badgeTier + ' Risk';
 
       cardHeader.appendChild(domainName);
       cardHeader.appendChild(tierBadge);
@@ -253,16 +296,17 @@
       cardTop.appendChild(ruleBox);
 
       // Calibrated ML Model Score
+      const mlTierStyles = getMlTierClasses(mlLabel);
       const mlBox = document.createElement('div');
-      mlBox.className = 'bg-slate-50 rounded-2xl p-4 border border-slate-100 mb-4';
+      mlBox.className = mlTierStyles.bg + ' rounded-2xl p-4 border ' + mlTierStyles.border + ' mb-4';
       const mlHead = document.createElement('div');
-      mlHead.className = 'text-xs text-slate-500 font-medium mb-1';
+      mlHead.className = 'text-xs font-medium mb-1 ' + mlTierStyles.head;
       mlHead.textContent = 'Calibrated ML Model Prediction';
       const mlScore = document.createElement('div');
-      mlScore.className = 'text-xl font-bold font-display text-slate-800';
+      mlScore.className = 'text-xl font-bold font-display ' + mlTierStyles.text;
       mlScore.textContent = mlProb.toFixed(1) + '% probability';
       const mlSub = document.createElement('div');
-      mlSub.className = 'text-xs text-slate-500 mt-1';
+      mlSub.className = 'text-xs mt-1 font-medium ' + mlTierStyles.sub;
       mlSub.textContent = mlLabel ? 'Category: ' + mlLabel : 'CDC NHANES Trained Model';
       mlBox.appendChild(mlHead);
       mlBox.appendChild(mlScore);
@@ -326,7 +370,7 @@
         itemTitle.textContent = step.title;
         const itemDesc = document.createElement('div');
         itemDesc.className = 'text-slate-600 leading-relaxed';
-        itemDesc.textContent = step.desc;
+        itemDesc.textContent = step.description;
         item.appendChild(itemTitle);
         item.appendChild(itemDesc);
         stepList.appendChild(item);
