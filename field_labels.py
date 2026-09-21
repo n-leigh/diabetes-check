@@ -17,6 +17,14 @@ HEALTH_RATINGS = {
     "1": "Excellent", "2": "Very good", "3": "Good", "4": "Fair", "5": "Poor",
 }
 
+HEALTH_RATING_DESCRIPTIONS = {
+    "1": "You feel your overall health is excellent, with no important concerns today.",
+    "2": "You feel your overall health is very good, with only minor concerns or limitations.",
+    "3": "You feel your overall health is good, with some concerns or limitations but generally doing well.",
+    "4": "You feel your overall health is fair, with noticeable concerns, symptoms, or limitations.",
+    "5": "You feel your overall health is poor, with substantial concerns, symptoms, or limitations.",
+}
+
 SEX_LABELS = {"0": "Female", "1": "Male"}
 
 DURATION_LABELS = {

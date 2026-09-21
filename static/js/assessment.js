@@ -191,6 +191,28 @@
   setupThirtyDayLimitWarning('PhysHlth', 'physhlth-warning', 'capPhysHlthBtn');
   setupThirtyDayLimitWarning('MentHlth', 'menthlth-warning', 'capMentHlthBtn');
 
+  const healthRating = document.getElementById('GenHlth');
+  const healthChoiceTip = document.getElementById('genhlth-choice-tip');
+  const healthChoiceDescription = document.getElementById('genhlth-choice-description');
+
+  function updateHealthChoiceTip() {
+    if (!healthRating || !healthChoiceTip || !healthChoiceDescription) return;
+    const selectedOption = healthRating.options[healthRating.selectedIndex];
+    if (!selectedOption || !selectedOption.dataset.description) {
+      healthChoiceTip.classList.add('hidden');
+      healthChoiceDescription.textContent = '';
+      return;
+    }
+    healthChoiceDescription.textContent = selectedOption.dataset.description;
+    healthChoiceTip.classList.remove('hidden');
+  }
+
+  if (healthRating) {
+    healthRating.addEventListener('change', updateHealthChoiceTip);
+    healthRating.addEventListener('focus', updateHealthChoiceTip);
+    updateHealthChoiceTip();
+  }
+
   // Form Validation Logic
   const form = document.querySelector('form[action="/predict"]');
   const topErrorBanner = document.getElementById('formTopErrorBanner');

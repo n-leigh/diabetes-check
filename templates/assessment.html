@@ -104,21 +104,37 @@
             </p>
           </div>
 
-          <div class="space-y-1.5 col-span-2 sm:col-span-1">
+          <div class="space-y-1.5 col-span-2">
             <label for="GenHlth" class="block text-sm font-semibold text-slate-700 font-display">How would you rate your general health? <span class="text-red-500">*</span></label>
-            <select name="GenHlth" id="GenHlth" aria-describedby="genhlth-help genhlth-error" aria-invalid="false" required
-                    class="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 text-sm text-slate-800 bg-white cursor-pointer focus:outline-none focus:ring-2 focus:ring-teal-400/50 focus:border-teal-400 transition-all">
-              <option value="" disabled {{ 'selected' if not (form_data and form_data.get('GenHlth')) }}>Select one</option>
-              {% set health_ratings = [('1','Excellent'), ('2','Very good'), ('3','Good'), ('4','Fair'), ('5','Poor')] %}
-              {% for val, label_text in health_ratings %}
-              <option value="{{ val }}" {{ 'selected' if form_data and form_data.get('GenHlth') == val }}>{{ label_text }}</option>
-              {% endfor %}
-            </select>
-            <p id="genhlth-error" class="field-error-msg hidden mt-1 text-xs text-rose-600 font-medium"></p>
-            <p id="genhlth-help" class="text-xs text-slate-400 leading-snug">
-              Your own honest sense of it, no test needed.
-              {{ info_tooltip('Self-reported health is a proven clinical proxy for overall physiological resilience and multi-system complication burden in CDC BRFSS epidemiological models.', align='left') }}
-            </p>
+            <div>
+                <select name="GenHlth" id="GenHlth" aria-describedby="genhlth-help genhlth-error" aria-invalid="false" required
+                        class="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 text-sm text-slate-800 bg-white cursor-pointer focus:outline-none focus:ring-2 focus:ring-teal-400/50 focus:border-teal-400 transition-all">
+                  <option value="" disabled {{ 'selected' if not (form_data and form_data.get('GenHlth')) }}>Select one</option>
+                  {% set health_ratings = [('1','Excellent'), ('2','Very good'), ('3','Good'), ('4','Fair'), ('5','Poor')] %}
+                  {% set health_rating_descriptions = {
+                    '1': 'You feel your overall health is excellent, with no important concerns today.',
+                    '2': 'You feel your overall health is very good, with only minor concerns or limitations.',
+                    '3': 'You feel your overall health is good, with some concerns or limitations but generally doing well.',
+                    '4': 'You feel your overall health is fair, with noticeable concerns, symptoms, or limitations.',
+                    '5': 'You feel your overall health is poor, with substantial concerns, symptoms, or limitations.'
+                  } %}
+                  {% for val, label_text in health_ratings %}
+                  <option value="{{ val }}" title="{{ health_rating_descriptions[val] }}" data-description="{{ health_rating_descriptions[val] }}" {{ 'selected' if form_data and form_data.get('GenHlth') == val }}>{{ label_text }}</option>
+                  {% endfor %}
+                </select>
+                <p id="genhlth-error" class="field-error-msg hidden mt-1 text-xs text-rose-600 font-medium"></p>
+                <p id="genhlth-help" class="text-xs text-slate-400 leading-snug mt-1.5">
+                  Choose the statement that best matches your overall health today. There are no tests or fixed symptom thresholds for this self-rating.
+                  {{ info_tooltip('This is the CDC BRFSS GENHLTH-style question: rate your overall health based on your own perception, considering physical and mental health together. It is not a diagnosis or a substitute for medical advice.', align='left') }}
+                </p>
+                <div id="genhlth-choice-tip" class="hidden mt-2 max-w-xl rounded-lg border border-teal-200 border-l-4 border-l-teal-400 bg-teal-50 px-3.5 py-3 text-sm text-slate-700 shadow-sm" role="status" aria-live="polite">
+                  <p class="flex items-center gap-1.5 font-semibold text-teal-800">
+                    <span class="inline-flex h-5 w-5 items-center justify-center rounded-full bg-teal-100 text-xs text-teal-700" aria-hidden="true">i</span>
+                    What this choice means
+                  </p>
+                  <p id="genhlth-choice-description" class="mt-1 leading-relaxed"></p>
+                </div>
+            </div>
           </div>
 
           <div class="space-y-1.5 col-span-2 sm:col-span-1">
@@ -260,7 +276,7 @@
               <label for="LabHbA1c" class="block text-sm font-semibold text-slate-700 font-display">
                 HbA1c
               </label>
-              <span class="inline-flex items-center text-[10.5px] font-medium text-slate-500 bg-slate-100/90 border border-slate-200/80 px-2 py-0.5 rounded-md self-start">
+              <span class="inline-flex min-h-[2.875rem] items-center text-[10.5px] font-medium text-slate-500 bg-slate-100/90 border border-slate-200/80 px-2 py-0.5 rounded-md self-start">
                 (Standard % DCCT/NGSP | Note: 7.0% ≈ 53 mmol/mol IFCC)
               </span>
             </div>
@@ -280,8 +296,9 @@
               <label for="LabSystolicBP" class="block text-sm font-semibold text-slate-700 font-display">
                 Systolic BP
               </label>
-              <span class="inline-flex items-center text-[10.5px] font-medium text-slate-500 bg-slate-100/90 border border-slate-200/80 px-2 py-0.5 rounded-md self-start">
-                (mmHg)
+              <span class="inline-flex min-h-[2.875rem] flex-col items-start justify-center text-[10.5px] font-medium text-slate-500 bg-slate-100/90 border border-slate-200/80 px-2 py-0.5 rounded-md self-start">
+                <span>(mmHg)</span>
+                <span class="text-teal-700">Normal: &lt;120</span>
               </span>
             </div>
             <input type="number" min="60" max="250" name="LabSystolicBP" id="LabSystolicBP" aria-describedby="labsystolicbp-help labsystolicbp-error" aria-invalid="false"
@@ -300,7 +317,7 @@
               <label for="LabLDL" class="block text-sm font-semibold text-slate-700 font-display">
                 LDL Cholesterol
               </label>
-              <span class="inline-flex items-center text-[10.5px] font-medium text-slate-500 bg-slate-100/90 border border-slate-200/80 px-2 py-0.5 rounded-md self-start">
+              <span class="inline-flex min-h-[2.875rem] items-center text-[10.5px] font-medium text-slate-500 bg-slate-100/90 border border-slate-200/80 px-2 py-0.5 rounded-md self-start">
                 (mg/dL | Note: 100 mg/dL ≈ 2.6 mmol/L)
               </span>
             </div>
