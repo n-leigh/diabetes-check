@@ -134,10 +134,25 @@ def build_nephropathy_cohort():
 
 def build_retinopathy_cohort(raw_dir=None):
     """
-    Extracts and standardizes the diabetic retinopathy cohort from CDC NHANES 2007-2008:
-    - OPXRET_E: Digital retinal photography exam (OPDURET, OPDDRET).
-    - DIQ_E: Diabetes diagnosis and doctor-diagnosed retinopathy.
-    - DEMO_E, BMX_E, BPQ_E, SMQ_E, VIQ_E: Demographic, biometric, cardiovascular, and visual symptoms.
+    Extracts and standardizes the diabetic retinopathy cohort by pooling all
+    available NHANES retinal photography exam cycles:
+      - 2005-2006 (OPXRET_D): ~543 diabetic participants with retinal exam
+      - 2007-2008 (OPXRET_E): ~820 diabetic participants with retinal exam
+      (2003-2004 OPXRET_C is not available on CDC servers — HTTP 404)
+
+    For each cycle, the following files are merged:
+      - OPXRET_*: Digital retinal photography grades (OPDURET, OPDDRET)
+      - DIQ_*:    Diabetes diagnosis + doctor-reported retinopathy (DIQ010, DIQ080)
+      - DEMO_*:   Age, sex
+      - BMX_*:    BMI
+      - BPQ_*:    High BP, high cholesterol
+      - SMQ_*:    Smoking history
+      - VIQ_*:    Blurry vision symptom (VIQ071)
+      - GHB_*:    HbA1c glycohemoglobin lab (LBXGH) — the #1 ADA retinopathy predictor
+
+    Each cycle's raw XPT files are cached in their own subdirectory under raw_dir
+    (e.g. raw_retinopathy/2005-2006/) to prevent filename collisions between cycles.
+    Files that already exist on disk are never re-downloaded.
     """
     import urllib.request
 
@@ -146,66 +161,168 @@ def build_retinopathy_cohort(raw_dir=None):
 
     os.makedirs(raw_dir, exist_ok=True)
 
-    def get_xpt(filename, url):
-        local_path = os.path.join(raw_dir, filename)
-        sub_path = os.path.join(raw_dir, "2007-2008", filename)
-        if os.path.exists(sub_path):
-            local_path = sub_path
-        elif not os.path.exists(local_path):
+    # ── CDC NHANES cycles with retinal photography data ────────────────────────
+    # 2003-2004 (OPXRET_C) is excluded: CDC returns HTTP 404 for that file.
+    NHANES_CYCLES = [
+        {
+            "label": "2005-2006",
+            "suffix": "D",
+            "year": "2005",
+            "files": {
+                "opx":  "OPXRET_D.xpt",
+                "diq":  "DIQ_D.xpt",
+                "demo": "DEMO_D.xpt",
+                "bmx":  "BMX_D.xpt",
+                "bpq":  "BPQ_D.xpt",
+                "smq":  "SMQ_D.xpt",
+                "viq":  "VIQ_D.xpt",
+                "ghb":  "GHB_D.xpt",
+            },
+        },
+        {
+            "label": "2007-2008",
+            "suffix": "E",
+            "year": "2007",
+            "files": {
+                "opx":  "OPXRET_E.xpt",
+                "diq":  "DIQ_E.xpt",
+                "demo": "DEMO_E.xpt",
+                "bmx":  "BMX_E.xpt",
+                "bpq":  "BPQ_E.xpt",
+                "smq":  "SMQ_E.xpt",
+                "viq":  "VIQ_E.xpt",
+                "ghb":  "GHB_E.xpt",
+            },
+        },
+    ]
+
+    def get_xpt(cycle_dir, filename, url):
+        """Download XPT to cycle-specific subdir; return as DataFrame.
+        Falls back to flat raw_dir for backwards compatibility with any
+        files the user may have pre-downloaded there."""
+        os.makedirs(cycle_dir, exist_ok=True)
+        local_path = os.path.join(cycle_dir, filename)
+        # Backwards-compat: also check the flat raw_dir (original pipeline behaviour)
+        flat_path = os.path.join(raw_dir, filename)
+        if os.path.exists(local_path):
+            pass  # already in cycle subdir
+        elif os.path.exists(flat_path):
+            local_path = flat_path  # use pre-existing flat file, don't re-download
+        else:
             print(f"[Retinopathy Pipeline] Downloading {filename} from CDC...")
             req = urllib.request.Request(url, headers={"User-Agent": "Mozilla/5.0"})
             with urllib.request.urlopen(req) as resp, open(local_path, "wb") as f:
                 f.write(resp.read())
         return pd.read_sas(local_path)
 
-    df_diq = get_xpt("DIQ_E.xpt", "https://wwwn.cdc.gov/Nchs/Data/Nhanes/Public/2007/DataFiles/DIQ_E.xpt")
-    df_opx = get_xpt("OPXRET_E.xpt", "https://wwwn.cdc.gov/Nchs/Data/Nhanes/Public/2007/DataFiles/OPXRET_E.xpt")
-    df_demo = get_xpt("DEMO_E.xpt", "https://wwwn.cdc.gov/Nchs/Data/Nhanes/Public/2007/DataFiles/DEMO_E.xpt")
-    df_bmx = get_xpt("BMX_E.xpt", "https://wwwn.cdc.gov/Nchs/Data/Nhanes/Public/2007/DataFiles/BMX_E.xpt")
-    df_bpq = get_xpt("BPQ_E.xpt", "https://wwwn.cdc.gov/Nchs/Data/Nhanes/Public/2007/DataFiles/BPQ_E.xpt")
-    df_smq = get_xpt("SMQ_E.xpt", "https://wwwn.cdc.gov/Nchs/Data/Nhanes/Public/2007/DataFiles/SMQ_E.xpt")
-    df_viq = get_xpt("VIQ_E.xpt", "https://wwwn.cdc.gov/Nchs/Data/Nhanes/Public/2007/DataFiles/VIQ_E.xpt")
+    def process_cycle(cycle):
+        """Download, merge, and clean one NHANES retinopathy cycle."""
+        label = cycle["label"]
+        year  = cycle["year"]
+        fs    = cycle["files"]
+        base  = f"https://wwwn.cdc.gov/Nchs/Data/Nhanes/Public/{year}/DataFiles"
+        cdir  = os.path.join(raw_dir, label)   # e.g. raw_retinopathy/2005-2006/
 
-    diab_mask = (df_diq["DIQ010"] == 1.0) | (df_diq["DIQ050"] == 1.0) | (df_diq["DID070"] == 1.0)
-    m = df_diq[diab_mask][["SEQN", "DID040", "DIQ080"]].merge(
-        df_demo[["SEQN", "RIDAGEYR", "RIAGENDR"]], on="SEQN", how="inner"
-    ).merge(df_bmx[["SEQN", "BMXBMI"]], on="SEQN", how="left"
-    ).merge(df_bpq[["SEQN", "BPQ020", "BPQ080"]], on="SEQN", how="left"
-    ).merge(df_smq[["SEQN", "SMQ020", "SMQ040"]], on="SEQN", how="left"
-    ).merge(df_viq[["SEQN", "VIQ071"]], on="SEQN", how="left"
-    ).merge(df_opx[["SEQN", "OPDURET", "OPDDRET"]], on="SEQN", how="left")
+        print(f"[Retinopathy Pipeline] Processing cycle {label}...")
 
-    def get_target(row):
-        u, d, told = row["OPDURET"], row["OPDDRET"], row["DIQ080"]
-        if (pd.notna(u) and u > 10.0) or (pd.notna(d) and d > 10.0) or (told == 1.0):
-            return 1
-        if (pd.notna(u) and u == 10.0) or (pd.notna(d) and d == 10.0) or (told == 2.0):
-            return 0
-        return np.nan
+        df_diq  = get_xpt(cdir, fs["diq"],  f"{base}/{fs['diq']}")
+        df_opx  = get_xpt(cdir, fs["opx"],  f"{base}/{fs['opx']}")
+        df_demo = get_xpt(cdir, fs["demo"], f"{base}/{fs['demo']}")
+        df_bmx  = get_xpt(cdir, fs["bmx"],  f"{base}/{fs['bmx']}")
+        df_bpq  = get_xpt(cdir, fs["bpq"],  f"{base}/{fs['bpq']}")
+        df_smq  = get_xpt(cdir, fs["smq"],  f"{base}/{fs['smq']}")
+        df_viq  = get_xpt(cdir, fs["viq"],  f"{base}/{fs['viq']}")
+        df_ghb  = get_xpt(cdir, fs["ghb"],  f"{base}/{fs['ghb']}")
 
-    m["target"] = m.apply(get_target, axis=1)
-    clean = m.dropna(subset=["target"]).copy()
+        # Diabetic cohort filter: told diabetes, on insulin, or on diabetes pills
+        diab_mask = (
+            (df_diq["DIQ010"] == 1.0) |
+            (df_diq["DIQ050"] == 1.0) |
+            (df_diq["DID070"] == 1.0)
+        )
+        m = df_diq[diab_mask][["SEQN", "DID040", "DIQ080"]].merge(
+            df_demo[["SEQN", "RIDAGEYR", "RIAGENDR"]], on="SEQN", how="inner"
+        ).merge(df_bmx[["SEQN", "BMXBMI"]],         on="SEQN", how="left"
+        ).merge(df_bpq[["SEQN", "BPQ020", "BPQ080"]], on="SEQN", how="left"
+        ).merge(df_smq[["SEQN", "SMQ020"]],           on="SEQN", how="left"
+        ).merge(df_viq[["SEQN", "VIQ071"]],           on="SEQN", how="left"
+        ).merge(df_ghb[["SEQN", "LBXGH"]],            on="SEQN", how="left"
+        ).merge(df_opx[["SEQN", "OPDURET", "OPDDRET"]], on="SEQN", how="left")
 
-    clean["age"] = clean["RIDAGEYR"]
-    clean["sex"] = clean["RIAGENDR"].apply(lambda s: 1 if s == 1.0 else 0)
-    clean["bmi"] = clean["BMXBMI"].fillna(clean["BMXBMI"].median()).round(1)
-    clean["high_bp"] = clean["BPQ020"].apply(lambda b: 1 if b == 1.0 else 0)
-    clean["high_chol"] = clean["BPQ080"].apply(lambda c: 1 if c == 1.0 else 0)
-    clean["smoker"] = clean["SMQ020"].apply(lambda s: 1 if s == 1.0 else 0)
+        # Retinopathy label from retinal photography + self-report
+        def get_target(row):
+            u, d, told = row["OPDURET"], row["OPDDRET"], row["DIQ080"]
+            if (pd.notna(u) and u > 10.0) or (pd.notna(d) and d > 10.0) or (told == 1.0):
+                return 1
+            if (pd.notna(u) and u == 10.0) or (pd.notna(d) and d == 10.0) or (told == 2.0):
+                return 0
+            return np.nan
 
-    dur = clean["RIDAGEYR"] - clean["DID040"]
-    clean["diabetes_duration_years"] = dur.apply(lambda d: max(0.0, float(d)) if (pd.notna(d) and 0 <= d <= 80) else 5.0).round(1)
-    clean["blurry_vision"] = clean["VIQ071"].apply(lambda v: 1 if v == 1.0 else 0)
-    clean["target_retinopathy"] = clean["target"].astype(int)
+        m["target"] = m.apply(get_target, axis=1)
+        clean = m.dropna(subset=["target"]).copy()
 
-    out_cols = ["age", "sex", "bmi", "high_bp", "high_chol", "smoker", "diabetes_duration_years", "blurry_vision", "target_retinopathy"]
-    clean_df = clean[out_cols]
+        # Standardize features
+        clean["age"]       = clean["RIDAGEYR"]
+        clean["sex"]       = clean["RIAGENDR"].apply(lambda s: 1 if s == 1.0 else 0)
+        clean["bmi"]       = clean["BMXBMI"].fillna(clean["BMXBMI"].median()).round(1)
+        clean["high_bp"]   = clean["BPQ020"].apply(lambda b: 1 if b == 1.0 else 0)
+        clean["high_chol"] = clean["BPQ080"].apply(lambda c: 1 if c == 1.0 else 0)
+        clean["smoker"]    = clean["SMQ020"].apply(lambda s: 1 if s == 1.0 else 0)
+        clean["blurry_vision"] = clean["VIQ071"].apply(lambda v: 1 if v == 1.0 else 0)
+
+        # Diabetes duration: age minus age-at-diagnosis; impute missing as 5 yrs
+        dur = clean["RIDAGEYR"] - clean["DID040"]
+        clean["diabetes_duration_years"] = dur.apply(
+            lambda d: max(0.0, float(d)) if (pd.notna(d) and 0 <= d <= 80) else 5.0
+        ).round(1)
+
+        # HbA1c (LBXGH, %): impute missing with cohort median
+        ghb_median = clean["LBXGH"].median()
+        clean["hba1c"] = clean["LBXGH"].fillna(ghb_median).round(1)
+
+        clean["target_retinopathy"] = clean["target"].astype(int)
+        clean["_cycle"] = label   # internal marker, dropped before saving
+
+        print(f"                       {label}: {len(clean)} usable records "
+              f"(retinopathy prevalence: "
+              f"{clean['target_retinopathy'].mean():.1%})")
+        return clean
+
+    # ── Process and pool all cycles ───────────────────────────────────────────
+    cycle_dfs = []
+    for cycle in NHANES_CYCLES:
+        try:
+            cycle_dfs.append(process_cycle(cycle))
+        except Exception as exc:
+            print(f"[Retinopathy Pipeline] WARNING: Skipping cycle {cycle['label']}: {exc}")
+
+    if not cycle_dfs:
+        raise RuntimeError("No retinopathy cycles could be processed.")
+
+    pooled = pd.concat(cycle_dfs, ignore_index=True)
+
+    # Verify no duplicate SEQNs crept in (safety net)
+    seqn_col = "SEQN" if "SEQN" in pooled.columns else None
+    if seqn_col and pooled[seqn_col].duplicated().any():
+        dupes = pooled[seqn_col].duplicated().sum()
+        print(f"[Retinopathy Pipeline] WARNING: {dupes} duplicate SEQNs detected — deduplicating.")
+        pooled = pooled.drop_duplicates(subset=[seqn_col])
+
+    out_cols = [
+        "age", "sex", "bmi", "high_bp", "high_chol", "smoker",
+        "diabetes_duration_years", "blurry_vision", "hba1c", "target_retinopathy",
+    ]
+    clean_df = pooled[out_cols].copy()
 
     out_path = os.path.join(DATA_DIR, "processed_retinopathy_cohort.csv")
     clean_df.to_csv(out_path, index=False)
-    print(f"[Retinopathy Pipeline] Saved cleaned Retinopathy cohort to {out_path}")
-    print(f"                       Cohort size: {len(clean_df)}")
-    print(f"                       Target prevalence: {clean_df['target_retinopathy'].value_counts(normalize=True).to_dict()}\n")
+
+    print(f"\n[Retinopathy Pipeline] Saved pooled Retinopathy cohort to {out_path}")
+    print(f"                       Total rows     : {len(clean_df):,}")
+    print(f"                       Cycles pooled  : {[c['label'] for c in NHANES_CYCLES]}")
+    print(f"                       HbA1c coverage : {clean_df['hba1c'].notna().mean():.1%}")
+    print(f"                       Target prevalence: "
+          f"{clean_df['target_retinopathy'].value_counts(normalize=True).to_dict()}\n")
     return clean_df
 
 

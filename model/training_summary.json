@@ -549,153 +549,167 @@
     }
   },
   "retinopathy": {
-    "title": "Diabetic Retinopathy & Vision Loss (CDC NHANES 2007-2008)",
+    "title": "Diabetic Retinopathy & Vision Loss (CDC NHANES 2005-2008 Pooled)",
     "endpoint": "Digital Retinal Photography Exam & Physician-Diagnosed Retinopathy",
-    "cohort_source": "CDC NHANES Retinopathy Exam Cohort (N=797)",
-    "sample_size": 797,
-    "train_size": 637,
-    "test_size": 160,
-    "event_prevalence_pct": 42.8,
+    "cohort_source": "CDC NHANES Pooled Retinopathy Cohort 2005-2008 (N=1,323)",
+    "sample_size": 1323,
+    "train_size": 1058,
+    "test_size": 265,
+    "event_prevalence_pct": 43.8,
     "best_model": "Calibrated Logistic Regression",
-    "cv_auroc_mean": 0.6764,
-    "cv_auroc_std": 0.039,
-    "auroc": 0.6418,
+    "cv_auroc_mean": 0.7215,
+    "cv_auroc_std": 0.0314,
+    "auroc": 0.7491,
     "auroc_95_ci": [
-      0.5463,
-      0.7232
+      0.6898,
+      0.8047
     ],
-    "pr_auc": 0.5019,
-    "brier_score": 0.2341,
-    "sensitivity": 0.8676,
-    "specificity": 0.3804,
-    "negative_predictive_value": 0.7955,
-    "positive_predictive_value": 0.5086,
-    "screening_threshold": 0.3286,
-    "referral_threshold": 0.4001,
-    "model_status": "experimental",
-    "calibration_quality": "fair",
-    "uncertainty_level": "wide",
-    "ece": 0.0624,
+    "pr_auc": 0.6863,
+    "brier_score": 0.2021,
+    "sensitivity": 0.8879,
+    "specificity": 0.3893,
+    "negative_predictive_value": 0.8169,
+    "positive_predictive_value": 0.5309,
+    "screening_threshold": 0.2964,
+    "referral_threshold": 0.434,
+    "model_status": "validated",
+    "calibration_quality": "good",
+    "uncertainty_level": "moderate",
+    "ece": 0.0488,
     "brier_score_95_ci": [
-      0.2139,
-      0.2583
+      0.1844,
+      0.2205
     ],
     "sensitivity_95_ci": [
-      0.7727,
-      0.9394
+      0.8269,
+      0.9436
     ],
     "specificity_95_ci": [
-      0.2812,
-      0.4824
+      0.3129,
+      0.4648
     ],
     "ppv_95_ci": [
-      0.4146,
-      0.6
+      0.4564,
+      0.599
     ],
     "npv_95_ci": [
-      0.6512,
-      0.9048
+      0.7255,
+      0.9041
     ],
     "reliability_table": [
       {
+        "bin": "0.0-0.1",
+        "count": 1,
+        "mean_predicted": 0.0872,
+        "observed_fraction": 0.0,
+        "gap": 0.0872
+      },
+      {
         "bin": "0.1-0.2",
-        "count": 2,
-        "mean_predicted": 0.1651,
-        "observed_fraction": 0.5,
-        "gap": 0.3349
+        "count": 32,
+        "mean_predicted": 0.1576,
+        "observed_fraction": 0.2188,
+        "gap": 0.0612
       },
       {
         "bin": "0.2-0.3",
-        "count": 31,
-        "mean_predicted": 0.2434,
-        "observed_fraction": 0.1613,
-        "gap": 0.0821
+        "count": 40,
+        "mean_predicted": 0.255,
+        "observed_fraction": 0.15,
+        "gap": 0.105
       },
       {
         "bin": "0.3-0.4",
-        "count": 33,
-        "mean_predicted": 0.3479,
-        "observed_fraction": 0.3636,
-        "gap": 0.0158
+        "count": 36,
+        "mean_predicted": 0.3549,
+        "observed_fraction": 0.3333,
+        "gap": 0.0216
       },
       {
         "bin": "0.4-0.5",
-        "count": 44,
-        "mean_predicted": 0.4485,
-        "observed_fraction": 0.5,
-        "gap": 0.0515
+        "count": 52,
+        "mean_predicted": 0.4464,
+        "observed_fraction": 0.4231,
+        "gap": 0.0233
       },
       {
         "bin": "0.5-0.6",
-        "count": 32,
-        "mean_predicted": 0.5597,
-        "observed_fraction": 0.5938,
-        "gap": 0.0341
+        "count": 51,
+        "mean_predicted": 0.5468,
+        "observed_fraction": 0.549,
+        "gap": 0.0022
       },
       {
         "bin": "0.6-0.7",
-        "count": 15,
-        "mean_predicted": 0.6523,
-        "observed_fraction": 0.6,
-        "gap": 0.0523
+        "count": 30,
+        "mean_predicted": 0.6591,
+        "observed_fraction": 0.7333,
+        "gap": 0.0743
       },
       {
         "bin": "0.7-0.8",
+        "count": 20,
+        "mean_predicted": 0.7522,
+        "observed_fraction": 0.85,
+        "gap": 0.0978
+      },
+      {
+        "bin": "0.8-0.9",
         "count": 3,
-        "mean_predicted": 0.7045,
-        "observed_fraction": 0.0,
-        "gap": 0.7045
+        "mean_predicted": 0.804,
+        "observed_fraction": 0.6667,
+        "gap": 0.1374
       }
     ],
     "subgroup_analysis": {
       "age_18_44": {
-        "n": 18,
-        "actual_positive_rate": 0.2778,
-        "mean_predicted": 0.3803,
-        "calibration_error": 0.1026,
-        "recall": 1.0,
-        "specificity": 0.6923,
-        "false_negative_rate": 0.0,
-        "flag": "insufficient_data"
+        "n": 30,
+        "actual_positive_rate": 0.2,
+        "mean_predicted": 0.3019,
+        "calibration_error": 0.1019,
+        "recall": 0.8333,
+        "specificity": 0.625,
+        "false_negative_rate": 0.1667,
+        "flag": "warning"
       },
       "age_45_59": {
-        "n": 40,
-        "actual_positive_rate": 0.3,
-        "mean_predicted": 0.3866,
-        "calibration_error": 0.0866,
-        "recall": 1.0,
-        "specificity": 0.3929,
-        "false_negative_rate": 0.0,
+        "n": 68,
+        "actual_positive_rate": 0.4412,
+        "mean_predicted": 0.4329,
+        "calibration_error": 0.0082,
+        "recall": 0.8667,
+        "specificity": 0.4474,
+        "false_negative_rate": 0.1333,
         "flag": "ok"
       },
       "age_60_plus": {
-        "n": 102,
-        "actual_positive_rate": 0.5,
-        "mean_predicted": 0.4568,
-        "calibration_error": 0.0432,
-        "recall": 0.8235,
-        "specificity": 0.2941,
-        "false_negative_rate": 0.1765,
+        "n": 167,
+        "actual_positive_rate": 0.479,
+        "mean_predicted": 0.4667,
+        "calibration_error": 0.0123,
+        "recall": 0.9,
+        "specificity": 0.2989,
+        "false_negative_rate": 0.1,
         "flag": "ok"
       },
       "male": {
-        "n": 70,
-        "actual_positive_rate": 0.4714,
-        "mean_predicted": 0.488,
-        "calibration_error": 0.0165,
-        "recall": 0.8788,
-        "specificity": 0.1622,
-        "false_negative_rate": 0.1212,
+        "n": 134,
+        "actual_positive_rate": 0.4851,
+        "mean_predicted": 0.4799,
+        "calibration_error": 0.0051,
+        "recall": 0.8923,
+        "specificity": 0.2754,
+        "false_negative_rate": 0.1077,
         "flag": "ok"
       },
       "female": {
-        "n": 90,
-        "actual_positive_rate": 0.3889,
-        "mean_predicted": 0.386,
-        "calibration_error": 0.0029,
-        "recall": 0.8571,
-        "specificity": 0.5273,
-        "false_negative_rate": 0.1429,
+        "n": 131,
+        "actual_positive_rate": 0.3893,
+        "mean_predicted": 0.3979,
+        "calibration_error": 0.0086,
+        "recall": 0.8824,
+        "specificity": 0.4875,
+        "false_negative_rate": 0.1176,
         "flag": "ok"
       }
     },
@@ -707,20 +721,21 @@
       "Age",
       "Sex",
       "DiabetesDuration",
-      "BlurryVision"
+      "BlurryVision",
+      "HbA1c"
     ],
     "models_compared_cv": {
       "Calibrated Logistic Regression": {
-        "cv_mean": 0.6764,
-        "cv_std": 0.039
+        "cv_mean": 0.7215,
+        "cv_std": 0.0314
       },
       "Calibrated Random Forest": {
-        "cv_mean": 0.6475,
-        "cv_std": 0.0251
+        "cv_mean": 0.7164,
+        "cv_std": 0.0306
       },
       "Calibrated Gradient Boosting": {
-        "cv_mean": 0.6476,
-        "cv_std": 0.0188
+        "cv_mean": 0.7111,
+        "cv_std": 0.0359
       }
     }
   }
