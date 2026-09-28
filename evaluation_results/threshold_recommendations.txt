@@ -4,7 +4,7 @@ Threshold Recommendations (highest high-risk recall with precision >= 0.60)
 cardiovascular: Recommended threshold = 0.6000 (sensitivity=0.0444, specificity=0.9931, precision=0.6667, f1=0.0833)
 general_burden: Recommended threshold = 0.2000 (sensitivity=0.9908, specificity=0.0328, precision=0.6467, f1=0.7826)
 neuropathy_mobility: Recommended threshold = 0.3500 (sensitivity=0.7317, specificity=0.7227, precision=0.6067, f1=0.6634)
-retinopathy: Recommended threshold = 0.4340 (sensitivity=0.7328, specificity=0.6711, precision=0.6343, f1=0.6800)
+retinopathy: No threshold in the sweep achieves precision >= 0.60. Stored referral threshold 0.4001 has precision=0.5319.
 
 ======================================================================
 The production recommendation uses a precision floor of 0.60 and
