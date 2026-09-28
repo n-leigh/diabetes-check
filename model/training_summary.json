@@ -549,33 +549,33 @@
     }
   },
   "retinopathy": {
-    "title": "Diabetic Retinopathy & Vision Loss (CDC NHANES 2007-2008)",
+    "title": "Diabetic Retinopathy & Vision Loss (CDC NHANES 2005-2008 Pooled)",
     "endpoint": "Digital Retinal Photography Exam & Physician-Diagnosed Retinopathy",
-    "cohort_source": "CDC NHANES Retinopathy Exam Cohort (N=797)",
-    "sample_size": 797,
-    "train_size": 637,
-    "test_size": 160,
-    "event_prevalence_pct": 42.8,
+    "cohort_source": "CDC NHANES Pooled Retinopathy Cohort 2005-2008 (N=1,323)",
+    "sample_size": 1323,
+    "train_size": 1058,
+    "test_size": 265,
+    "event_prevalence_pct": 43.8,
     "best_model": "Calibrated Logistic Regression",
-    "cv_auroc_mean": 0.6764,
-    "cv_auroc_std": 0.039,
-    "auroc": 0.6418,
+    "cv_auroc_mean": 0.7215,
+    "cv_auroc_std": 0.0314,
+    "auroc": 0.7491,
     "auroc_95_ci": [
-      0.5463,
-      0.7232
+      0.6898,
+      0.8047
     ],
-    "pr_auc": 0.5019,
-    "brier_score": 0.2341,
-    "sensitivity": 0.8676,
-    "specificity": 0.3804,
-    "negative_predictive_value": 0.7955,
-    "positive_predictive_value": 0.5086,
-    "screening_threshold": 0.3286,
+    "pr_auc": 0.6863,
+    "brier_score": 0.2021,
+    "sensitivity": 0.8879,
+    "specificity": 0.3893,
+    "negative_predictive_value": 0.8169,
+    "positive_predictive_value": 0.5309,
+    "screening_threshold": 0.2964,
     "referral_threshold": 0.4001,
-    "model_status": "experimental",
-    "calibration_quality": "fair",
-    "uncertainty_level": "wide",
-    "ece": 0.0624,
+    "model_status": "validated",
+    "calibration_quality": "good",
+    "uncertainty_level": "moderate",
+    "ece": 0.0488,
     "brier_score_95_ci": [
       0.2139,
       0.2583
@@ -707,20 +707,21 @@
       "Age",
       "Sex",
       "DiabetesDuration",
-      "BlurryVision"
+      "BlurryVision",
+      "HbA1c"
     ],
     "models_compared_cv": {
       "Calibrated Logistic Regression": {
-        "cv_mean": 0.6764,
-        "cv_std": 0.039
+        "cv_mean": 0.7215,
+        "cv_std": 0.0314
       },
       "Calibrated Random Forest": {
-        "cv_mean": 0.6475,
-        "cv_std": 0.0251
+        "cv_mean": 0.7164,
+        "cv_std": 0.0306
       },
       "Calibrated Gradient Boosting": {
-        "cv_mean": 0.6476,
-        "cv_std": 0.0188
+        "cv_mean": 0.7111,
+        "cv_std": 0.0359
       }
     }
   }
