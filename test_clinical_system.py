@@ -12,6 +12,7 @@ import pandas as pd
 from app import app
 from clinical_model import ClinicalRiskWrapper
 import database
+from recommendations import build_recommendations
 from rule_matrix import compute_all_risks, compute_lab_assessment
 
 
@@ -144,6 +145,27 @@ def test_historical_lab_legend_points():
         assert details["ldl"]["value"] == 86
         assert details["ldl"]["points"] == 1
         print("Historical lab values reconstruct their correct guideline points.")
+
+
+def test_defense_copy_emphasis_and_retinopathy_guidance():
+    client = app.test_client()
+    home_html = client.get("/").get_data(as_text=True).lower()
+    assert "calibrated machine-learning classifiers" in home_html
+    assert "rule matrix" in home_html
+    assert "baseline benchmark" in home_html or "baseline / heuristic benchmark" in home_html
+
+    recs = build_recommendations({
+        "cardiovascular": {"label": "Low"},
+        "neuropathy_mobility": {"label": "Low"},
+        "general_burden": {"label": "Low"},
+        "retinopathy": {"label": "Moderate"},
+    })
+    retinopathy_step = next(step for step in recs["steps"] if "dilated eye" in step["title"].lower() or "dilated eye" in step["description"].lower())
+    text = retinopathy_step["description"].lower()
+    assert "often asymptomatic" in text
+    assert "type 2 diabetes" in text
+    assert "dilated eye exam" in text
+    print("ML-first framing and retinopathy guidance copy verified.")
 
 
 def test_regulatory_positioning_copy_consistency():

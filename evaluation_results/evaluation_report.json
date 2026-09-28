@@ -505,44 +505,44 @@
   },
   "retinopathy": {
     "label": "Retinopathy (ADA)",
-    "cohort_source": "CDC NHANES Retinopathy Exam Cohort (N=797)",
-    "test_size": 160,
-    "event_prevalence_pct": 42.5,
-    "auroc": 0.6418,
-    "pr_auc": 0.5019,
-    "brier_score": 0.2341,
-    "ece": 0.0624,
-    "screening_threshold": 0.3286,
-    "referral_threshold": 0.4001,
+    "cohort_source": "CDC NHANES Pooled Retinopathy Cohort 2005-2008 (N=1,323)",
+    "test_size": 265,
+    "event_prevalence_pct": 43.8,
+    "auroc": 0.7491,
+    "pr_auc": 0.6863,
+    "brier_score": 0.2021,
+    "ece": 0.0488,
+    "screening_threshold": 0.2964,
+    "referral_threshold": 0.434,
     "metrics_at_screening": {
-      "threshold": 0.3286,
-      "accuracy": 0.5875,
-      "sensitivity": 0.8676,
-      "specificity": 0.3804,
-      "precision": 0.5086,
-      "f1": 0.6413,
-      "tn": 35,
-      "fp": 57,
-      "fn": 9,
-      "tp": 59
+      "threshold": 0.2964,
+      "accuracy": 0.6075,
+      "sensitivity": 0.8879,
+      "specificity": 0.3893,
+      "precision": 0.5309,
+      "f1": 0.6645,
+      "tn": 58,
+      "fp": 91,
+      "fn": 13,
+      "tp": 103
     },
     "metrics_at_referral": {
-      "threshold": 0.4001,
-      "accuracy": 0.6125,
-      "sensitivity": 0.7353,
-      "specificity": 0.5217,
-      "precision": 0.5319,
-      "f1": 0.6173,
-      "tn": 48,
-      "fp": 44,
-      "fn": 18,
-      "tp": 50
+      "threshold": 0.434,
+      "accuracy": 0.6981,
+      "sensitivity": 0.7328,
+      "specificity": 0.6711,
+      "precision": 0.6343,
+      "f1": 0.68,
+      "tn": 100,
+      "fp": 49,
+      "fn": 31,
+      "tp": 85
     },
     "risk_tiers": {
       "tier_counts": {
-        "Lower Estimated Risk": 44,
-        "Moderate Estimated Risk": 22,
-        "Higher Estimated Risk": 94
+        "Lower Estimated Risk": 71,
+        "Moderate Estimated Risk": 60,
+        "Higher Estimated Risk": 134
       },
       "tier_confusion_matrix": {
         "rows": [
@@ -556,121 +556,132 @@
         ],
         "values": [
           [
-            35,
-            13,
-            44
+            58,
+            42,
+            49
           ],
           [
-            9,
-            9,
-            50
+            13,
+            18,
+            85
           ]
         ]
       },
       "tier_metrics": [
         {
           "tier": "Lower Estimated Risk",
-          "count": 44,
-          "accuracy": 0.4125,
-          "precision": 0.2045,
-          "recall": 0.1324,
-          "f1": 0.1607,
-          "tn": 57,
-          "fp": 35,
-          "fn": 59,
-          "tp": 9
+          "count": 71,
+          "accuracy": 0.3925,
+          "precision": 0.1831,
+          "recall": 0.1121,
+          "f1": 0.139,
+          "tn": 91,
+          "fp": 58,
+          "fn": 103,
+          "tp": 13
         },
         {
           "tier": "Moderate Estimated Risk",
-          "count": 22,
-          "accuracy": 0.55,
-          "precision": 0.4091,
-          "recall": 0.1324,
-          "f1": 0.2,
-          "tn": 79,
-          "fp": 13,
-          "fn": 59,
-          "tp": 9
+          "count": 60,
+          "accuracy": 0.4717,
+          "precision": 0.3,
+          "recall": 0.1552,
+          "f1": 0.2045,
+          "tn": 107,
+          "fp": 42,
+          "fn": 98,
+          "tp": 18
         },
         {
           "tier": "Higher Estimated Risk",
-          "count": 94,
-          "accuracy": 0.6125,
-          "precision": 0.5319,
-          "recall": 0.7353,
-          "f1": 0.6173,
-          "tn": 48,
-          "fp": 44,
-          "fn": 18,
-          "tp": 50
+          "count": 134,
+          "accuracy": 0.6981,
+          "precision": 0.6343,
+          "recall": 0.7328,
+          "f1": 0.68,
+          "tn": 100,
+          "fp": 49,
+          "fn": 31,
+          "tp": 85
         }
       ]
     },
-    "high_tier_recall": 0.7353,
-    "high_tier_precision": 0.5319,
+    "high_tier_recall": 0.7328,
+    "high_tier_precision": 0.6343,
     "high_tier_operating_point": {
-      "threshold": 0.4001,
-      "accuracy": 0.6125,
-      "sensitivity": 0.7353,
-      "specificity": 0.5217,
-      "precision": 0.5319,
-      "f1": 0.6173,
-      "tn": 48,
-      "fp": 44,
-      "fn": 18,
-      "tp": 50
+      "threshold": 0.434,
+      "accuracy": 0.6981,
+      "sensitivity": 0.7328,
+      "specificity": 0.6711,
+      "precision": 0.6343,
+      "f1": 0.68,
+      "tn": 100,
+      "fp": 49,
+      "fn": 31,
+      "tp": 85
     },
-    "recommended_threshold": null,
+    "recommended_threshold": {
+      "threshold": 0.434,
+      "accuracy": 0.6981,
+      "sensitivity": 0.7328,
+      "specificity": 0.6711,
+      "precision": 0.6343,
+      "f1": 0.68,
+      "tn": 100,
+      "fp": 49,
+      "fn": 31,
+      "tp": 85,
+      "category": "retinopathy"
+    },
     "recommendation_precision_floor": 0.6,
-    "calibration_warnings": [],
+    "calibration_warnings": [
+      {
+        "probability_bucket": "0.2-0.3",
+        "predicted_probability": 0.255,
+        "observed_frequency": 0.15,
+        "count": 40,
+        "calibration_gap": -0.105,
+        "flag": "over-confident",
+        "category": "retinopathy"
+      }
+    ],
     "calibration_interpretation": {
-      "flag": "no_material_systematic_gap",
-      "message": "No probability bucket with at least 30 cases differs by more than 0.10.",
-      "ranges": []
+      "flag": "over-confident",
+      "message": "Material calibration gap(s) detected in: 0.2-0.3",
+      "ranges": [
+        "0.2-0.3"
+      ]
     },
     "subgroup_warnings": [
       {
         "subgroup": "age_18_44",
-        "n": 18,
-        "actual_positive_rate": 0.2778,
-        "mean_predicted": 0.3803,
-        "calibration_gap": -0.1026,
-        "recall": 1.0,
-        "specificity": 0.6923,
-        "precision": 0.5556,
-        "flag": "insufficient_data",
+        "n": 30,
+        "actual_positive_rate": 0.2,
+        "mean_predicted": 0.3019,
+        "calibration_gap": -0.1019,
+        "recall": 0.8333,
+        "specificity": 0.625,
+        "precision": 0.3571,
+        "flag": "warning",
         "category": "retinopathy",
-        "threshold_used": 0.3286
+        "threshold_used": 0.2964
       },
       {
         "subgroup": "bmi_normal",
-        "n": 24,
-        "actual_positive_rate": 0.3333,
-        "mean_predicted": 0.4837,
-        "calibration_gap": -0.1503,
-        "recall": 1.0,
-        "specificity": 0.25,
-        "precision": 0.4,
+        "n": 27,
+        "actual_positive_rate": 0.3704,
+        "mean_predicted": 0.4137,
+        "calibration_gap": -0.0433,
+        "recall": 0.9,
+        "specificity": 0.4706,
+        "precision": 0.5,
         "flag": "insufficient_data",
         "category": "retinopathy",
-        "threshold_used": 0.3286
-      },
-      {
-        "subgroup": "bmi_overweight",
-        "n": 32,
-        "actual_positive_rate": 0.5625,
-        "mean_predicted": 0.4494,
-        "calibration_gap": 0.1131,
-        "recall": 0.7778,
-        "specificity": 0.1429,
-        "precision": 0.5385,
-        "flag": "warning",
-        "category": "retinopathy",
-        "threshold_used": 0.3286
+        "threshold_used": 0.2964
       }
     ],
-    "model_status": "experimental",
-    "calibration_quality": "fair",
-    "uncertainty_level": "wide"
+    "model_status": "validated",
+    "calibration_quality": "good",
+    "uncertainty_level": "moderate"
   }
 }

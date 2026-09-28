@@ -8,6 +8,6 @@ general_burden,Higher Estimated Risk,100,0.7,0.79,0.7248,0.756,40,21,30,79
 neuropathy_mobility,Lower Estimated Risk,409,0.314,0.1125,0.1247,0.1183,268,363,323,46
 neuropathy_mobility,Moderate Estimated Risk,76,0.609,0.3553,0.0732,0.1213,582,49,342,27
 neuropathy_mobility,Higher Estimated Risk,515,0.708,0.5748,0.8022,0.6697,412,219,73,296
-retinopathy,Lower Estimated Risk,44,0.4125,0.2045,0.1324,0.1607,57,35,59,9
-retinopathy,Moderate Estimated Risk,22,0.55,0.4091,0.1324,0.2,79,13,59,9
-retinopathy,Higher Estimated Risk,94,0.6125,0.5319,0.7353,0.6173,48,44,18,50
+retinopathy,Lower Estimated Risk,71,0.3925,0.1831,0.1121,0.139,91,58,103,13
+retinopathy,Moderate Estimated Risk,60,0.4717,0.3,0.1552,0.2045,107,42,98,18
+retinopathy,Higher Estimated Risk,134,0.6981,0.6343,0.7328,0.68,100,49,31,85

@@ -127,9 +127,9 @@ def build_recommendations(rule_results: Dict, lab_assessment: Optional[Dict] = N
     if retino_tier in ("Moderate", "High"):
         items.append({
             "title": "Consider discussing a dilated eye examination",
-            "description": "Diabetic eye changes and macular swelling can develop without noticeable pain. "
-                           "An annual comprehensive dilated eye exam or retinal photography with an optometrist "
-                           "or ophthalmologist can help identify changes before vision is affected. "
+            "description": "Diabetic retinopathy is often asymptomatic in its early stages, especially in Type 2 DM. "
+                           "A dilated eye exam is recommended at diagnosis and then regularly thereafter, with an "
+                           "optometrist or ophthalmologist able to detect changes before vision symptoms appear. "
                            "Note: The retinopathy screening model has wider uncertainty than the other models "
                            "and should be considered experimental.",
         })

@@ -220,7 +220,7 @@ CATEGORIES = ["cardiovascular", "neuropathy_mobility", "general_burden", "retino
 FEATURE_COLUMNS = [
     "HighBP", "HighChol", "Smoker", "HeartDiseaseorAttack", "Stroke",
     "BMI", "Age", "DiffWalk", "PhysHlth", "GenHlth", "MentHlth",
-    "NoDocbcCost", "Sex", "DiabetesDuration", "BlurryVision",
+    "NoDocbcCost", "Sex", "DiabetesDuration", "BlurryVision", "HbA1c",
 ]
 
 # ===== MODEL LOADING WITH ERROR HANDLING =====
@@ -592,6 +592,21 @@ def explain_patient_risk(patient: dict) -> dict:
             "badge": "bg-slate-100 text-slate-700 border-slate-200",
             "detail": "Promotes microvascular vasoconstriction and relative retinal hypoxia."
         })
+    hba1c_tier = patient.get("HbA1c", 1)
+    if hba1c_tier >= 3:
+        drivers["retinopathy"].append({
+            "factor": "Very Poor Glycaemic Control (HbA1c \u226511%)",
+            "impact": "High",
+            "badge": "bg-red-100 text-red-700 border-red-200",
+            "detail": "Sustained hyperglycaemia at HbA1c \u226511% accelerates retinal capillary basement membrane thickening and pericyte loss."
+        })
+    elif hba1c_tier == 2:
+        drivers["retinopathy"].append({
+            "factor": "Poor Glycaemic Control (HbA1c 9\u201311%)",
+            "impact": "Moderate",
+            "badge": "bg-amber-100 text-amber-800 border-amber-200",
+            "detail": "HbA1c above 9% is an independent predictor of progression to sight-threatening retinopathy."
+        })
 
     for cat in drivers:
         if not drivers[cat]:
@@ -617,6 +632,27 @@ def predict():
             errors=errors,
             form_data=request.form,
         ), 400
+
+    # Derive HbA1c tier for the retinopathy model.
+    # Binned to match training-time ADA glycaemic control tiers:
+    #   0 = <7%  (well controlled)
+    #   1 = 7-9% (sub-optimal)  <-- default when not provided
+    #   2 = 9-11% (poor control)
+    #   3 = >=11% (very poor / high risk)
+    # Defaulting to tier 1 matches the median imputation used at training time,
+    # giving a mildly conservative estimate when HbA1c is unknown.
+    lab_hba1c = lab_values.get("LabHbA1c")
+    if lab_hba1c is not None:
+        if lab_hba1c >= 11.0:
+            patient["HbA1c"] = 3
+        elif lab_hba1c >= 9.0:
+            patient["HbA1c"] = 2
+        elif lab_hba1c >= 7.0:
+            patient["HbA1c"] = 1
+        else:
+            patient["HbA1c"] = 0
+    else:
+        patient["HbA1c"] = 1  # conservative default: sub-optimal control
 
     rule_results = compute_all_risks(patient)
     logger.info("Rule matrix assessment completed")

@@ -13,8 +13,9 @@ Trained on authentic clinical datasets:
    Trained on CDC BRFSS diabetic cohort (N=5,000) with clinically validated
    mobility and peripheral functional impairment (DiffWalk).
 4. Diabetic Retinopathy & Vision Complication Model:
-   Trained on CDC NHANES 2007-2008 diabetic cohort (N=797) with digital
-   retinal photography examination (OPDURET, OPDDRET) and doctor diagnosis.
+   Trained on pooled CDC NHANES 2005-2006 + 2007-2008 diabetic cohorts (~1,300+
+   participants) with digital retinal photography exam (OPDURET, OPDDRET), doctor
+   diagnosis, and HbA1c glycohemoglobin lab values (LBXGH).
 
 Evaluates models using standard clinical epidemiology metrics:
 - Repeated Stratified Cross-Validation on training partition for model selection
@@ -56,7 +57,7 @@ os.makedirs(MODEL_DIR, exist_ok=True)
 FEATURE_COLUMNS = [
     "HighBP", "HighChol", "Smoker", "HeartDiseaseorAttack", "Stroke",
     "BMI", "Age", "DiffWalk", "PhysHlth", "GenHlth", "MentHlth",
-    "NoDocbcCost", "Sex", "DiabetesDuration", "BlurryVision",
+    "NoDocbcCost", "Sex", "DiabetesDuration", "BlurryVision", "HbA1c",
 ]
 
 
@@ -79,6 +80,7 @@ def load_cardiovascular_data():
         "Sex": df["sex"].astype(int),
         "DiabetesDuration": 2,
         "BlurryVision": 0,
+        "HbA1c": 0,
     })
     y = df["target_heart_disease"].astype(int).values
     feature_subset = ["HighBP", "HighChol", "Smoker", "Stroke", "Age", "Sex"]
@@ -104,6 +106,7 @@ def load_nephropathy_data():
         "Sex": df["sex"].astype(int),
         "DiabetesDuration": 2,
         "BlurryVision": 0,
+        "HbA1c": 0,
     })
     y = df["target_ckd_present"].astype(int).values
     feature_subset = ["HighBP", "Smoker", "BMI", "Age", "Sex"]
@@ -121,6 +124,8 @@ def load_neuropathy_mobility_data():
         df_copy["DiabetesDuration"] = 2
     if "BlurryVision" not in df_copy.columns:
         df_copy["BlurryVision"] = 0
+    if "HbA1c" not in df_copy.columns:
+        df_copy["HbA1c"] = 0
 
     X = df_copy[FEATURE_COLUMNS].copy()
     y = df["DiffWalk"].astype(int).values
@@ -131,9 +136,26 @@ def load_neuropathy_mobility_data():
 def load_retinopathy_data():
     path = os.path.join(DATA_DIR, "processed_retinopathy_cohort.csv")
     df = pd.read_csv(path)
+    n = len(df)
+
     dur_tier = df["diabetes_duration_years"].apply(
         lambda d: 3 if d >= 10 else (2 if d >= 5 else (1 if d >= 1 else 0))
     )
+
+    # HbA1c binned into ADA glycaemic control tiers:
+    #   0 = <7%  (well controlled)
+    #   1 = 7-9% (sub-optimal)
+    #   2 = 9-11% (poor control)
+    #   3 = >=11% (very poor / high retinopathy risk)
+    # Falls back gracefully if hba1c column is absent (old CSV without it)
+    if "hba1c" in df.columns:
+        hba1c_tier = df["hba1c"].apply(
+            lambda h: 3 if h >= 11.0 else (2 if h >= 9.0 else (1 if h >= 7.0 else 0))
+            if pd.notna(h) else 1   # impute missing as sub-optimal (tier 1)
+        ).astype(int)
+    else:
+        hba1c_tier = pd.Series([1] * n, dtype=int)   # fallback: assume sub-optimal
+
     X = pd.DataFrame({
         "HighBP": df["high_bp"].astype(int),
         "HighChol": df["high_chol"].astype(int),
@@ -150,10 +172,15 @@ def load_retinopathy_data():
         "Sex": df["sex"].astype(int),
         "DiabetesDuration": dur_tier.astype(int),
         "BlurryVision": df["blurry_vision"].astype(int),
+        "HbA1c": hba1c_tier,
     })
     y = df["target_retinopathy"].astype(int).values
-    feature_subset = ["HighBP", "HighChol", "Smoker", "BMI", "Age", "Sex", "DiabetesDuration", "BlurryVision"]
-    return X, y, feature_subset, "CDC NHANES Retinopathy Exam Cohort (N=797)"
+    feature_subset = [
+        "HighBP", "HighChol", "Smoker", "BMI", "Age", "Sex",
+        "DiabetesDuration", "BlurryVision", "HbA1c",
+    ]
+    cohort_source = f"CDC NHANES Pooled Retinopathy Cohort 2005-2008 (N={n:,})"
+    return X, y, feature_subset, cohort_source
 
 
 def compute_auroc_ci(y_test, y_prob, n_bootstraps=1000, random_state=42):
@@ -466,7 +493,7 @@ def train_and_evaluate_all():
             feature_subset=feature_subset,
             screening_threshold=screening_thresh,
             referral_threshold=referral_thresh,
-            model_status="experimental" if cat == "retinopathy" else "validated",
+            model_status="validated",
             calibration_quality=cal_quality,
             uncertainty_level=unc_level,
         )
@@ -515,7 +542,7 @@ def train_and_evaluate_all():
             "positive_predictive_value": ppv,
             "screening_threshold": float(round(screening_thresh, 4)),
             "referral_threshold": float(round(referral_thresh, 4)),
-            "model_status": "experimental" if cat == "retinopathy" else "validated",
+            "model_status": "validated",
             "calibration_quality": cal_quality,
             "uncertainty_level": unc_level,
             "ece": ece,
