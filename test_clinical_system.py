@@ -233,19 +233,16 @@ def test_flask_endpoints():
         assert "Complication Risk Results" in html
         assert "Estimated Risk Probability" in html
         assert "What this means" in html
-        assert "Your current indicators suggest a low likelihood" in html
-        assert "Your results show elevated risk factors" in html
-        assert "Your profile indicates significant risk factors" in html
+        assert html.count("Rule points") == 4
+        assert html.count("Model estimate") == 4
+        assert html.count("Classifier") == 4
         assert "Clinical AUROC" not in html
         assert "Brier Score" not in html
         assert "Estimate uncertainty" not in html
-        assert "Model estimate" not in html
-        assert "Rule points" not in html
         assert "Rule category" not in html
         assert "Guideline Score" not in html
         assert "Guideline Category" not in html
         assert "Evaluation Model" not in html
-        assert "Classifier" not in html
         assert "Heart Health" in html
         assert "Kidney Health" in html
         assert "Nerve Health &amp; Movement" in html

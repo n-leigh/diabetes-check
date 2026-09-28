@@ -111,9 +111,39 @@
           </span>
         </div>
 
-        <div class="w-full mt-5 rounded-xl border {{ tier_classes }} px-4 py-3 text-sm leading-relaxed">
+        <div class="w-full mt-5 min-h-[124px] rounded-xl border {{ tier_classes }} px-4 py-3 text-sm leading-relaxed flex flex-col">
           <p class="font-semibold mb-1">What this means</p>
-          <p>{{ tier_summary }}</p>
+          <p class="flex-1">{{ tier_summary }}</p>
+        </div>
+
+        <div class="w-full mt-4 pt-4 border-t border-slate-100">
+          <p class="text-[10px] font-bold uppercase tracking-[0.12em] text-slate-400 mb-3">How this result is calculated</p>
+          <dl class="space-y-2 text-xs">
+            <div class="flex items-center justify-between gap-3">
+              <dt class="text-slate-500">Rule points</dt>
+              <dd class="font-semibold text-slate-800 text-right">{{ res.score }} pts</dd>
+            </div>
+            <div class="flex items-center justify-between gap-3">
+              <dt class="text-slate-500">Model estimate</dt>
+              <dd class="font-semibold text-slate-800 text-right">
+                {% if model_available %}
+                  {{ primary_label }} ({{ pct }}%)
+                {% else %}
+                  Unavailable
+                {% endif %}
+              </dd>
+            </div>
+            <div class="flex items-center justify-between gap-3">
+              <dt class="text-slate-500">Classifier</dt>
+              <dd class="font-semibold text-slate-800 text-right max-w-[58%]">
+                {% if model_available %}
+                  {{ model_names.get(cat, 'Validated model') }}
+                {% else %}
+                  Not run
+                {% endif %}
+              </dd>
+            </div>
+          </dl>
         </div>
       </div>
       {% endif %}
