@@ -130,8 +130,8 @@ def build_recommendations(rule_results: Dict, lab_assessment: Optional[Dict] = N
             "description": "Diabetic eye changes and macular swelling can develop without noticeable pain. "
                            "An annual comprehensive dilated eye exam or retinal photography with an optometrist "
                            "or ophthalmologist can help identify changes before vision is affected. "
-                           "Note: The retinopathy screening model has wider uncertainty than the other models "
-                           "and should be considered experimental.",
+                           "Note: The retinopathy screening model has wider uncertainty than other domains; "
+                           "prompt in-person retinal examination is recommended.",
         })
 
     # General burden guidance

@@ -7,9 +7,11 @@ flowchart LR
   Validate --> Rules[rule_matrix.py]
   Validate --> Models[ClinicalRiskWrapper + model/*.pkl]
   Rules --> Guidance[recommendations.py]
-  Models --> Guidance
   Guidance --> SQLite[database.py / SQLCipher AES-256 WAL]
-  SQLite --> Templates[Flask/Jinja templates]
+  Models --> SQLite
+  Rules --> Templates[Flask/Jinja templates]
+  Models --> Templates
+  Guidance --> Templates
   Templates --> Browser
   Cohorts[data/*.csv] --> Train[train_model.py] --> Models
 ```

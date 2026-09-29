@@ -17,9 +17,9 @@ Source descriptions identify CDC NHANES 2017-2018, CDC NHANES 2021-2023, BRFSS, 
 
 ## Features
 
-The shared form feature set is `HighBP`, `HighChol`, `Smoker`, `HeartDiseaseorAttack`, `Stroke`, `BMI`, `Age`, `DiffWalk`, `PhysHlth`, `GenHlth`, `MentHlth`, `NoDocbcCost`, `Sex`, `DiabetesDuration`, `BlurryVision`, and `HbA1c`.
+The web form collects 15 required clinical features (`HighBP`, `HighChol`, `Smoker`, `HeartDiseaseorAttack`, `Stroke`, `BMI`, `Age`, `DiffWalk`, `PhysHlth`, `GenHlth`, `MentHlth`, `NoDocbcCost`, `Sex`, `DiabetesDuration`, `BlurryVision`) plus three optional point-of-care laboratory biomarkers (`LabHbA1c`, `LabSystolicBP`, `LabLDL`). All submitted inputs are validated on the server; missing or out-of-bounds required inputs are rejected (no runtime imputation). Offline median imputation was used strictly during training cohort preparation.
 
-Model subsets are: cardiovascular (`HighBP`, `HighChol`, `Smoker`, `Stroke`, `Age`, `Sex`); CKD (`HighBP`, `Smoker`, `BMI`, `Age`, `Sex`); mobility (`BMI`, `Age`, `PhysHlth`, `GenHlth`, `Smoker`, `HighBP`); retinopathy (`HighBP`, `HighChol`, `Smoker`, `BMI`, `Age`, `Sex`, `DiabetesDuration`, `BlurryVision`, `HbA1c`).
+Model subsets are: cardiovascular (`HighBP`, `HighChol`, `Smoker`, `Stroke`, `Age`, `Sex`); CKD (`HighBP`, `Smoker`, `BMI`, `Age`, `Sex`); mobility (`BMI`, `Age`, `PhysHlth`, `GenHlth`, `Smoker`, `HighBP`); retinopathy (`HighBP`, `HighChol`, `Smoker`, `BMI`, `Age`, `Sex`, `DiabetesDuration`, `BlurryVision`). Laboratory HbA1c is evaluated alongside systolic blood pressure and LDL by the clinical rule matrix.
 
 ## Training and Evaluation
 
@@ -38,11 +38,11 @@ Reported measures are AUROC, PR-AUC, Brier score, ECE, sensitivity, specificity,
 
 Complete metrics, thresholds, subgroup results, and reliability tables are in `model/training_summary.json`.
 
-## Rule Matrix and Thresholds
+## Rule Matrix, Thresholds, and Guidance
 
-`rule_matrix.py` is version `2.0-clinical`; it maps each independent rule score to `Low` (<=30%), `Moderate` (31-60%), or `High` (>60%). Optional HbA1c, systolic BP, and LDL values receive a separate lab assessment. Rules are explanatory and are not training labels.
+`rule_matrix.py` is version `2.0-clinical`; it maps each independent rule score to `Low` (<=30%), `Moderate` (31-60%), or `High` (>60%). Optional HbA1c, systolic BP, and LDL values receive a separate lab assessment. Patient guidance recommendations are generated deterministically from the clinical rule matrix and laboratory values, while the ML estimators provide complementary empirical risk probability estimates.
 
-ML thresholds are domain-specific and derived from training-fold out-of-fold predictions, not a universal 33/66 split:
+ML thresholds are domain-specific and derived from 5-fold cross-validation out-of-fold training predictions (not a universal 33/66 split or Youden's J). A screening threshold enforces a high sensitivity floor (>=85%) to minimize missed complications, while a referral threshold enforces a precision floor (>=60% with specificity >=40%) to prioritize patients requiring specialized clinical follow-up:
 
 | Domain | Screening | Referral |
 |---|---:|---:|

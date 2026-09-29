@@ -15,12 +15,12 @@ Open `http://127.0.0.1:5000`, complete an assessment, review results, open histo
 
 ## Talking Points
 
-1. The rule matrix is inspectable; ML estimators learn empirical endpoints. They are displayed separately.
-2. Targets are cardiovascular disease, CKD, `DiffWalk` mobility impairment, and a retinopathy endpoint. Mobility is a functional deficit proxy, not confirmed neuropathy.
-3. Training uses a stratified 80/20 split, calibrated candidate models, untouched test evaluation, and bootstrap intervals.
-4. All four complication models are validated. Retinopathy discrimination was strengthened to AUROC 0.7491 by pooling CDC NHANES 2005–2008 cycles (N=1,323) with laboratory HbA1c; it supports screening and ophthalmology examination referral.
-5. Thresholds are domain-specific and selected from training-fold out-of-fold predictions. There is no active universal 33/66 rule.
-6. Controls include CSRF, rate limiting, server-side validation, session filtering, SQLCipher encrypted WAL storage, strict CSP headers, sanitized errors, and retention pruning.
+1. **Dual-Engine Architecture**: The clinical rule matrix generates transparent guideline scores and drives patient guidance recommendations. Calibrated ML estimators provide complementary empirical event probabilities displayed side-by-side without automating medical directives.
+2. **Clinical Endpoints**: Targets are physician-diagnosed cardiovascular disease, laboratory-confirmed CKD (KDIGO), `DiffWalk` mobility impairment (functional proxy), and a clinical retinopathy screening endpoint.
+3. **Training & Validation**: Training uses a stratified 80/20 split, candidate estimators with 5-fold cross-validation calibration (`CalibratedClassifierCV`), holdout test evaluation, and 1,000 bootstrap resamples for 95% confidence intervals.
+4. **Validated Status**: All four complication models are validated. Retinopathy discrimination (AUROC 0.7491) was achieved through pooled CDC NHANES 2005–2008 cycles (N=1,323) to support screening and timely ophthalmology examination referral.
+5. **Threshold Methodology**: Domain-specific cutoffs are derived from 5-fold cross-validation out-of-fold training predictions (not a universal 33/66 split or Youden's J). A screening threshold enforces a high sensitivity floor (>=85%) to minimize missed complications, while a referral threshold enforces a precision floor (>=60%) to prioritize patients requiring specialized clinical follow-up.
+6. **Privacy & Security Controls**: Includes strict CSP (`'self'` only, zero external CDNs/fonts), CSRF protection, rate limiting, server-side bounds validation, anonymous session-isolated SQLCipher AES-256 encrypted WAL storage, DPAPI key protection, and startup retention pruning.
 
 ## Current Metrics
 
