@@ -11,7 +11,7 @@ python test_clinical_system.py
 python app.py
 ```
 
-Open `http://127.0.0.1:5000`, complete an assessment, review results, open history, print a result, test offline report sharing, and show `/health`. Use `python wsgi.py` for the Waitress path.
+Open `http://127.0.0.1:5000`, complete an assessment, review results, open history, print or save as PDF, and show `/health`. Use `python wsgi.py` for the Waitress path.
 
 ## Talking Points
 
