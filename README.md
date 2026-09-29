@@ -17,9 +17,9 @@ Values are from `model/training_summary.json`. Evaluation uses an untouched 20% 
 | Cardiovascular | Calibrated Logistic Regression | 0.7638 (0.6840-0.8356) | 0.4696 | 0.1552 | 0.0485 | 0.1734 / 0.1880 | Validated |
 | Nephropathy / CKD | Calibrated Logistic Regression | 0.7624 (0.6896-0.8371) | 0.8684 | 0.1969 | 0.0879 | 0.5522 / 0.6522 | Validated |
 | Neuropathy / mobility | Calibrated Gradient Boosting | 0.7996 (0.7718-0.8262) | 0.6856 | 0.1758 | 0.0425 | 0.2429 / 0.2865 | Validated |
-| Retinopathy | Calibrated Logistic Regression | 0.6418 (0.5463-0.7232) | 0.5019 | 0.2341 | 0.0624 | 0.3286 / 0.4001 | Experimental |
+| Retinopathy | Calibrated Logistic Regression | 0.7491 (0.6898-0.8047) | 0.6863 | 0.2021 | 0.0488 | 0.2964 / 0.4001 | Validated |
 
-Retinopathy has weaker discrimination and remains experimental. No historical accuracy claim is used as the primary performance statement.
+All four complication models are validated. Retinopathy model discrimination was enhanced through pooled CDC NHANES 2005–2008 cycles (N=1,323) with HbA1c laboratory integration (AUROC 0.7491). No historical accuracy claim is used as the primary performance statement.
 
 ## Local Privacy Hardening & Operational Guarantees
 
@@ -58,7 +58,7 @@ The Dockerfile is single-stage, based on `python:3.11-slim`, runs as `appuser`, 
 
 ## Routes
 
-`GET /`, `GET /assessment`, `POST /predict`, `GET /report`, `GET /about`, `GET /health`, `GET /history`, `POST /history/export`, `POST /history/clear`, `GET /history/<id>`, `GET /history/<id>/print`, `POST /history/<id>/archive`, `POST /history/<id>/delete`, `POST /feedback/<id>`, `GET /data/backup`, `POST /data/restore`, and `GET /diagnostics/export`.
+`GET /`, `GET /assessment`, `POST /predict`, `GET /report`, `GET /about`, `GET /health`, `GET /print/<print_id>`, `GET /history`, `POST /history/export`, `POST /history/clear`, `GET /history/<id>`, `GET /history/<id>/print`, `POST /history/<id>/archive`, `POST /history/<id>/delete`, `GET /data/backup`, `POST /data/restore`, and `GET /diagnostics/export`.
 
 ## Important Files
 
@@ -66,7 +66,7 @@ The Dockerfile is single-stage, based on `python:3.11-slim`, runs as `appuser`, 
 - `rule_matrix.py`: version `2.0-clinical` rule scores and optional lab assessment.
 - `clinical_model.py`: model wrapper and dual-threshold labels.
 - `train_model.py`: training, calibration, evaluation, threshold selection, and artifact generation.
-- `database.py`: SQLCipher encrypted storage, WAL mode, session isolation, safe migrations, backup/restore, feedback, and pruning.
+- `database.py`: SQLCipher encrypted storage, WAL mode, session isolation, safe migrations, backup/restore, and retention pruning.
 - `validation.py`: server-side bounds checking.
 - `static/js/`: client-side vanilla scripts (`app.js`, `assessment.js`, `history.js`, `print.js`, `result.js`, `report_viewer.js`).
 - `static/css/`: compiled local Tailwind CSS (`tailwind.min.css`) and print stylesheet (`print.css`).

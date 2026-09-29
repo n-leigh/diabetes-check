@@ -78,7 +78,7 @@ Before pilot distribution, test:
 - Empty install creates an encrypted database.
 - Representative plaintext databases for every current schema version migrate successfully.
 - Existing assessment counts and category rows are identical before and after migration.
-- Historical results, print output, archive state, feedback, and lab values remain readable.
+- Historical results, print output, archive state, risk categories, and lab values remain readable.
 - WAL mode, backups, restore, retention pruning, and migrations work with the encrypted driver.
 - Wrong keys and corrupted files fail closed without overwriting the source.
 - Power loss simulation during conversion leaves a recoverable source database.

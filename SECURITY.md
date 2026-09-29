@@ -10,6 +10,8 @@
 | `DISPLAY_TIMEZONE` | `Asia/Manila` | History timestamp display |
 | `RETENTION_DAYS` | `90` | Startup data-pruning horizon |
 | `PORT` | `5000` | Waitress port |
+| `DIABEATES_DB_KEY` | *(optional)* | Hex key override for managed SQLCipher database deployments |
+| `NHANES_RETINOPATHY_DIR` | `data/raw_retinopathy` | Raw XPT cache path for the retinopathy pipeline |
 
 Set a unique production secret with `python -c "import secrets; print(secrets.token_hex(32))"`. The repository contains `.env.example`, not a committed `.env`. Set `SESSION_COOKIE_SECURE=True` when HTTPS is active.
 
@@ -31,15 +33,15 @@ Set a unique production secret with `python -c "import secrets; print(secrets.to
 The application sets strict production security headers via a unified `@app.after_request` handler:
 - `X-Frame-Options`: `DENY`
 - `X-Content-Type-Options`: `nosniff`
+- `X-XSS-Protection`: `1; mode=block`
 - `Referrer-Policy`: `strict-origin-when-cross-origin`
-- `Permissions-Policy`: `camera=(), microphone=(), geolocation=(), payment=(), usb=()`
-- `Cross-Origin-Opener-Policy`: `same-origin`
-- `Cross-Origin-Resource-Policy`: `same-origin`
-- `Cross-Origin-Embedder-Policy`: `require-corp`
+- `Permissions-Policy`: `geolocation=(), microphone=(), camera=()`
 - Strict Content Security Policy (`default-src 'self'`, `script-src 'self'`, `style-src 'self'`, `img-src 'self' data:`, `font-src 'self'`, `connect-src 'self'`, `object-src 'none'`, `frame-ancestors 'none'`, `base-uri 'self'`, `form-action 'self'`).
   - **Zero `'unsafe-inline'`** across all scripts and styles.
   - **Zero `'unsafe-eval'`**.
   - **Zero external CDN, remote font, or remote image dependencies**.
+- `Strict-Transport-Security`: `max-age=31536000; includeSubDomains` (when `DEBUG=False`).
+- `Cache-Control`: `no-store, no-cache, must-revalidate, max-age=0` (on sensitive clinical routes).
 
 ## Deployment
 
@@ -60,6 +62,6 @@ The Docker image is single-stage, based on `python:3.11-slim`, runs as non-root 
 
 The following explicit tradeoffs and decisions define the security boundaries of the system:
 
-- **SQLCipher Version**: Inertia/oversight. We currently use SQLCipher 3, but plan to upgrade to SQLCipher 4 for stronger default KDF iteration counts and page sizing.
+- **SQLCipher Driver & Engine**: The application interfaces via the `sqlcipher3` Python driver backed by a native SQLCipher 4 engine (verified via `PRAGMA cipher_version`), providing 256-bit AES encryption in WAL mode.
 - **Hash-Fragment Key Exchange**: The decryption key is derived locally from a user-chosen passphrase shared out-of-band, rather than exposed raw in the URL.
 - **Audit Trails vs. Anonymity**: We accept no audit trail. The system is intentionally anonymous-by-default, explicitly trading clinical auditability ("who saw what, when") for maximum patient privacy.

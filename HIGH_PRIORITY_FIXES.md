@@ -15,9 +15,11 @@ This is a deployment-focused checklist, not a claim that every production concer
 
 - Global CSRF protection and per-address rate limits of 300/day and 100/hour.
 - Server-side validation and session-scoped history reads.
-- SQLite foreign keys, WAL mode, busy timeout, and additive schema initialization.
+- SQLCipher AES-256 encrypted SQLite storage with WAL mode, foreign keys, busy timeout, and DPAPI key management.
+- In-memory anonymous processing by default, with client-side WebCrypto encrypted URL hash sharing.
+- Unified strict security headers: `X-Frame-Options: DENY`, `frame-ancestors 'none'`, and hardened Content Security Policy (`'self'` only, zero `'unsafe-inline'`, zero `'unsafe-eval'`).
 - Rotating logs, generic user-facing errors, non-root Docker execution, and a health probe.
 
 ## Caveats
 
-The CSP permits inline/eval scripts and external HTTPS resources. The effective `X-Frame-Options` value is `SAMEORIGIN` because two hooks set it and the later one wins. Compose supplies no secret, TLS, or secure-cookie configuration by default. Model metrics are cohort results, not clinical validation.
+Compose supplies no secret, TLS, or secure-cookie configuration by default; production deployments must supply a strong `SECRET_KEY`, configure reverse-proxy TLS termination, and set `SESSION_COOKIE_SECURE=True`. Model metrics represent population cohort results, not individual clinical diagnoses or 10-year prospective risk guarantees.

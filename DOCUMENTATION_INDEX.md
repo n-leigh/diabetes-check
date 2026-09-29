@@ -11,6 +11,8 @@
 | [FINAL_COMPLETION_REPORT.md](FINAL_COMPLETION_REPORT.md) | Current repository status and caveats |
 | [FIXES_VERIFICATION.md](FIXES_VERIFICATION.md) | Verification scope and evidence |
 | [HIGH_PRIORITY_FIXES.md](HIGH_PRIORITY_FIXES.md) | Deployment actions requiring attention |
+| [SQLCIPHER_MIGRATION_PLAN.md](SQLCIPHER_MIGRATION_PLAN.md) | SQLCipher storage architecture, DPAPI keys, and transition sequence |
+| [DataValidationChecklist_Endocrinologist_REVISED.md](DataValidationChecklist_Endocrinologist_REVISED.md) | Clinical review checklist for endocrinologist evaluation |
 
 ## Authoritative Artifacts
 

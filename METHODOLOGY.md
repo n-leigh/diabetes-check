@@ -2,7 +2,7 @@
 
 ## Intended Use
 
-DiaBeates provides screening-oriented estimates and educational guidance. It does not diagnose disease or predict validated 5- or 10-year event risk. The retinopathy model is explicitly experimental.
+DiaBeates provides screening-oriented estimates and educational guidance. It does not diagnose disease or predict validated 5- or 10-year event risk. All four domain models have undergone cross-validation and holdout evaluation.
 
 ## Cohorts and Targets
 
@@ -11,15 +11,15 @@ DiaBeates provides screening-oriented estimates and educational guidance. It doe
 | Cardiovascular | `data/processed_cardiovascular_cohort.csv` | 949 | Physician-diagnosed coronary heart disease, angina, or myocardial infarction |
 | Nephropathy / CKD | `data/processed_nephropathy_cohort.csv` | 848 | CKD based on eGFR < 60 or uACR >= 30 |
 | Neuropathy / mobility | `data/diabetes_dataset.csv` | 5,000 sampled rows | `DiffWalk`, a lower-extremity mobility deficit |
-| Retinopathy | `data/processed_retinopathy_cohort.csv` | 797 | Retinal examination and physician-diagnosed retinopathy endpoint |
+| Retinopathy | `data/processed_retinopathy_cohort.csv` | 1,323 | Retinal examination and physician-diagnosed retinopathy endpoint with lab HbA1c |
 
-Source descriptions identify CDC NHANES 2017-2018, CDC NHANES 2021-2023, BRFSS, and CDC NHANES 2007-2008 respectively. Training uses the processed files listed above, except for the BRFSS dataset.
+Source descriptions identify CDC NHANES 2017-2018, CDC NHANES 2021-2023, BRFSS, and CDC NHANES 2005-2008 (pooled 2005–2006 and 2007–2008 cycles) respectively. Training uses the processed files listed above, except for the BRFSS dataset.
 
 ## Features
 
-The shared form feature set is `HighBP`, `HighChol`, `Smoker`, `HeartDiseaseorAttack`, `Stroke`, `BMI`, `Age`, `DiffWalk`, `PhysHlth`, `GenHlth`, `MentHlth`, `NoDocbcCost`, `Sex`, `DiabetesDuration`, and `BlurryVision`.
+The shared form feature set is `HighBP`, `HighChol`, `Smoker`, `HeartDiseaseorAttack`, `Stroke`, `BMI`, `Age`, `DiffWalk`, `PhysHlth`, `GenHlth`, `MentHlth`, `NoDocbcCost`, `Sex`, `DiabetesDuration`, `BlurryVision`, and `HbA1c`.
 
-Model subsets are: cardiovascular (`HighBP`, `HighChol`, `Smoker`, `Stroke`, `Age`, `Sex`); CKD (`HighBP`, `Smoker`, `BMI`, `Age`, `Sex`); mobility (`BMI`, `Age`, `PhysHlth`, `GenHlth`, `Smoker`, `HighBP`); retinopathy (`HighBP`, `HighChol`, `Smoker`, `BMI`, `Age`, `Sex`, `DiabetesDuration`, `BlurryVision`).
+Model subsets are: cardiovascular (`HighBP`, `HighChol`, `Smoker`, `Stroke`, `Age`, `Sex`); CKD (`HighBP`, `Smoker`, `BMI`, `Age`, `Sex`); mobility (`BMI`, `Age`, `PhysHlth`, `GenHlth`, `Smoker`, `HighBP`); retinopathy (`HighBP`, `HighChol`, `Smoker`, `BMI`, `Age`, `Sex`, `DiabetesDuration`, `BlurryVision`, `HbA1c`).
 
 ## Training and Evaluation
 
@@ -34,7 +34,7 @@ Reported measures are AUROC, PR-AUC, Brier score, ECE, sensitivity, specificity,
 | Cardiovascular | Calibrated Logistic Regression | 0.7638 (0.6840-0.8356) | 0.4696 | 0.1552 | 0.0485 | Validated |
 | CKD | Calibrated Logistic Regression | 0.7624 (0.6896-0.8371) | 0.8684 | 0.1969 | 0.0879 | Validated |
 | Mobility | Calibrated Gradient Boosting | 0.7996 (0.7718-0.8262) | 0.6856 | 0.1758 | 0.0425 | Validated |
-| Retinopathy | Calibrated Logistic Regression | 0.6418 (0.5463-0.7232) | 0.5019 | 0.2341 | 0.0624 | Experimental |
+| Retinopathy | Calibrated Logistic Regression | 0.7491 (0.6898-0.8047) | 0.6863 | 0.2021 | 0.0488 | Validated |
 
 Complete metrics, thresholds, subgroup results, and reliability tables are in `model/training_summary.json`.
 
@@ -49,7 +49,7 @@ ML thresholds are domain-specific and derived from training-fold out-of-fold pre
 | Cardiovascular | 0.1734 | 0.1880 |
 | CKD | 0.5522 | 0.6522 |
 | Mobility | 0.2429 | 0.2865 |
-| Retinopathy | 0.3286 | 0.4001 |
+| Retinopathy | 0.2964 | 0.4001 |
 
 ## Limitations
 
