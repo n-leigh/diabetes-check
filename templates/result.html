@@ -58,7 +58,7 @@
         {% set tier_stroke = '#22c55e' %}
         {% set tier_classes = 'bg-emerald-50 text-emerald-700 border-emerald-200' %}
         {% set tier_label = 'Low Risk' %}
-        {% set tier_summary = 'Your current indicators suggest a low likelihood of immediate complications. Maintain routine health checks and healthy lifestyle habits.' %}
+        {% set tier_summary = 'Your reported indicators place you in the lower risk category for this complication. Continue routine preventive health checkups and healthy lifestyle habits with your healthcare provider.' %}
       {% elif primary_label in ('Moderate', 'Moderate Estimated Risk') %}
         {% set tier_stroke = '#f59e0b' %}
         {% set tier_classes = 'bg-amber-50 text-amber-800 border-amber-200' %}
@@ -324,7 +324,7 @@
         <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/>
       </svg>
       <p class="text-sm text-teal-700">
-        Each category provides a dual-engine health screening tool: an explainable baseline score anchored in published guidelines (<strong>ACC/AHA 10-Yr ASCVD</strong>, <strong>KDIGO 2024 CKD Staging</strong>, and <strong>MNSI</strong>) alongside <strong>calibrated machine learning models</strong> trained and validated on authentic <strong>CDC NHANES</strong> diabetic clinical cohorts.
+        Each category provides a dual-engine health screening tool: an explainable baseline score informed by published clinical guidelines (<strong>ACC/AHA</strong>, <strong>KDIGO</strong>, and <strong>MNSI</strong> risk factors) alongside <strong>calibrated machine learning models</strong> trained and evaluated on authentic <strong>CDC NHANES</strong> diabetic clinical cohorts.
         Labels reflect the selected scoring method and available data. These results support screening and education;
         they do not diagnose disease. Discuss questions or follow-up options with a healthcare professional.
       </p>
