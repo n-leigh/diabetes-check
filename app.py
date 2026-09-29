@@ -890,17 +890,6 @@ def print_result(assessment_id):
     )
 
 
-@app.route("/feedback/<int:assessment_id>", methods=["POST"])
-def feedback(assessment_id):
-    record = database.get_assessment(assessment_id, session_id=session["session_id"])
-    if not record:
-        return redirect(url_for("history"))
-
-    helpful = request.form.get("helpful") == "yes"
-    database.save_feedback(assessment_id, helpful)
-    return redirect(url_for("history_detail", assessment_id=assessment_id) + "?feedback=thanks")
-
-
 @app.route("/history/export", methods=["POST"])
 def export_history():
     """Export only the current visitor's assessment history for this session."""

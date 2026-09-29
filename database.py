@@ -402,20 +402,10 @@ def init_db():
             label TEXT, percentage INTEGER
         )
     """)
-    conn.execute("""
-        CREATE TABLE IF NOT EXISTS feedback (
-            id INTEGER PRIMARY KEY AUTOINCREMENT,
-            assessment_id INTEGER NOT NULL REFERENCES assessments(id),
-            created_at TEXT NOT NULL,
-            helpful INTEGER NOT NULL,
-            comment TEXT
-        )
-    """)
     conn.execute("CREATE INDEX IF NOT EXISTS idx_assessments_session_archived_id ON assessments(session_id, archived, id)")
     conn.execute("CREATE INDEX IF NOT EXISTS idx_assessments_created_at ON assessments(created_at)")
     conn.execute("CREATE INDEX IF NOT EXISTS idx_risk_results_assessment_id ON risk_results(assessment_id)")
     conn.execute("CREATE INDEX IF NOT EXISTS idx_lab_assessments_assessment_id ON lab_assessments(assessment_id)")
-    conn.execute("CREATE INDEX IF NOT EXISTS idx_feedback_assessment_id ON feedback(assessment_id)")
     conn.execute(f"PRAGMA user_version = {SCHEMA_VERSION}")
     conn.commit()
     conn.close()
@@ -478,16 +468,6 @@ def save_assessment(session_id: str, patient: dict, rule_results: dict,
         raise
     finally:
         conn.close()
-
-
-def save_feedback(assessment_id: int, helpful: bool, comment: str = None):
-    conn = get_connection()
-    conn.execute(
-        "INSERT INTO feedback (assessment_id, created_at, helpful, comment) VALUES (?, ?, ?, ?)",
-        (assessment_id, datetime.now(timezone.utc).isoformat(timespec="seconds"), int(helpful), comment),
-    )
-    conn.commit()
-    conn.close()
 
 
 def _reconstruct(conn, row) -> dict:
@@ -606,7 +586,6 @@ def delete_assessment(assessment_id: int, session_id: str) -> bool:
     if not row or row["session_id"] != session_id:
         conn.close()
         return False
-    conn.execute("DELETE FROM feedback WHERE assessment_id = ?", (assessment_id,))
     conn.execute("DELETE FROM lab_assessments WHERE assessment_id = ?", (assessment_id,))
     conn.execute("DELETE FROM risk_results WHERE assessment_id = ?", (assessment_id,))
     conn.execute("DELETE FROM assessments WHERE id = ?", (assessment_id,))
@@ -632,7 +611,6 @@ def prune_expired_assessments(days: int = 90) -> int:
         return 0
     ids = [r["id"] for r in rows]
     placeholders = ",".join("?" for _ in ids)
-    conn.execute(f"DELETE FROM feedback WHERE assessment_id IN ({placeholders})", ids)
     conn.execute(f"DELETE FROM lab_assessments WHERE assessment_id IN ({placeholders})", ids)
     conn.execute(f"DELETE FROM risk_results WHERE assessment_id IN ({placeholders})", ids)
     cur = conn.execute(f"DELETE FROM assessments WHERE id IN ({placeholders})", ids)
@@ -668,7 +646,7 @@ def get_session_export_data(session_id: str) -> list:
 
 
 def clear_session_assessments(session_id: str) -> int:
-    """Permanently deletes all assessments, feedback, lab assessments, and risk results
+    """Permanently deletes all assessments, lab assessments, and risk results
     belonging to session_id. Returns count of deleted assessments."""
     conn = get_connection()
     try:
@@ -680,7 +658,6 @@ def clear_session_assessments(session_id: str) -> int:
             return 0
         ids = [r["id"] for r in rows]
         placeholders = ",".join("?" for _ in ids)
-        conn.execute(f"DELETE FROM feedback WHERE assessment_id IN ({placeholders})", ids)
         conn.execute(f"DELETE FROM lab_assessments WHERE assessment_id IN ({placeholders})", ids)
         conn.execute(f"DELETE FROM risk_results WHERE assessment_id IN ({placeholders})", ids)
         cur = conn.execute(f"DELETE FROM assessments WHERE id IN ({placeholders})", ids)
