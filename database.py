@@ -1,7 +1,7 @@
 """
 database.py — SQLite backend for DiaBeates.
 
-Normalized into 4 tables rather than one flat table of JSON blobs:
+Normalized into 3 tables rather than one flat table of JSON blobs:
 
   assessments      — one row per submission: the raw inputs, an anonymous
                       session_id (so each visitor's history stays private
@@ -13,9 +13,6 @@ Normalized into 4 tables rather than one flat table of JSON blobs:
                       forget to capture at write time if you don't do it
                       from the start).
   lab_assessments   — one row per assessment IF lab values were given.
-  feedback          — one row per "was this helpful?" click, so real
-                      usage signal exists for any future model iteration,
-                      not just the offline training metrics.
 
 get_assessment()/get_all_assessments() reconstruct the same nested dict
 shape the templates already expect, so upgrading the storage layer
@@ -630,16 +627,7 @@ def get_session_export_data(session_id: str) -> list:
         ).fetchall()
         export_records = []
         for r in rows:
-            rec = _reconstruct(conn, r)
-            fb_rows = conn.execute(
-                "SELECT helpful, comment, created_at FROM feedback WHERE assessment_id = ? ORDER BY id ASC",
-                (r["id"],)
-            ).fetchall()
-            rec["feedback"] = [
-                {"helpful": bool(fb["helpful"]), "comment": fb["comment"], "created_at": fb["created_at"]}
-                for fb in fb_rows
-            ]
-            export_records.append(rec)
+            export_records.append(_reconstruct(conn, r))
         return export_records
     finally:
         conn.close()
