@@ -72,16 +72,6 @@ def test_ttl_expiry(client):
     assert res.status_code == 302
     assert b"/assessment" in res.data
 
-def test_clear_history_invalidates_token(client):
-    print_id = generate_assessment(client)
-    
-    csrf = get_csrf(client)
-    res_clear = client.post("/history/clear", data={"csrf_token": csrf})
-    assert res_clear.status_code == 302
-    
-    res_print = client.get(f"/print/{print_id}?auto=1")
-    assert res_print.status_code == 302
-    assert b"/assessment" in res_print.data
 
 def test_403_on_mismatched_session():
     # client1 generates the token

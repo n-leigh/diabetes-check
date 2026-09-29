@@ -58,7 +58,7 @@ The Dockerfile is single-stage, based on `python:3.11-slim`, runs as `appuser`, 
 
 ## Routes
 
-`GET /`, `GET /assessment`, `POST /predict`, `GET /report`, `GET /about`, `GET /health`, `GET /print/<print_id>`, `GET /history`, `POST /history/export`, `POST /history/clear`, `GET /history/<id>`, `GET /history/<id>/print`, `POST /history/<id>/archive`, `POST /history/<id>/delete`, `GET /data/backup`, `POST /data/restore`, and `GET /diagnostics/export`.
+`GET /`, `GET /assessment`, `POST /predict`, `GET /report`, `GET /about`, `GET /health`, `GET /print/<print_id>`, `GET /history`, `GET /history/<id>`, `GET /history/<id>/print`, `POST /history/<id>/archive`, and `POST /history/<id>/delete`.
 
 ## Important Files
 

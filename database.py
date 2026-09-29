@@ -22,7 +22,6 @@ SCHEMA_VERSION is tracked with SQLite's built-in PRAGMA user_version.
 Migrations are additive and preserve existing assessment data.
 """
 
-import hashlib
 import json
 import os
 import ctypes
@@ -32,8 +31,6 @@ import secrets
 import sqlite3
 import shutil
 import subprocess
-import tempfile
-import zipfile
 from datetime import datetime, timedelta, timezone
 from ctypes import wintypes
 
@@ -236,78 +233,6 @@ def verify_database_integrity(conn=None) -> bool:
     finally:
         if owns_connection:
             conn.close()
-
-
-def _encrypted_database_copy() -> str:
-    temporary_path = f"{DB_PATH}.backup-{secrets.token_hex(8)}.tmp"
-    source = get_connection()
-    destination = _open_cipher_connection(temporary_path, _load_database_key())
-    source.backup(destination)
-    destination.close()
-    source.close()
-    copy_connection = _open_cipher_connection(temporary_path, _load_database_key())
-    try:
-        verify_database_integrity(copy_connection)
-    finally:
-        copy_connection.close()
-    return temporary_path
-
-
-def create_backup_bundle(output_path: str = None) -> str:
-    """Create a self-verifying ZIP containing only an encrypted database."""
-    if output_path is None:
-        backup_directory = os.path.join(BASE_DIR, "backups")
-        os.makedirs(backup_directory, exist_ok=True)
-        output_path = os.path.join(
-            backup_directory,
-            f"diabeates-backup-{datetime.now(timezone.utc).strftime('%Y%m%d-%H%M%S')}.zip",
-        )
-    encrypted_copy = _encrypted_database_copy()
-    try:
-        with open(encrypted_copy, "rb") as db_file:
-            digest = hashlib.sha256(db_file.read()).hexdigest()
-        with zipfile.ZipFile(output_path, "w", compression=zipfile.ZIP_DEFLATED) as bundle:
-            bundle.write(encrypted_copy, arcname="diabetes_system.db")
-            bundle.writestr("SHA256SUM", f"{digest}  diabetes_system.db\n")
-        restrict_database_permissions(output_path)
-        return output_path
-    finally:
-        if os.path.exists(encrypted_copy):
-            os.remove(encrypted_copy)
-
-
-def restore_backup_bundle(bundle_path: str) -> None:
-    """Validate and atomically restore an encrypted backup bundle."""
-    with zipfile.ZipFile(bundle_path, "r") as bundle:
-        names = set(bundle.namelist())
-        if names != {"diabetes_system.db", "SHA256SUM"}:
-            raise ValueError("Backup bundle contains unexpected files")
-        database_bytes = bundle.read("diabetes_system.db")
-        manifest = bundle.read("SHA256SUM").decode("ascii").strip().split()
-        if len(manifest) != 2 or manifest[1] != "diabetes_system.db":
-            raise ValueError("Backup checksum manifest is invalid")
-        if hashlib.sha256(database_bytes).hexdigest() != manifest[0]:
-            raise ValueError("Backup checksum verification failed")
-
-    temporary_path = f"{DB_PATH}.restore-{secrets.token_hex(8)}.tmp"
-    with open(temporary_path, "wb") as database_file:
-        database_file.write(database_bytes)
-    restrict_database_permissions(temporary_path)
-    candidate = None
-    try:
-        candidate = _open_cipher_connection(temporary_path, _load_database_key())
-        verify_database_integrity(candidate)
-        if candidate.execute("SELECT name FROM sqlite_master WHERE type = 'table' AND name = 'assessments'").fetchone() is None:
-            raise ValueError("Backup database is missing the assessments table")
-        candidate.close()
-        candidate = None
-        os.replace(temporary_path, DB_PATH)
-        restrict_database_permissions(DB_PATH)
-    finally:
-        if candidate is not None:
-            candidate.close()
-        if os.path.exists(temporary_path):
-            os.remove(temporary_path)
 
 
 def get_connection():
@@ -615,43 +540,4 @@ def prune_expired_assessments(days: int = 90) -> int:
     conn.commit()
     conn.close()
     return deleted_count
-
-
-def get_session_export_data(session_id: str) -> list:
-    """Exports all assessments and child records for the given session_id."""
-    conn = get_connection()
-    try:
-        rows = conn.execute(
-            "SELECT * FROM assessments WHERE session_id = ? ORDER BY id ASC",
-            (session_id,)
-        ).fetchall()
-        export_records = []
-        for r in rows:
-            export_records.append(_reconstruct(conn, r))
-        return export_records
-    finally:
-        conn.close()
-
-
-def clear_session_assessments(session_id: str) -> int:
-    """Permanently deletes all assessments, lab assessments, and risk results
-    belonging to session_id. Returns count of deleted assessments."""
-    conn = get_connection()
-    try:
-        rows = conn.execute(
-            "SELECT id FROM assessments WHERE session_id = ?",
-            (session_id,)
-        ).fetchall()
-        if not rows:
-            return 0
-        ids = [r["id"] for r in rows]
-        placeholders = ",".join("?" for _ in ids)
-        conn.execute(f"DELETE FROM lab_assessments WHERE assessment_id IN ({placeholders})", ids)
-        conn.execute(f"DELETE FROM risk_results WHERE assessment_id IN ({placeholders})", ids)
-        cur = conn.execute(f"DELETE FROM assessments WHERE id IN ({placeholders})", ids)
-        deleted_count = cur.rowcount
-        conn.commit()
-        return deleted_count
-    finally:
-        conn.close()
 

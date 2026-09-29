@@ -20,13 +20,9 @@ import os
 import json
 import uuid
 import secrets
-import io
 import logging
 import logging.handlers
-import platform
 import re
-import sys
-import zipfile
 import threading
 from datetime import datetime, timezone
 from zoneinfo import ZoneInfo
@@ -34,7 +30,7 @@ from dotenv import load_dotenv
 import joblib
 import numpy as np
 import pandas as pd
-from flask import Flask, render_template, request, redirect, url_for, session, send_file, abort
+from flask import Flask, render_template, request, redirect, url_for, session, abort
 from flask_wtf.csrf import CSRFProtect, CSRFError
 from flask_limiter import Limiter
 from flask_limiter.util import get_remote_address
@@ -303,78 +299,6 @@ def health():
         "models_expected": CATEGORIES,
         "rule_version": RULE_VERSION,
     }, status_code
-
-
-@app.route("/data/backup", methods=["GET"])
-def download_backup():
-    """Download a self-verifying encrypted backup bundle."""
-    backup_path = database.create_backup_bundle()
-    return send_file(
-        backup_path,
-        as_attachment=True,
-        download_name=os.path.basename(backup_path),
-        mimetype="application/zip",
-    )
-
-
-@app.route("/data/restore", methods=["POST"])
-def restore_backup():
-    """Restore an encrypted backup only after checksum and integrity validation."""
-    uploaded = request.files.get("backup_file")
-    if not uploaded or not uploaded.filename:
-        return "Select a DiaBeates backup file.", 400
-    temporary_path = os.path.join(database.BASE_DIR, f".restore-upload-{secrets.token_hex(8)}.zip")
-    try:
-        uploaded.save(temporary_path)
-        database.restore_backup_bundle(temporary_path)
-    except (OSError, ValueError, zipfile.BadZipFile, RuntimeError) as error:
-        logger.warning("Backup restore rejected: %s", error)
-        return "Backup restore failed validation; the current database was unchanged.", 400
-    finally:
-        if os.path.exists(temporary_path):
-            os.remove(temporary_path)
-    return redirect(url_for("history"))
-
-
-@app.route("/diagnostics/export", methods=["GET"])
-def export_diagnostics():
-    """Export technical diagnostics without database rows or patient inputs."""
-    log_path = os.path.join(log_dir, "diabetes_system.log")
-    safe_lines = []
-    if os.path.exists(log_path):
-        with open(log_path, encoding="utf-8", errors="replace") as log_file:
-            for line in log_file.readlines()[-300:]:
-                if re.search(r"patient|session|bmi|hba1c|ldl|risk_score|model_confidence|assessment_id", line, re.IGNORECASE):
-                    continue
-                safe_lines.append(line.rstrip())
-
-    metadata = {
-        "python_version": sys.version.split()[0],
-        "platform": platform.platform(),
-        "sqlcipher_version": database.get_sqlcipher_version(),
-        "database_integrity": "ok" if database.verify_database_integrity() else "failed",
-        "rule_version": RULE_VERSION,
-        "models": {
-            category: {
-                "name": MODEL_NAMES.get(category),
-                "status": getattr(MODELS.get(category), "model_status", "unavailable"),
-                "calibration_quality": getattr(MODELS.get(category), "calibration_quality", "unavailable"),
-                "uncertainty_level": getattr(MODELS.get(category), "uncertainty_level", "unavailable"),
-            }
-            for category in CATEGORIES
-        },
-    }
-    bundle = io.BytesIO()
-    with zipfile.ZipFile(bundle, "w", compression=zipfile.ZIP_DEFLATED) as archive:
-        archive.writestr("system_status.json", json.dumps(metadata, indent=2))
-        archive.writestr("sanitized_application.log", "\n".join(safe_lines) + "\n")
-    bundle.seek(0)
-    return send_file(
-        bundle,
-        as_attachment=True,
-        download_name="diabeates-diagnostics.zip",
-        mimetype="application/zip",
-    )
 
 
 def explain_patient_risk(patient: dict) -> dict:
@@ -888,47 +812,6 @@ def print_result(assessment_id):
         patient_drivers=patient_drivers,
         model_metadata=print_model_metadata,
     )
-
-
-@app.route("/history/export", methods=["POST"])
-def export_history():
-    """Export only the current visitor's assessment history for this session."""
-    session_id = session.get("session_id")
-    if not session_id:
-        return redirect(url_for("history"))
-    records = database.get_session_export_data(session_id)
-    payload = {
-        "export_time": datetime.now(timezone.utc).isoformat(timespec="seconds"),
-        "session_id": session_id,
-        "total_records": len(records),
-        "records": records,
-    }
-    raw_json = json.dumps(payload, indent=2)
-    buf = io.BytesIO(raw_json.encode("utf-8"))
-    filename = f"diabeates-history-{datetime.now(timezone.utc).strftime('%Y%m%d-%H%M%S')}.json"
-    return send_file(
-        buf,
-        as_attachment=True,
-        download_name=filename,
-        mimetype="application/json",
-    )
-
-
-@app.route("/history/clear", methods=["POST"])
-def clear_history():
-    """Permanently delete all assessments belonging to current session."""
-    session_id = session.get("session_id")
-    if session_id:
-        database.clear_session_assessments(session_id)
-        with _IN_MEMORY_LOCK:
-            keys_to_delete = [
-                pid for pid, pdata in _IN_MEMORY_ASSESSMENTS.items()
-                if pdata.get("originating_session") == session_id
-            ]
-            for k in keys_to_delete:
-                del _IN_MEMORY_ASSESSMENTS[k]
-    return redirect(url_for("history"))
-
 
 
 @app.errorhandler(CSRFError)

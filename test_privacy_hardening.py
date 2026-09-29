@@ -162,113 +162,80 @@ def test_optional_assessment_save_behavior():
     print("Optional save behavior verified: records written only when explicitly opted in.")
 
 
-def test_export_history_endpoint():
-    """Test POST /history/export security, CSRF validation, and session scoping."""
+def test_archive_assessment_endpoint():
+    """Test POST /history/<id>/archive security, CSRF validation, and session scoping (Process 5.3)."""
     with isolated_database_environment():
-        # Set up Session A with 2 assessments
+        # Set up Session A with 1 assessment
         client_a = app.test_client()
-        csrf_a = get_csrf_token(client_a, "/history")
-        post_a1 = get_sample_patient_payload(csrf_a, save_history=True)
-        client_a.post("/predict", data=post_a1)
-        csrf_a2 = get_csrf_token(client_a, "/assessment")
-        post_a2 = get_sample_patient_payload(csrf_a2, save_history=True)
-        post_a2["BMI"] = "32.0"
-        client_a.post("/predict", data=post_a2)
-
-        # Set up Session B with 1 assessment
-        client_b = app.test_client()
-        csrf_b = get_csrf_token(client_b, "/assessment")
-        post_b1 = get_sample_patient_payload(csrf_b, save_history=True)
-        post_b1["BMI"] = "22.0"
-        client_b.post("/predict", data=post_b1)
-
-        # Verify DB has 3 total assessments
-        conn = database.get_connection()
-        total = conn.execute("SELECT count(*) FROM assessments").fetchone()[0]
-        conn.close()
-        assert total == 3
-
-        # Test A: Missing CSRF token rejected
-        res_no_csrf = client_a.post("/history/export")
-        assert res_no_csrf.status_code == 400
-
-        # Test B: Invalid CSRF token rejected
-        res_bad_csrf = client_a.post("/history/export", data={"csrf_token": "tampered_token_xyz"})
-        assert res_bad_csrf.status_code == 400
-
-        # Test C: Valid CSRF token in Session A returns only Session A records
-        csrf_a_export = get_csrf_token(client_a, "/history")
-        res_export_a = client_a.post("/history/export", data={"csrf_token": csrf_a_export})
-        assert res_export_a.status_code == 200
-        assert res_export_a.mimetype == "application/json"
-        data_a = json.loads(res_export_a.get_data(as_text=True))
-        assert "records" in data_a
-        assert len(data_a["records"]) == 2
-        bmis_a = [item["patient"]["BMI"] for item in data_a["records"]]
-        assert 27.5 in bmis_a
-        assert 32.0 in bmis_a
-        assert 22.0 not in bmis_a  # Session B's assessment must NOT be included
-
-        # Test D: Valid export in Session B returns only Session B record
-        csrf_b_export = get_csrf_token(client_b, "/history")
-        res_export_b = client_b.post("/history/export", data={"csrf_token": csrf_b_export})
-        assert res_export_b.status_code == 200
-        data_b = json.loads(res_export_b.get_data(as_text=True))
-        assert len(data_b["records"]) == 1
-        assert data_b["records"][0]["patient"]["BMI"] == 22.0
-
-    print("POST /history/export verified: strict CSRF enforcement and strict cross-session data isolation.")
-
-
-def test_clear_history_endpoint():
-    """Test POST /history/clear security, CSRF validation, and session-only purging."""
-    with isolated_database_environment():
-        # Set up Session A with 2 assessments
-        client_a = app.test_client()
-        csrf_a = get_csrf_token(client_a, "/history")
+        csrf_a = get_csrf_token(client_a, "/assessment")
         post_a = get_sample_patient_payload(csrf_a, save_history=True)
         client_a.post("/predict", data=post_a)
 
-        # Set up Session B with 1 assessment
-        client_b = app.test_client()
-        csrf_b = get_csrf_token(client_b, "/assessment")
-        post_b = get_sample_patient_payload(csrf_b, save_history=True)
-        client_b.post("/predict", data=post_b)
-
-        # Verify DB has 2 total assessments
         conn = database.get_connection()
-        total_before = conn.execute("SELECT count(*) FROM assessments").fetchone()[0]
+        row_a = conn.execute("SELECT id FROM assessments ORDER BY id DESC LIMIT 1").fetchone()
         conn.close()
-        assert total_before == 2
+        id_a = row_a["id"]
 
         # Missing CSRF rejected
-        res_no_csrf = client_a.post("/history/clear")
+        res_no_csrf = client_a.post(f"/history/{id_a}/archive", data={"archived": "1"})
         assert res_no_csrf.status_code == 400
 
-        # Valid CSRF clears only Session A's records
-        csrf_a_clear = get_csrf_token(client_a, "/history")
-        res_clear_a = client_a.post("/history/clear", data={"csrf_token": csrf_a_clear}, follow_redirects=True)
-        assert res_clear_a.status_code == 200
-
-        # Verify DB state: Session A records removed, Session B record intact
+        # Session B cannot archive Session A's record
+        client_b = app.test_client()
+        csrf_b = get_csrf_token(client_b, "/assessment")
+        client_b.post(f"/history/{id_a}/archive", data={"csrf_token": csrf_b, "archived": "1"})
         conn = database.get_connection()
-        total_after = conn.execute("SELECT count(*) FROM assessments").fetchone()[0]
-        remaining = conn.execute("SELECT id, session_id FROM assessments").fetchall()
+        check_a = conn.execute("SELECT archived FROM assessments WHERE id = ?", (id_a,)).fetchone()
         conn.close()
-        assert total_after == 1, f"Expected 1 remaining record after clear, found {total_after}"
-        assert len(remaining) == 1
+        assert check_a["archived"] == 0, "Cross-session archive mutation succeeded unexpectedly!"
 
-        # Session A history view shows empty state
-        res_hist_a = client_a.get("/history")
-        assert res_hist_a.status_code == 200
-        assert "No assessments yet." in res_hist_a.get_data(as_text=True)
+        # Session A successfully archives own record
+        res_archive_a = client_a.post(f"/history/{id_a}/archive", data={"csrf_token": csrf_a, "archived": "1"}, follow_redirects=True)
+        assert res_archive_a.status_code == 200
+        conn = database.get_connection()
+        check_a_archived = conn.execute("SELECT archived FROM assessments WHERE id = ?", (id_a,)).fetchone()
+        conn.close()
+        assert check_a_archived["archived"] == 1
 
-        # Session B history view still shows 1 assessment
-        res_hist_b = client_b.get("/history")
-        assert res_hist_b.status_code == 200
-        assert "No assessments yet." not in res_hist_b.get_data(as_text=True)
+    print("POST /history/<id>/archive verified: strict CSRF enforcement and session isolation (Process 5.3).")
 
-    print("POST /history/clear verified: purges only session-scoped assessments without touching other users.")
+
+def test_delete_assessment_endpoint():
+    """Test POST /history/<id>/delete security, CSRF validation, and session scoping (Process 5.4)."""
+    with isolated_database_environment():
+        # Set up Session A with 1 assessment
+        client_a = app.test_client()
+        csrf_a = get_csrf_token(client_a, "/assessment")
+        post_a = get_sample_patient_payload(csrf_a, save_history=True)
+        client_a.post("/predict", data=post_a)
+
+        conn = database.get_connection()
+        row_a = conn.execute("SELECT id FROM assessments ORDER BY id DESC LIMIT 1").fetchone()
+        conn.close()
+        id_a = row_a["id"]
+
+        # Missing CSRF rejected
+        res_no_csrf = client_a.post(f"/history/{id_a}/delete")
+        assert res_no_csrf.status_code == 400
+
+        # Session B cannot delete Session A's record
+        client_b = app.test_client()
+        csrf_b = get_csrf_token(client_b, "/assessment")
+        client_b.post(f"/history/{id_a}/delete", data={"csrf_token": csrf_b})
+        conn = database.get_connection()
+        check_a = conn.execute("SELECT id FROM assessments WHERE id = ?", (id_a,)).fetchone()
+        conn.close()
+        assert check_a is not None, "Cross-session deletion succeeded unexpectedly!"
+
+        # Session A successfully deletes own record
+        res_delete_a = client_a.post(f"/history/{id_a}/delete", data={"csrf_token": csrf_a}, follow_redirects=True)
+        assert res_delete_a.status_code == 200
+        conn = database.get_connection()
+        check_deleted = conn.execute("SELECT id FROM assessments WHERE id = ?", (id_a,)).fetchone()
+        conn.close()
+        assert check_deleted is None
+
+    print("POST /history/<id>/delete verified: strict CSRF enforcement and session isolation (Process 5.4).")
 
 
 def test_report_viewer_endpoint():
@@ -291,7 +258,8 @@ if __name__ == "__main__":
     test_csp_headers_and_no_external_sources()
     test_no_external_assets_in_templates()
     test_optional_assessment_save_behavior()
-    test_export_history_endpoint()
-    test_clear_history_endpoint()
+    test_archive_assessment_endpoint()
+    test_delete_assessment_endpoint()
     test_report_viewer_endpoint()
     print("\n[ALL PRIVACY HARDENING & DATA ISOLATION TESTS PASSED!]")
+

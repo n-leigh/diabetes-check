@@ -280,30 +280,42 @@ def test_flask_endpoints():
             assert "Clinician Review Notes" in print_html
             print(f"GET /history/{latest_id}/print returned 200 OK with Retinopathy section.")
 
-        res_backup = client.get("/data/backup")
-        assert res_backup.status_code == 200
-        assert res_backup.mimetype == "application/zip"
-        with zipfile.ZipFile(io.BytesIO(res_backup.data)) as backup:
-            assert set(backup.namelist()) == {"diabetes_system.db", "SHA256SUM"}
-        print("GET /data/backup returned a self-verifying encrypted backup bundle.")
+            # Test Process 5.3: Mutate Archival Status (Archive)
+            res_archive = client.post(
+                f"/history/{latest_id}/archive",
+                data={"csrf_token": csrf_token, "archived": "1", "from": "active"},
+                follow_redirects=True,
+            )
+            assert res_archive.status_code == 200
+            print("POST /history/<id>/archive (archive) returned 200 OK.")
 
-        res_restore = client.post(
-            "/data/restore",
-            data={"csrf_token": csrf_token, "backup_file": (io.BytesIO(res_backup.data), "backup.zip")},
-            content_type="multipart/form-data",
-        )
-        assert res_restore.status_code == 302
-        print("POST /data/restore accepted a checksum-verified encrypted backup.")
+            # Test Process 5.2: Query Archived History
+            res_arch_view = client.get("/history?view=archived")
+            assert res_arch_view.status_code == 200
+            print("GET /history?view=archived returned 200 OK.")
 
-        res_diagnostics = client.get("/diagnostics/export")
-        assert res_diagnostics.status_code == 200
-        with zipfile.ZipFile(io.BytesIO(res_diagnostics.data)) as diagnostics:
-            assert set(diagnostics.namelist()) == {"system_status.json", "sanitized_application.log"}
-            diagnostic_text = "\n".join(diagnostics.read(name).decode("utf-8") for name in diagnostics.namelist())
-            assert "diabetes_system.db" not in diagnostic_text
-            assert "session_id" not in diagnostic_text
-            assert "model" in diagnostic_text.lower()
-        print("GET /diagnostics/export returned sanitized technical metadata without patient rows.")
+            # Test Process 5.3: Mutate Archival Status (Unarchive / Restore)
+            res_unarchive = client.post(
+                f"/history/{latest_id}/archive",
+                data={"csrf_token": csrf_token, "archived": "0", "from": "archived"},
+                follow_redirects=True,
+            )
+            assert res_unarchive.status_code == 200
+            print("POST /history/<id>/archive (unarchive) returned 200 OK.")
+
+            # Test Process 5.4: Delete Single Assessment
+            res_delete = client.post(
+                f"/history/{latest_id}/delete",
+                data={"csrf_token": csrf_token, "from": "active"},
+                follow_redirects=True,
+            )
+            assert res_delete.status_code == 200
+
+            conn = get_connection()
+            deleted_check = conn.execute("SELECT id FROM assessments WHERE id = ?", (latest_id,)).fetchone()
+            conn.close()
+            assert deleted_check is None, "Assessment was not deleted after POST /history/<id>/delete"
+            print("POST /history/<id>/delete successfully purged assessment record (Process 5.4).")
 
 
 def test_health_and_security_headers():

@@ -17,12 +17,11 @@ Set a unique production secret with `python -c "import secrets; print(secrets.to
 
 ## Controls
 
-- Flask-WTF provides global CSRF protection for state-changing requests (including `/history/export` and `/history/clear`).
+- Flask-WTF provides global CSRF protection for state-changing requests (including `/predict`, `/history/<id>/archive`, and `/history/<id>/delete`).
 - Flask-Limiter applies `300 per day` and `100 per hour` by remote address; `/health` is exempt.
 - `validation.py` revalidates every submitted field on the server.
-- Assessment reads, exports, and purges are strictly filtered by an anonymous session UUID.
+- Assessment reads, archival mutations, and deletions are strictly filtered by an anonymous session UUID.
 - Assessments are processed in-memory by default and persisted to the local encrypted database only when explicitly opted in by the user.
-- Decentralized report sharing utilizes client-side URL hash fragments (`#report=` and `#encrypted=v1.<salt>.<iv>.<ciphertext>`), preventing report data from ever being sent across the network. Encrypted reports use WebCrypto AES-256-GCM with PBKDF2 (310,000 iterations).
 - Unexpected exceptions are logged with stack traces while users receive generic errors.
 - SQLCipher uses foreign keys, WAL mode, and a busy timeout; the database key is protected with Windows DPAPI for local Windows deployments.
 - Startup pruning uses `RETENTION_DAYS`; archive is soft state and delete is permanent.
@@ -55,7 +54,7 @@ The Docker image is single-stage, based on `python:3.11-slim`, runs as non-root 
 - Confirm `/health` returns 200 with all four models loaded.
 - Confirm strict CSP (`'self'` only, zero `'unsafe-inline'`) is active.
 - Verify localhost binding on port 5000 (`127.0.0.1:5000`).
-- Test retention, export, clear, and backup/restore procedures.
+- Test retention, archiving, and single-record deletion procedures.
 - Run `python test_clinical_system.py`, `python test_privacy_hardening.py`, and `python verify_browser_behavior.py` after deployment changes.
 
 ## Security Architecture Decisions
@@ -63,5 +62,4 @@ The Docker image is single-stage, based on `python:3.11-slim`, runs as non-root 
 The following explicit tradeoffs and decisions define the security boundaries of the system:
 
 - **SQLCipher Driver & Engine**: The application interfaces via the `sqlcipher3` Python driver backed by a native SQLCipher 4 engine (verified via `PRAGMA cipher_version`), providing 256-bit AES encryption in WAL mode.
-- **Hash-Fragment Key Exchange**: The decryption key is derived locally from a user-chosen passphrase shared out-of-band, rather than exposed raw in the URL.
 - **Audit Trails vs. Anonymity**: We accept no audit trail. The system is intentionally anonymous-by-default, explicitly trading clinical auditability ("who saw what, when") for maximum patient privacy.

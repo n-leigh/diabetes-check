@@ -42,15 +42,10 @@ The web request path is separate from offline training. The rule matrix never ge
 | GET | `/health` | Database/model readiness; rate-limit exempt |
 | GET | `/print/<print_id>` | Ephemeral in-memory printable report view |
 | GET | `/history` | Current session history |
-| POST | `/history/export` | Export current session assessment records as JSON |
-| POST | `/history/clear` | Purge all assessments for current session |
 | GET | `/history/<id>` | Current session result |
 | GET | `/history/<id>/print` | Saved assessment printable result |
-| POST | `/history/<id>/archive` | Soft archive |
-| POST | `/history/<id>/delete` | Permanent delete |
-| GET | `/data/backup` | Self-verifying encrypted database backup bundle |
-| POST | `/data/restore` | Restore database backup bundle with checksum verification |
-| GET | `/diagnostics/export` | Sanitized technical metadata zip |
+| POST | `/history/<id>/archive` | Soft archive / restore toggle |
+| POST | `/history/<id>/delete` | Permanent delete single assessment |
 
 All modifying routes use global CSRF protection.
 
@@ -58,7 +53,7 @@ All modifying routes use global CSRF protection.
 
 Assessments are processed by the local Python Flask runtime on the user's computer. When the user leaves "Save assessment to local history" unchecked, assessments remain strictly in-memory during request processing and generate self-contained report tokens without touching disk.
 
-When opted in, SQLCipher 4 encrypts the database using AES-256 in WAL mode with foreign keys enabled. Schema version 4 contains `assessments`, `risk_results`, and `lab_assessments`. Startup pruning removes records older than `RETENTION_DAYS` (default 90). The database layer strictly scopes all user-facing queries, exports, and deletions by `session_id`. Windows local keys use user-scoped DPAPI (`.db.key.dpapi`); managed deployments may provide `DIABEATES_DB_KEY`.
+When opted in, SQLCipher 4 encrypts the database using AES-256 in WAL mode with foreign keys enabled. Schema version 4 contains `assessments`, `risk_results`, and `lab_assessments`. Startup pruning removes records older than `RETENTION_DAYS` (default 90). The database layer strictly scopes all user-facing queries, archival mutations, and deletions by `session_id`. Windows local keys use user-scoped DPAPI (`.db.key.dpapi`); managed deployments may provide `DIABEATES_DB_KEY`.
 
 ## Model Loading
 
