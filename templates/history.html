@@ -60,42 +60,41 @@
     </div>
     {% else %}
     <div class="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
-      <div class="overflow-x-auto">
-        <table class="w-full text-sm">
+      <div class="overflow-x-auto w-full shadow-sm rounded-lg border border-slate-100">
+        <table class="w-full min-w-[920px] text-sm">
           <thead>
             <tr class="border-b border-slate-100 bg-slate-50/50">
-              <th class="text-left font-semibold text-slate-500 px-5 py-3">#</th>
-              <th class="text-left font-semibold text-slate-500 px-5 py-3">Date/Time (PHT)</th>
-              <th class="text-left font-semibold text-slate-500 px-5 py-3">BMI</th>
+              <th class="text-left font-semibold text-slate-500 px-4 py-3 whitespace-nowrap">#</th>
+              <th class="text-left font-semibold text-slate-500 px-4 py-3 whitespace-nowrap">Date/Time (PHT)</th>
+              <th class="text-left font-semibold text-slate-500 px-4 py-3 whitespace-nowrap">BMI</th>
               {% for cat in categories %}
-              <th class="text-left font-semibold text-slate-500 px-5 py-3">
+              <th class="text-left font-semibold text-slate-500 px-4 py-3 whitespace-nowrap">
                 {% if cat == 'cardiovascular' %}Cardiovascular{% elif cat == 'general_burden' %}Nephropathy{% elif cat == 'neuropathy_mobility' %}Neuropathy{% else %}Retinopathy{% endif %}
               </th>
               {% endfor %}
-              <th class="px-5 py-3"></th>
+              <th class="text-left font-semibold text-slate-500 px-4 py-3 whitespace-nowrap text-right">Actions</th>
             </tr>
           </thead>
           <tbody>
             {% for r in records %}
             <tr class="border-b border-slate-50 hover:bg-slate-50/50 transition-colors">
-              <td class="px-5 py-3 font-semibold text-slate-700">
+              <td class="px-4 py-3 font-semibold text-slate-700 text-left">
                 #{{ r.display_index }}
               </td>
-              <td class="px-5 py-3 text-slate-600">{{ r.created_at|display_time }}</td>
-              <td class="px-5 py-3 text-slate-700 font-medium">{{ r.patient.BMI }}</td>
+              <td class="px-4 py-3 text-slate-600 whitespace-nowrap text-left">{{ r.created_at|display_time }}</td>
+              <td class="px-4 py-3 text-slate-700 font-medium text-left">{{ r.patient.BMI }}</td>
               {% for cat in categories %}
-              {% set res = r.rule_results.get(cat) %}
-              <td class="px-5 py-3">
-                {% if res %}
-                  {% set label = res.label %}
-                  {% if label == 'Low' %}
+              {% set label = r.model_results.get(cat) %}
+              <td class="px-4 py-3 text-left">
+                {% if label %}
+                  {% if label == 'Lower Estimated Risk' %}
                     {% set tier_badge_class = 'bg-emerald-50 text-emerald-700 border border-emerald-200' %}
-                  {% elif label == 'Moderate' %}
+                  {% elif label == 'Moderate Estimated Risk' %}
                     {% set tier_badge_class = 'bg-amber-50 text-amber-800 border border-amber-200' %}
                   {% else %}
                     {% set tier_badge_class = 'bg-red-50 text-red-700 border border-red-200' %}
                   {% endif %}
-                  <span class="px-2.5 py-0.5 rounded-full text-xs font-semibold {{ tier_badge_class }}">
+                  <span class="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium whitespace-nowrap {{ tier_badge_class }}">
                     {{ label }}
                   </span>
                 {% else %}
@@ -103,47 +102,49 @@
                 {% endif %}
               </td>
               {% endfor %}
-              <td class="px-5 py-3 whitespace-nowrap">
-                <a href="/history/{{ r.id }}" class="text-teal-600 hover:text-teal-700 font-medium text-xs">View</a>
-                <a href="/history/{{ r.id }}/print" target="_blank"
-                   class="inline-flex items-center justify-center text-slate-400 hover:text-slate-600 ml-3 focus:outline-none focus:ring-2 focus:ring-teal-400/50 rounded"
-                   aria-label="Print assessment {{ r.display_index }}" title="Print assessment">
-                  <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8" aria-hidden="true">
-                    <path stroke-linecap="round" stroke-linejoin="round" d="M6 9V4h12v5M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2M6 14h12v6H6z" />
-                    <path stroke-linecap="round" d="M18 12h.01" />
-                  </svg>
-                </a>
+              <td class="px-4 py-3 text-right">
+                <div class="flex items-center justify-end gap-3 whitespace-nowrap">
+                  <a href="/history/{{ r.id }}" class="text-teal-600 hover:text-teal-700 font-medium text-xs">View</a>
+                  <a href="/history/{{ r.id }}/print" target="_blank"
+                     class="inline-flex items-center justify-center text-slate-400 hover:text-slate-600 focus:outline-none focus:ring-2 focus:ring-teal-400/50 rounded leading-none align-middle"
+                     aria-label="Print assessment {{ r.display_index }}" title="Print assessment">
+                    <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8" aria-hidden="true">
+                      <path stroke-linecap="round" stroke-linejoin="round" d="M6 9V4h12v5M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2M6 14h12v6H6z" />
+                      <path stroke-linecap="round" d="M18 12h.01" />
+                    </svg>
+                  </a>
 
-                <form action="/history/{{ r.id }}/archive" method="post" class="inline">
-                  <input type="hidden" name="csrf_token" value="{{ csrf_token() }}" />
-                  <input type="hidden" name="archived" value="{{ '0' if show_archived else '1' }}">
-                  <input type="hidden" name="from" value="{{ 'archived' if show_archived else 'active' }}">
-                  <button type="submit"
-                          class="inline-flex items-center justify-center text-slate-400 hover:text-slate-600 ml-3 focus:outline-none focus:ring-2 focus:ring-teal-400/50 rounded"
-                          aria-label="{{ 'Restore' if show_archived else 'Archive' }} assessment {{ r.display_index }}"
-                          title="{{ 'Restore assessment' if show_archived else 'Archive assessment' }}">
-                    {% if show_archived %}
-                    <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8" aria-hidden="true">
-                      <path stroke-linecap="round" stroke-linejoin="round" d="M3 7h18v13H3zM3 7l2-4h14l2 4M12 17v-7m0 0-3 3m3-3 3 3" />
-                    </svg>
-                    {% else %}
-                    <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8" aria-hidden="true">
-                      <path stroke-linecap="round" stroke-linejoin="round" d="M3 7h18v13H3zM3 7l2-4h14l2 4M9 12h6" />
-                    </svg>
-                    {% endif %}
+                  <form action="/history/{{ r.id }}/archive" method="post" class="inline-flex items-center leading-none align-middle">
+                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}" />
+                    <input type="hidden" name="archived" value="{{ '0' if show_archived else '1' }}">
+                    <input type="hidden" name="from" value="{{ 'archived' if show_archived else 'active' }}">
+                    <button type="submit"
+                            class="inline-flex items-center justify-center text-slate-400 hover:text-slate-600 focus:outline-none focus:ring-2 focus:ring-teal-400/50 rounded leading-none align-middle"
+                            aria-label="{{ 'Restore' if show_archived else 'Archive' }} assessment {{ r.display_index }}"
+                            title="{{ 'Restore assessment' if show_archived else 'Archive assessment' }}">
+                      {% if show_archived %}
+                      <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8" aria-hidden="true">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M3 7h18v13H3zM3 7l2-4h14l2 4M12 17v-7m0 0-3 3m3-3 3 3" />
+                      </svg>
+                      {% else %}
+                      <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8" aria-hidden="true">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M3 7h18v13H3zM3 7l2-4h14l2 4M9 12h6" />
+                      </svg>
+                      {% endif %}
+                    </button>
+                  </form>
+
+                  <button type="button"
+                          class="js-delete-trigger text-red-400 hover:text-red-600 font-medium text-xs transition-colors inline-flex items-center justify-center cursor-pointer focus:outline-none focus:underline"
+                          data-id="{{ r.id }}"
+                          data-index="{{ r.display_index }}"
+                          data-date="{{ r.created_at|display_time }} PHT"
+                          aria-haspopup="dialog"
+                          aria-expanded="false"
+                          aria-controls="deleteConfirmModal">
+                    Delete
                   </button>
-                </form>
-
-                <button type="button"
-                        class="js-delete-trigger text-red-400 hover:text-red-600 font-medium text-xs ml-3 transition-colors inline-block cursor-pointer focus:outline-none focus:underline"
-                        data-id="{{ r.id }}"
-                        data-index="{{ r.display_index }}"
-                        data-date="{{ r.created_at|display_time }} PHT"
-                        aria-haspopup="dialog"
-                        aria-expanded="false"
-                        aria-controls="deleteConfirmModal">
-                  Delete
-                </button>
+                </div>
                 <noscript>
                   <form action="/history/{{ r.id }}/delete" method="post" class="inline">
                     <input type="hidden" name="csrf_token" value="{{ csrf_token() }}" />
