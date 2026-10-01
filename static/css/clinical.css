@@ -1,0 +1,421 @@
+/* DiaBeates Clinical & Plain-Language Design Tokens */
+
+/* Typography: Fraunces (Headings), Source Sans 3 (Body & UI), IBM Plex Mono (Tabular Numbers) */
+@font-face {
+  font-family: 'Fraunces';
+  font-style: normal;
+  font-weight: 700;
+  font-display: swap;
+  src: url('/static/fonts/fraunces-700.woff2') format('woff2');
+}
+
+@font-face {
+  font-family: 'Source Sans 3';
+  font-style: normal;
+  font-weight: 400;
+  font-display: swap;
+  src: url('/static/fonts/source-sans-3-400.woff2') format('woff2');
+}
+
+@font-face {
+  font-family: 'Source Sans 3';
+  font-style: normal;
+  font-weight: 500;
+  font-display: swap;
+  src: url('/static/fonts/source-sans-3-500.woff2') format('woff2');
+}
+
+@font-face {
+  font-family: 'Source Sans 3';
+  font-style: normal;
+  font-weight: 600;
+  font-display: swap;
+  src: url('/static/fonts/source-sans-3-600.woff2') format('woff2');
+}
+
+@font-face {
+  font-family: 'IBM Plex Mono';
+  font-style: normal;
+  font-weight: 400;
+  font-display: swap;
+  src: url('/static/fonts/ibm_plex_mono-400-normal.woff2') format('woff2');
+}
+
+@font-face {
+  font-family: 'IBM Plex Mono';
+  font-style: normal;
+  font-weight: 600;
+  font-display: swap;
+  src: url('/static/fonts/ibm_plex_mono-600-normal.woff2') format('woff2');
+}
+
+:root {
+  /* Warm Public Health Palette */
+  --cream: #fbf6ec;
+  --sand: #f3e9d6;
+  --white: #ffffff;
+  --ink: #1f2a33;
+  --ink-muted: #4f5b66;
+  --navy: #063154;
+  --teal: #0b7a85;
+  --teal-hover: #08616a;
+  --teal-light: #e6f4f5;
+  --marigold: #f2a73b;
+  --coral: #e8765a;
+  --border-cream: #e5dcce;
+  --card-shadow: 0 1px 2px rgba(31, 42, 51, 0.06);
+
+  /* Status Colors (Always paired with an icon and a word) */
+  --status-good-text: #2f7d4a;
+  --status-good-bg: #e4f2e7;
+  --status-good-border: #bce0c6;
+
+  --status-check-text: #a86a0a;
+  --status-check-bg: #fbeed0;
+  --status-check-border: #f4d99f;
+
+  --status-doctor-text: #b03a2e;
+  --status-doctor-bg: #f9e1dc;
+  --status-doctor-border: #f1b8af;
+
+  /* Typography */
+  --font-heading: 'Fraunces', Georgia, serif;
+  --font-body: 'Source Sans 3', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  --font-mono: 'IBM Plex Mono', monospace;
+}
+
+/* Base Resets & Global Styles */
+*, *::before, *::after {
+  box-sizing: border-box;
+}
+
+html {
+  background-color: var(--cream);
+  color: var(--ink);
+  font-family: var(--font-body);
+  font-size: 18px; /* 18px minimum on mobile */
+  line-height: 1.55;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+body {
+  background-color: var(--cream);
+  color: var(--ink);
+  margin: 0;
+  padding: 0;
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+}
+
+/* Headings */
+h1, h2, h3, h4, .font-heading {
+  font-family: var(--font-heading);
+  color: var(--navy);
+  font-weight: 700;
+  line-height: 1.15;
+  letter-spacing: -0.01em;
+}
+
+h1 { font-size: clamp(2rem, 5vw, 3.25rem); } /* 32px to 52px */
+h2 { font-size: clamp(1.6rem, 4vw, 2.25rem); } /* 26px to 36px */
+h3 { font-size: 1.35rem; }
+h4 { font-size: 1.15rem; }
+
+/* Interactive Focus Rings (WCAG 2.1 AA 2px visible teal ring) */
+a:focus-visible, button:focus-visible, input:focus-visible, select:focus-visible, textarea:focus-visible, summary:focus-visible {
+  outline: 2px solid var(--teal) !important;
+  outline-offset: 2px !important;
+}
+
+/* Form Controls & Tap Targets (48px min) */
+input[type="text"],
+input[type="number"],
+input[type="email"],
+select,
+textarea {
+  min-height: 48px;
+  background-color: var(--white);
+  border: 1px solid var(--border-cream);
+  border-radius: 8px;
+  color: var(--ink);
+  font-family: var(--font-body);
+  font-size: 18px;
+  padding: 10px 14px;
+  transition: border-color 150ms ease-out, box-shadow 150ms ease-out;
+}
+
+input[type="text"]:focus,
+input[type="number"]:focus,
+input[type="email"]:focus,
+select:focus,
+textarea:focus {
+  border-color: var(--teal);
+  outline: none;
+  box-shadow: 0 0 0 2px var(--teal-light);
+}
+
+/* Primary Button (Large, calm, 48px+ tap target, 18-20px font) */
+.btn-primary {
+  min-height: 48px;
+  background-color: var(--navy);
+  color: #ffffff;
+  font-family: var(--font-body);
+  font-weight: 600;
+  font-size: 19px;
+  padding: 12px 24px;
+  border-radius: 8px;
+  border: 1px solid var(--navy);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  cursor: pointer;
+  text-decoration: none;
+  transition: background-color 150ms ease-out, transform 150ms ease-out;
+}
+
+.btn-primary:hover {
+  background-color: #0c436f;
+  border-color: #0c436f;
+  color: #ffffff;
+  transform: translateY(-1px);
+}
+
+.btn-teal {
+  min-height: 48px;
+  background-color: var(--teal);
+  color: #ffffff;
+  font-family: var(--font-body);
+  font-weight: 600;
+  font-size: 19px;
+  padding: 12px 24px;
+  border-radius: 8px;
+  border: 1px solid var(--teal);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  cursor: pointer;
+  text-decoration: none;
+  transition: background-color 150ms ease-out, transform 150ms ease-out;
+}
+
+.btn-teal:hover {
+  background-color: var(--teal-hover);
+  border-color: var(--teal-hover);
+  color: #ffffff;
+  transform: translateY(-1px);
+}
+
+/* Secondary Button */
+.btn-secondary {
+  min-height: 48px;
+  background-color: var(--white);
+  color: var(--navy);
+  font-family: var(--font-body);
+  font-weight: 600;
+  font-size: 18px;
+  padding: 12px 22px;
+  border-radius: 8px;
+  border: 1px solid var(--border-cream);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  cursor: pointer;
+  text-decoration: none;
+  transition: background-color 150ms ease-out, border-color 150ms ease-out;
+}
+
+.btn-secondary:hover {
+  background-color: #faf5ed;
+  border-color: #d1c7b5;
+}
+
+/* Cards & Surfaces */
+.health-card {
+  background-color: var(--white);
+  border: 1px solid var(--border-cream);
+  border-radius: 12px;
+  box-shadow: var(--card-shadow);
+  transition: border-color 150ms ease-out, box-shadow 150ms ease-out;
+}
+
+.health-card-sand {
+  background-color: var(--sand);
+  border: 1px solid var(--border-cream);
+  border-radius: 12px;
+}
+
+/* Complication Status Badges */
+.status-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 14px;
+  border-radius: 9999px;
+  font-size: 16px;
+  font-weight: 600;
+  line-height: 1.3;
+}
+
+.status-badge.status-good {
+  background-color: var(--status-good-bg);
+  color: var(--status-good-text);
+  border: 1px solid var(--status-good-border);
+}
+
+.status-badge.status-check {
+  background-color: var(--status-check-bg);
+  color: var(--status-check-text);
+  border: 1px solid var(--status-check-border);
+}
+
+.status-badge.status-doctor {
+  background-color: var(--status-doctor-bg);
+  color: var(--status-doctor-text);
+  border: 1px solid var(--status-doctor-border);
+}
+
+/* 3-Segment Result Bar (Good, Check, Doctor) */
+.triage-segment-bar {
+  position: relative;
+  height: 14px;
+  border-radius: 7px;
+  display: flex;
+  overflow: hidden;
+  background-color: #ece5d8;
+  border: 1px solid var(--border-cream);
+}
+
+.segment-good {
+  flex: 30;
+  background-color: #bce0c6;
+}
+
+.segment-check {
+  flex: 30;
+  background-color: #f4d99f;
+}
+
+.segment-doctor {
+  flex: 40;
+  background-color: #f1b8af;
+}
+
+.segment-pointer-container {
+  position: relative;
+  width: 100%;
+  height: 12px;
+  margin-top: 4px;
+}
+
+.segment-marker {
+  position: absolute;
+  top: 0;
+  transform: translateX(-50%);
+  width: 0;
+  height: 0;
+  border-left: 6px solid transparent;
+  border-right: 6px solid transparent;
+  border-bottom: 8px solid var(--navy);
+  transition: left 500ms ease-out;
+}
+
+/* Progressive Disclosure: Technical Details for Doctors */
+details.technical-details {
+  border-top: 1px solid var(--border-cream);
+  padding-top: 12px;
+  margin-top: 16px;
+}
+
+details.technical-details summary {
+  cursor: pointer;
+  font-size: 15px;
+  font-weight: 600;
+  color: var(--teal);
+  list-style: none;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  user-select: none;
+}
+
+details.technical-details summary::-webkit-details-marker {
+  display: none;
+}
+
+details.technical-details summary::before {
+  content: "▸";
+  font-size: 14px;
+  display: inline-block;
+  transition: transform 150ms ease-out;
+}
+
+details.technical-details[open] summary::before {
+  transform: rotate(90deg);
+}
+
+details.technical-details .technical-content {
+  margin-top: 12px;
+  padding: 12px;
+  background-color: var(--cream);
+  border-radius: 8px;
+  border: 1px solid var(--border-cream);
+  font-size: 14px;
+  line-height: 1.5;
+  color: var(--ink-muted);
+}
+
+/* Assessment Yes/No Picture Question Tiles */
+.choice-tile {
+  cursor: pointer;
+  background-color: var(--white);
+  border: 2px solid var(--border-cream);
+  border-radius: 12px;
+  padding: 16px;
+  display: flex;
+  align-items: flex-start;
+  gap: 14px;
+  transition: border-color 150ms ease-out, background-color 150ms ease-out;
+  min-height: 80px;
+}
+
+.choice-tile:hover {
+  border-color: #c7bcab;
+}
+
+.choice-tile.is-selected {
+  border-color: var(--teal);
+  background-color: var(--teal-light);
+}
+
+/* Dialog & Modal */
+dialog {
+  border: 1px solid var(--border-cream);
+  border-radius: 12px;
+  background: var(--white);
+  color: var(--ink);
+  padding: 0;
+  box-shadow: 0 10px 30px rgba(31, 42, 51, 0.15);
+  max-width: 90vw;
+}
+
+dialog::backdrop {
+  background-color: rgba(31, 42, 51, 0.45);
+}
+
+/* Reduced Motion Override */
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+  .segment-marker {
+    transition: none !important;
+  }
+}
