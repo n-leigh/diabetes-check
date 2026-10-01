@@ -1,460 +1,590 @@
 {% extends "base.html" %}
-{% block title %}Risk Assessment — DiaBeates{% endblock %}
+{% from "macros/illustrations.html" import icon_heart, icon_kidneys, icon_foot, icon_eye, icon_doctor, icon_companion, icon_shoe %}
+
+{% block title %}DiaBeates - Health Risk Check{% endblock %}
 {% set active_page = 'assessment' %}
 
-{% macro info_tooltip(text, position="top", align="center") %}
-<span class="relative group/info inline-flex items-center align-baseline ml-1">
-  <button type="button" class="inline-flex items-center justify-center w-4 h-4 rounded-full bg-slate-100 hover:bg-teal-50 text-slate-400 hover:text-teal-600 border border-slate-200/90 hover:border-teal-300 transition-all focus:outline-none focus:ring-2 focus:ring-teal-400/50 cursor-help select-none shrink-0" aria-label="Why this information is requested" tabindex="0">
-    <svg class="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5" aria-hidden="true">
-      <circle cx="12" cy="12" r="9" />
-      <path stroke-linecap="round" d="M12 11v5m0-8h.01" />
-    </svg>
-  </button>
-  <span class="pointer-events-none group-hover/info:pointer-events-auto group-focus-within/info:pointer-events-auto opacity-0 group-hover/info:opacity-100 group-focus-within/info:opacity-100 transition-all duration-200 absolute {% if position == 'bottom' %}top-full mt-2{% else %}bottom-full mb-2{% endif %} {% if align == 'right' %}right-0{% elif align == 'left' %}left-0{% else %}left-1/2 -translate-x-1/2{% endif %} w-64 max-w-[calc(100vw-2rem)] p-3 bg-slate-900/95 backdrop-blur-md text-slate-200 text-xs rounded-xl shadow-xl border border-slate-700/80 z-30 invisible group-hover/info:visible group-focus-within/info:visible font-normal text-left leading-relaxed">
-    <span class="flex items-center gap-1.5 text-teal-300 font-semibold mb-1 font-display tracking-tight">
-      <svg class="w-3.5 h-3.5 text-teal-400 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
-        <path stroke-linecap="round" stroke-linejoin="round" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-      </svg>
-      Why we ask this
-    </span>
-    {{ text }}
-    <span class="absolute {% if position == 'bottom' %}bottom-full border-b-slate-900 -mb-1{% else %}top-full border-t-slate-900 -mt-1{% endif %} {% if align == 'right' %}right-3{% elif align == 'left' %}left-3{% else %}left-1/2 -translate-x-1/2{% endif %} border-4 border-transparent"></span>
-  </span>
-</span>
-{% endmacro %}
-
 {% block content %}
-<div class="flex-1 bg-slate-50 py-12 px-4">
-  <div class="max-w-2xl mx-auto">
+<div class="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8 py-8 sm:py-12">
 
-    <div class="text-center mb-8">
-      <div class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold bg-teal-50 text-teal-700 border border-teal-200 mb-3 shadow-xs">
-        <svg class="w-3.5 h-3.5 text-teal-600" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-          <path stroke-linecap="round" stroke-linejoin="round" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
-        </svg>
-        Clinical Engine -clinical &bull; ACC/AHA &bull; KDIGO 2024 &bull; MNSI
-      </div>
-      <h1 class="font-display text-3xl font-extrabold text-slate-900 mb-2">Diabetes Complication Risk Assessment</h1>
-      <p class="text-slate-500 text-sm">No medical background needed, just answer what you can. Enter optional lab readings for enhanced point-of-care precision.</p>
+  <!-- Top Reassurance -->
+  <div class="mb-8 text-center sm:text-left">
+    <div class="inline-flex flex-wrap items-center justify-center gap-1.5 px-3 py-1.5 rounded-full bg-[#e4f2e7] text-[#2f7d4a] text-[13px] sm:text-[15px] font-bold mb-3 text-center leading-snug">
+      <svg width="16" height="16" class="flex-shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+      <span>Your answers stay private. There are no wrong answers.</span>
     </div>
-
-    <div class="animated-border-card">
-      <div class="card-inner p-6 sm:p-8">
-
-      <div id="formTopErrorBanner" role="alert" aria-live="assertive" class="{% if errors %}flex{% else %}hidden{% endif %} mb-6 bg-rose-50 border border-rose-200 rounded-xl p-3 items-center justify-between gap-3 transition-all">
-        <div class="flex items-center gap-2.5">
-          <svg width="18" height="18" viewBox="0 0 20 20" fill="currentColor" class="text-rose-500 shrink-0" aria-hidden="true">
-            <path fill-rule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clip-rule="evenodd"/>
-          </svg>
-          <span class="text-sm text-rose-700 font-medium">Please correct the highlighted fields below.</span>
-        </div>
-        <button type="button" id="closeFormTopErrorBannerBtn" class="text-rose-400 hover:text-rose-600 focus:outline-none p-1 rounded-lg hover:bg-rose-100 transition-colors" aria-label="Dismiss error">
-          <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/></svg>
-        </button>
-      </div>
-
-      <form action="/predict" method="post" novalidate>
-        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}" />
-
-        <h3 class="font-semibold text-xs text-slate-500 uppercase tracking-wider mb-4">About You</h3>
-        <div class="grid grid-cols-2 gap-4 mb-6">
-
-          <div class="space-y-1.5 col-span-2 sm:col-span-1">
-            <div class="flex items-center justify-between">
-              <label for="BMI" class="block text-sm font-semibold text-slate-700 font-display">
-                BMI (Body Mass Index) <span class="text-red-500">*</span>
-              </label>
-              <button type="button" id="openBmiCalcBtn" aria-haspopup="dialog" aria-controls="bmiModal"
-                      class="inline-flex items-center gap-1.5 text-xs font-semibold text-teal-700 hover:text-teal-800 bg-teal-50 hover:bg-teal-100 border border-teal-200/90 px-2.5 py-1 rounded-lg transition-colors focus:outline-none focus:ring-2 focus:ring-teal-400/50 cursor-pointer">
-                <svg class="w-3.5 h-3.5 text-teal-600 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" aria-hidden="true">
-                  <path stroke-linecap="round" stroke-linejoin="round" d="M9 7h6m0 10v-3m-3 3h.01M9 17h.01M9 14h.01M12 14h.01M15 11h.01M12 11h.01M9 11h.01M7 21h10a2 2 0 002-2V5a2 2 0 00-2-2H7a2 2 0 00-2 2v14a2 2 0 002 2z" />
-                </svg>
-                Calculate BMI
-              </button>
-            </div>
-            <input type="number" step="0.1" min="10" max="80" name="BMI" id="BMI" aria-describedby="bmi-help bmi-error" aria-invalid="false"
-                   value="{{ form_data.get('BMI', '') if form_data else '' }}"
-                   placeholder="e.g. 24.5"
-                   class="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 text-sm text-slate-800 bg-white placeholder-slate-400/60 focus:outline-none focus:ring-2 focus:ring-teal-400/50 focus:border-teal-400 transition-all" required>
-            <p id="bmi-error" class="field-error-msg hidden mt-1 text-xs text-rose-600 font-medium"></p>
-            <p id="bmi-help" class="text-xs text-slate-400 leading-snug">
-              Don't know it? It's weight (kg) ÷ height (m)², or ask your doctor at your last checkup.
-              {{ info_tooltip('BMI is used in our cardiovascular and mobility risk models. Higher BMI (≥25 or ≥30) indicates elevated vascular resistance, metabolic load, and joint stress.', align='left') }}
-            </p>
-          </div>
-
-          <div class="space-y-1.5 col-span-2 sm:col-span-1">
-            <label for="Age" class="block text-sm font-semibold text-slate-700 font-display">Age range <span class="text-red-500">*</span></label>
-            <select name="Age" id="Age" aria-describedby="age-help age-error" aria-invalid="false" required
-                    class="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 text-sm text-slate-800 bg-white cursor-pointer focus:outline-none focus:ring-2 focus:ring-teal-400/50 focus:border-teal-400 transition-all">
-              <option value="" disabled {{ 'selected' if not (form_data and form_data.get('Age')) }}>Select your age range</option>
-              {% set age_ranges = [
-                ('1','18–24'), ('2','25–29'), ('3','30–34'), ('4','35–39'), ('5','40–44'),
-                ('6','45–49'), ('7','50–54'), ('8','55–59'), ('9','60–64'), ('10','65–69'),
-                ('11','70–74'), ('12','75–79'), ('13','80 or older'),
-              ] %}
-              {% for val, label_text in age_ranges %}
-              <option value="{{ val }}" {{ 'selected' if form_data and form_data.get('Age') == val }}>{{ label_text }}</option>
-              {% endfor %}
-            </select>
-            <p id="age-error" class="field-error-msg hidden mt-1 text-xs text-rose-600 font-medium"></p>
-            <p id="age-help" class="text-xs text-slate-400 leading-snug">
-              Just pick the range you fall into.
-              {{ info_tooltip('Age is a major risk multiplier in our cardiovascular and neuropathy models. Complication risks increase with longer cumulative exposure to vascular and glycemic strain.', align='left') }}
-            </p>
-          </div>
-
-          <div class="space-y-1.5 col-span-2">
-            <label for="GenHlth" class="block text-sm font-semibold text-slate-700 font-display">How would you rate your general health? <span class="text-red-500">*</span></label>
-            <div>
-                <select name="GenHlth" id="GenHlth" aria-describedby="genhlth-help genhlth-error" aria-invalid="false" required
-                        class="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 text-sm text-slate-800 bg-white cursor-pointer focus:outline-none focus:ring-2 focus:ring-teal-400/50 focus:border-teal-400 transition-all">
-                  <option value="" disabled {{ 'selected' if not (form_data and form_data.get('GenHlth')) }}>Select one</option>
-                  {% set health_ratings = [('1','Excellent'), ('2','Very good'), ('3','Good'), ('4','Fair'), ('5','Poor')] %}
-                  {% set health_rating_descriptions = {
-                    '1': 'You feel your overall health is excellent, with no important concerns today.',
-                    '2': 'You feel your overall health is very good, with only minor concerns or limitations.',
-                    '3': 'You feel your overall health is good, with some concerns or limitations but generally doing well.',
-                    '4': 'You feel your overall health is fair, with noticeable concerns, symptoms, or limitations.',
-                    '5': 'You feel your overall health is poor, with substantial concerns, symptoms, or limitations.'
-                  } %}
-                  {% for val, label_text in health_ratings %}
-                  <option value="{{ val }}" title="{{ health_rating_descriptions[val] }}" data-description="{{ health_rating_descriptions[val] }}" {{ 'selected' if form_data and form_data.get('GenHlth') == val }}>{{ label_text }}</option>
-                  {% endfor %}
-                </select>
-                <p id="genhlth-error" class="field-error-msg hidden mt-1 text-xs text-rose-600 font-medium"></p>
-                <p id="genhlth-help" class="text-xs text-slate-400 leading-snug mt-1.5">
-                  Choose the statement that best matches your overall health today. There are no tests or fixed symptom thresholds for this self-rating.
-                  {{ info_tooltip('This is the CDC BRFSS GENHLTH-style question: rate your overall health based on your own perception, considering physical and mental health together. It is not a diagnosis or a substitute for medical advice.', align='left') }}
-                </p>
-                <div id="genhlth-choice-tip" class="hidden mt-2 max-w-xl rounded-lg border border-teal-200 border-l-4 border-l-teal-400 bg-teal-50 px-3.5 py-3 text-sm text-slate-700 shadow-sm" role="status" aria-live="polite">
-                  <p class="flex items-center gap-1.5 font-semibold text-teal-800">
-                    <span class="inline-flex h-5 w-5 items-center justify-center rounded-full bg-teal-100 text-xs text-teal-700" aria-hidden="true">i</span>
-                    What this choice means
-                  </p>
-                  <p id="genhlth-choice-description" class="mt-1 leading-relaxed"></p>
-                </div>
-            </div>
-          </div>
-
-          <div class="space-y-1.5 col-span-2 sm:col-span-1">
-            <label for="Sex" class="block text-sm font-semibold text-slate-700 font-display">Sex <span class="text-red-500">*</span></label>
-            <select name="Sex" id="Sex" aria-describedby="sex-help sex-error" aria-invalid="false" required
-                    class="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 text-sm text-slate-800 bg-white cursor-pointer focus:outline-none focus:ring-2 focus:ring-teal-400/50 focus:border-teal-400 transition-all">
-              <option value="" disabled {{ 'selected' if not (form_data and form_data.get('Sex') in ['0', '1', 0, 1]) }}>Select your sex</option>
-              <option value="0" {{ 'selected' if form_data and form_data.get('Sex')|string == '0' }}>Female</option>
-              <option value="1" {{ 'selected' if form_data and form_data.get('Sex')|string == '1' }}>Male</option>
-            </select>
-            <p id="sex-error" class="field-error-msg hidden mt-1 text-xs text-rose-600 font-medium"></p>
-            <p id="sex-help" class="text-xs text-slate-400 leading-snug">
-              Biological sex assigned at birth (used by epidemiological risk models).
-              {{ info_tooltip('Used by our trained classification models to adjust for baseline epidemiological differences in complication presentation and risk profiles.', align='left') }}
-            </p>
-          </div>
-
-          <div class="space-y-1.5 col-span-2 sm:col-span-1">
-            <label for="DiabetesDuration" class="block text-sm font-semibold text-slate-700 font-display">Years with diabetes <span class="text-red-500">*</span></label>
-            <select name="DiabetesDuration" id="DiabetesDuration" aria-describedby="duration-help duration-error" aria-invalid="false" required
-                    class="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 text-sm text-slate-800 bg-white cursor-pointer focus:outline-none focus:ring-2 focus:ring-teal-400/50 focus:border-teal-400 transition-all">
-              <option value="" disabled {{ 'selected' if not (form_data and form_data.get('DiabetesDuration') is not none and form_data.get('DiabetesDuration') != '') }}>Select duration</option>
-              <option value="0" {{ 'selected' if form_data and form_data.get('DiabetesDuration')|string == '0' }}>Less than 1 year (Newly diagnosed)</option>
-              <option value="1" {{ 'selected' if form_data and form_data.get('DiabetesDuration')|string == '1' }}>1 to 4 years</option>
-              <option value="2" {{ 'selected' if form_data and form_data.get('DiabetesDuration')|string == '2' }}>5 to 9 years (Elevated risk threshold)</option>
-              <option value="3" {{ 'selected' if form_data and form_data.get('DiabetesDuration')|string == '3' }}>10 or more years (High microvascular risk)</option>
-            </select>
-            <p id="duration-error" class="field-error-msg hidden mt-1 text-xs text-rose-600 font-medium"></p>
-            <p id="duration-help" class="text-xs text-slate-400 leading-snug">
-              Roughly how long you have had diagnosed diabetes.
-              {{ info_tooltip('Duration of diabetes is the single strongest clinical predictor of diabetic retinopathy and microvascular capillary breakdown in ADA and UKPDS clinical guidelines.', align='left') }}
-            </p>
-          </div>
-
-          <div class="space-y-1.5 col-span-2 sm:col-span-1">
-            <label for="PhysHlth" class="block text-sm font-semibold text-slate-700 font-display">Days of poor physical health <span class="text-red-500">*</span></label>
-            <input type="number" min="0" max="30" name="PhysHlth" id="PhysHlth" aria-describedby="physhlth-help physhlth-warning physhlth-error" aria-invalid="false"
-                   value="{{ form_data.get('PhysHlth', '') if form_data else '' }}"
-                   placeholder="e.g. 3"
-                   class="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 text-sm text-slate-800 bg-white placeholder-slate-400/60 focus:outline-none focus:ring-2 focus:ring-teal-400/50 focus:border-teal-400 transition-all" required>
-            <p id="physhlth-error" class="field-error-msg hidden mt-1 text-xs text-rose-600 font-medium"></p>
-            <p id="physhlth-help" class="text-xs text-slate-400 leading-snug">
-              Out of the last 30 days, physical illness or injury. Enter 0 if none.
-              {{ info_tooltip('Frequent physical illness days (≥5 or ≥15 days/month) directly feed into our neuropathy and mobility risk model as an indicator of functional limitation.', align='left') }}
-            </p>
-            <div id="physhlth-warning" role="status" aria-live="polite" class="hidden mt-1.5 p-2 rounded-lg bg-amber-50 border border-amber-200 text-xs text-amber-800 flex items-start gap-1.5 transition-all">
-              <svg class="w-4 h-4 text-amber-600 shrink-0 mt-0.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" aria-hidden="true">
-                <path stroke-linecap="round" stroke-linejoin="round" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
-              </svg>
-              <div>
-                <strong>Notice:</strong> This question evaluates the past 30 days, so the maximum valid count is <strong>30</strong>. Values above 30 cannot be processed.
-                <button type="button" id="capPhysHlthBtn" class="ml-1 font-semibold underline text-amber-900 hover:text-amber-700 cursor-pointer">Cap to 30</button>
-              </div>
-            </div>
-          </div>
-
-          <div class="space-y-1.5 col-span-2 sm:col-span-1">
-            <label for="MentHlth" class="block text-sm font-semibold text-slate-700 font-display">Days of poor mental health <span class="text-red-500">*</span></label>
-            <input type="number" min="0" max="30" name="MentHlth" id="MentHlth" aria-describedby="menthlth-help menthlth-warning menthlth-error" aria-invalid="false"
-                   value="{{ form_data.get('MentHlth', '') if form_data else '' }}"
-                   placeholder="e.g. 3"
-                   class="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 text-sm text-slate-800 bg-white placeholder-slate-400/60 focus:outline-none focus:ring-2 focus:ring-teal-400/50 focus:border-teal-400 transition-all" required>
-            <p id="menthlth-error" class="field-error-msg hidden mt-1 text-xs text-rose-600 font-medium"></p>
-            <p id="menthlth-help" class="text-xs text-slate-400 leading-snug">
-              Out of the last 30 days, stress, depression, emotional struggles. Enter 0 if none.
-              {{ info_tooltip('Chronic mental distress (≥15 days/month) feeds into the general complication burden score, reflecting diabetes distress and self-management strain.', align='left') }}
-            </p>
-            <div id="menthlth-warning" role="status" aria-live="polite" class="hidden mt-1.5 p-2 rounded-lg bg-amber-50 border border-amber-200 text-xs text-amber-800 flex items-start gap-1.5 transition-all">
-              <svg class="w-4 h-4 text-amber-600 shrink-0 mt-0.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" aria-hidden="true">
-                <path stroke-linecap="round" stroke-linejoin="round" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
-              </svg>
-              <div>
-                <strong>Notice:</strong> This question evaluates the past 30 days, so the maximum valid count is <strong>30</strong>. Values above 30 cannot be processed.
-                <button type="button" id="capMentHlthBtn" class="ml-1 font-semibold underline text-amber-900 hover:text-amber-700 cursor-pointer">Cap to 30</button>
-              </div>
-            </div>
-          </div>
-        </div>
-
-        <h3 class="font-semibold text-xs text-slate-500 uppercase tracking-wider mb-1">Health & Risk Factors</h3>
-        <p class="text-xs text-slate-400 mb-4">
-          Check anything that applies to you. Not sure about one? Leave it unchecked.
-          {{ info_tooltip('These clinical risk factors match the CDC epidemiological survey and NHANES indicators used by a scoring rule matrix and calibrated classifiers.', align='left') }}
-        </p>
-        <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 mb-8">
-          {% set checkboxes = [
-            ('HighBP', 'High blood pressure', 'Hypertension directly damages arterial walls and accelerates kidney and cardiovascular risk.'),
-            ('HighChol', 'High cholesterol', 'Elevated lipids accelerate arterial plaque accumulation, multiplying heart attack and stroke risk.'),
-            ('Smoker', 'Smoker', 'Tobacco smoke constricts peripheral blood vessels and damages endothelial vessel walls.'),
-            ('HeartDiseaseorAttack', 'Prior heart disease/attack', 'Established cardiovascular disease is the strongest historical predictor of future macrovascular events.'),
-            ('Stroke', 'Prior stroke', 'Past cerebrovascular events indicate established macrovascular compromise.'),
-            ('DiffWalk', 'Difficulty walking/climbing stairs', 'Primary clinical proxy for peripheral neuropathy, reduced lower-limb sensation, and foot complications.'),
-            ('BlurryVision', 'Frequent blurry vision / floaters', 'Cardinal subjective symptom of diabetic macular edema, vitreous traction, and capillary leakage.'),
-            ('NoDocbcCost', 'Skipped care due to cost', 'Financial barriers increase complication risk through delayed screening and missed preventive care.'),
-          ] %}
-          {% for field, cb_label, cb_info in checkboxes %}
-          <label for="{{ field }}" class="flex items-center justify-between gap-2 px-3.5 py-2.5 rounded-xl border border-slate-200 text-sm text-slate-700 cursor-pointer hover:bg-slate-50 has-[:checked]:bg-teal-50 has-[:checked]:border-teal-300 transition-all select-none">
-            <div class="flex items-center gap-2.5 min-w-0">
-              <input type="checkbox" id="{{ field }}" value="1" name="{{ field }}" aria-describedby="{{ field }}-help" class="w-4 h-4 rounded border-slate-300 text-teal-600 focus:ring-teal-400/50 shrink-0"
-                     {{ 'checked' if form_data and form_data.get(field) }}>
-              <span class="text-xs sm:text-sm">{{ cb_label }}</span>
-            </div>
-            <span class="relative group/info shrink-0 ml-1 inline-flex items-center js-stop-propagation">
-              <button type="button" class="inline-flex items-center justify-center w-4 h-4 rounded-full bg-slate-100 hover:bg-teal-100 text-slate-400 hover:text-teal-700 transition-colors focus:outline-none focus:ring-2 focus:ring-teal-400/50 cursor-help select-none" aria-label="Why this is asked: {{ cb_label }}" tabindex="0">
-                <svg class="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5" aria-hidden="true">
-                  <circle cx="12" cy="12" r="9" />
-                  <path stroke-linecap="round" d="M12 11v5m0-8h.01" />
-                </svg>
-              </button>
-              <span id="{{ field }}-help" class="pointer-events-none group-hover/info:pointer-events-auto group-focus-within/info:pointer-events-auto opacity-0 group-hover/info:opacity-100 group-focus-within/info:opacity-100 transition-all duration-200 absolute bottom-full right-0 mb-2 w-56 sm:w-64 p-3 bg-slate-900/95 backdrop-blur-md text-slate-200 text-xs rounded-xl shadow-xl border border-slate-700/80 z-30 invisible group-hover/info:visible group-focus-within/info:visible font-normal text-left leading-relaxed">
-                <span class="flex items-center gap-1.5 text-teal-300 font-semibold mb-1 font-display tracking-tight">
-                  <svg class="w-3.5 h-3.5 text-teal-400 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
-                    <path stroke-linecap="round" stroke-linejoin="round" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-                  </svg>
-                  Why we ask this
-                </span>
-                {{ cb_info }}
-                <span class="absolute top-full right-2 -mt-1 border-4 border-transparent border-t-slate-900"></span>
-              </span>
-            </span>
-          </label>
-          {% endfor %}
-        </div>
-
-        <div class="flex items-center gap-2 mb-1.5 flex-wrap">
-          <h3 class="font-semibold text-xs text-slate-600 uppercase tracking-wider">Clinical Lab Values</h3>
-          <span class="bg-teal-50 text-teal-700 border border-teal-200 text-[11px] font-semibold px-2.5 py-0.5 rounded-full shadow-xs">
-            Optional, Point-of-Care Guideline Precision
-          </span>
-        </div>
-        <p class="text-xs text-slate-500 mb-4 leading-relaxed">
-          <strong class="text-slate-700">Have recent bloodwork?</strong> Entering your lab results activates point-of-care clinical evaluation against ADA &amp; KDIGO guidelines. 
-          <span class="text-slate-400">Don't have them handy? You can leave these blank and still receive a complete risk forecast powered by our calibrated CDC models.</span>
-          {{ info_tooltip('Lab values provide an optional clinical precision layer scored directly against ADA and KDIGO clinical guideline thresholds.', align='left') }}
-        </p>
-        <div class="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-8">
-          <div class="space-y-1.5">
-            <div class="flex flex-col gap-1">
-              <label for="LabHbA1c" class="block text-sm font-semibold text-slate-700 font-display">
-                HbA1c
-              </label>
-              <span class="inline-flex min-h-[2.875rem] items-center text-[10.5px] font-medium text-slate-500 bg-slate-100/90 border border-slate-200/80 px-2 py-0.5 rounded-md self-start">
-                (Standard % DCCT/NGSP | Note: 7.0% ≈ 53 mmol/mol IFCC)
-              </span>
-            </div>
-            <input type="number" step="0.1" min="3" max="20" name="LabHbA1c" id="LabHbA1c" aria-describedby="labhba1c-help labhba1c-error" aria-invalid="false"
-                   value="{{ form_data.get('LabHbA1c', '') if form_data else '' }}"
-                   placeholder="e.g. 7.2"
-                   class="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 text-sm text-slate-800 bg-white placeholder-slate-400/60 focus:outline-none focus:ring-2 focus:ring-teal-400/50 focus:border-teal-400 transition-all">
-            <p id="labhba1c-error" class="field-error-msg hidden mt-1 text-xs text-rose-600 font-medium"></p>
-            <p id="labhba1c-help" class="text-xs text-slate-400 leading-snug">
-              A blood test showing average blood sugar over ~3 months.
-              {{ info_tooltip('ADA 2026 Standards of Care benchmarks: <7.0% optimal for nonpregnant adults (Rec 6.3a), 7.0–7.9% suboptimal, ≥8.0% elevated risk for microvascular damage.', align='left') }}
-            </p>
-          </div>
-
-          <div class="space-y-1.5">
-            <div class="flex flex-col gap-1">
-              <label for="LabSystolicBP" class="block text-sm font-semibold text-slate-700 font-display">
-                Systolic BP
-              </label>
-              <span class="inline-flex min-h-[2.875rem] flex-col items-start justify-center text-[10.5px] font-medium text-slate-500 bg-slate-100/90 border border-slate-200/80 px-2 py-0.5 rounded-md self-start">
-                <span>(mmHg)</span>
-                <span class="text-teal-700">Normal: &lt;120</span>
-              </span>
-            </div>
-            <input type="number" min="60" max="250" name="LabSystolicBP" id="LabSystolicBP" aria-describedby="labsystolicbp-help labsystolicbp-error" aria-invalid="false"
-                   value="{{ form_data.get('LabSystolicBP', '') if form_data else '' }}"
-                   placeholder="e.g. 138"
-                   class="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 text-sm text-slate-800 bg-white placeholder-slate-400/60 focus:outline-none focus:ring-2 focus:ring-teal-400/50 focus:border-teal-400 transition-all">
-            <p id="labsystolicbp-error" class="field-error-msg hidden mt-1 text-xs text-rose-600 font-medium"></p>
-            <p id="labsystolicbp-help" class="text-xs text-slate-400 leading-snug">
-              The top number in a blood pressure reading, e.g. the 138 in 138/85.
-              {{ info_tooltip('KDIGO 2024 and ADA 2026 benchmarks: <120 mmHg optimal for renal/CVD protection, 120–129 mmHg elevated, ≥130 mmHg hypertension.', align='left') }}
-            </p>
-          </div>
-
-          <div class="space-y-1.5">
-            <div class="flex flex-col gap-1">
-              <label for="LabLDL" class="block text-sm font-semibold text-slate-700 font-display">
-                LDL Cholesterol
-              </label>
-              <span class="inline-flex min-h-[2.875rem] items-center text-[10.5px] font-medium text-slate-500 bg-slate-100/90 border border-slate-200/80 px-2 py-0.5 rounded-md self-start">
-                (mg/dL | Note: 100 mg/dL ≈ 2.6 mmol/L)
-              </span>
-            </div>
-            <input type="number" min="20" max="400" name="LabLDL" id="LabLDL" aria-describedby="labldl-help labldl-error" aria-invalid="false"
-                   value="{{ form_data.get('LabLDL', '') if form_data else '' }}"
-                   placeholder="e.g. 130"
-                   class="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 text-sm text-slate-800 bg-white placeholder-slate-400/60 focus:outline-none focus:ring-2 focus:ring-teal-400/50 focus:border-teal-400 transition-all">
-            <p id="labldl-error" class="field-error-msg hidden mt-1 text-xs text-rose-600 font-medium"></p>
-            <p id="labldl-help" class="text-xs text-slate-400 leading-snug">
-              Circulating atherogenic lipid particles ("bad cholesterol").
-              {{ info_tooltip('ADA 2026 lipid target guidelines: <70 mg/dL optimal primary prevention for diabetes (Rec 10.20), 70–99 mg/dL borderline, ≥100 mg/dL elevated atherogenic risk.', align='right') }}
-            </p>
-          </div>
-        </div>
-
-        <!-- History Storage Option -->
-        <div class="p-4 rounded-2xl bg-slate-50 border border-slate-200/80 mb-6">
-          <div class="flex items-start gap-3">
-            <input type="checkbox" id="save_history" name="save_history" value="1" autocomplete="off"
-                   aria-describedby="save_history_help"
-                   class="mt-1 w-4 h-4 rounded border-slate-300 text-teal-600 focus:ring-teal-400/50 shrink-0 cursor-pointer">
-            <div class="min-w-0 flex-1">
-              <label for="save_history" class="text-sm font-semibold text-slate-800 cursor-pointer hover:text-slate-900 inline-block select-none">
-                Save assessment to local history
-              </label>
-              <p id="save_history_help" class="text-xs text-slate-500 leading-relaxed mt-0.5 cursor-default select-text">
-                Assessments are processed by the local Flask application on this computer. If you choose to save an assessment, it is stored in the local encrypted database and associated with this browser session. If unchecked, results are calculated and displayed without creating new database rows.
-              </p>
-            </div>
-          </div>
-        </div>
-
-        <button type="submit" class="w-full flex items-center justify-center gap-2 px-7 py-3.5 rounded-xl gradient-primary text-white text-sm font-bold hover:opacity-90 transition-opacity shadow-md cursor-pointer">
-          Get My Results
-          <svg width="14" height="14" viewBox="0 0 14 14" fill="none" stroke="white" stroke-width="2"><path d="M5 2l5 5-5 5"/></svg>
-        </button>
-      </form>
-    </div>
-
-      </div>
-    </div>
-
-    <p class="text-xs text-center text-slate-400 mt-4">
-      Results combine an evidence-aligned rule matrix (clinical: ACC/AHA, KDIGO 2024, MNSI) with calibrated ML models trained on CDC cohorts to provide transparent risk projections. For educational and informational purposes only, not a diagnosis or substitute for professional medical advice.
+    <h1 class="font-heading text-3xl sm:text-4xl md:text-5xl font-bold text-[#063154]">
+      Health Risk Check
+    </h1>
+    <p class="text-[19px] text-[#4f5b66] mt-2">
+      15 easy questions to help you understand your risks and talk with your doctor.
     </p>
   </div>
-</div>
 
-<!-- Interactive BMI Calculator Modal -->
-<dialog id="bmiModal" aria-labelledby="bmiModalTitle" aria-modal="true" class="rounded-2xl p-0 border border-slate-200/90 shadow-2xl bg-white max-w-md w-[calc(100%-2rem)] fixed inset-0 m-auto backdrop:bg-slate-900/60 backdrop:backdrop-blur-xs z-50">
-  <div class="p-6">
-    <div class="flex items-center justify-between pb-3 border-b border-slate-100 mb-4">
-      <div class="flex items-center gap-2.5">
-        <div class="w-8 h-8 rounded-lg bg-teal-50 text-teal-600 flex items-center justify-center shrink-0">
-          <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" aria-hidden="true">
-            <path stroke-linecap="round" stroke-linejoin="round" d="M9 7h6m0 10v-3m-3 3h.01M9 17h.01M9 14h.01M12 14h.01M15 11h.01M12 11h.01M9 11h.01M7 21h10a2 2 0 002-2V5a2 2 0 00-2-2H7a2 2 0 00-2 2v14a2 2 0 002 2z" />
-          </svg>
-        </div>
-        <h2 id="bmiModalTitle" class="text-base font-bold text-slate-900 font-display">BMI Calculator</h2>
-      </div>
-      <button type="button" id="closeBmiModalBtn" aria-label="Close BMI Calculator" class="text-slate-400 hover:text-slate-600 p-1.5 rounded-lg hover:bg-slate-100 transition-colors focus:outline-none focus:ring-2 focus:ring-teal-400/50 cursor-pointer">
-        <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" aria-hidden="true">
-          <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" />
-        </svg>
-      </button>
+  <!-- Step Progress Indicator -->
+  <div class="mb-8 bg-[#ffffff] border border-[#e5dcce] rounded-card p-4 shadow-card">
+    <div class="flex items-center justify-between text-[16px] font-bold text-[#063154] mb-2">
+      <span id="stepProgressLabel">Step 1 of 3: About you</span>
+      <span id="stepPercentLabel" class="text-[15px] font-mono text-[#4f5b66]">33%</span>
     </div>
-
-    <!-- Independent unit options -->
-    <div class="space-y-4">
-      <div>
-        <label for="bmiHeightUnit" class="block text-xs font-semibold text-slate-700 mb-1 font-display">Height unit</label>
-        <select id="bmiHeightUnit" class="w-full px-3.5 py-2 rounded-xl border border-slate-200 text-sm text-slate-800 bg-white focus:outline-none focus:ring-2 focus:ring-teal-400/50 focus:border-teal-400 transition-all">
-          <option value="cm">Centimeters (cm)</option>
-          <option value="ftin">Feet and inches (ft / in)</option>
-        </select>
-      </div>
-
-      <div id="bmiCmHeightGroup">
-        <label for="bmiHeightCm" class="block text-xs font-semibold text-slate-700 mb-1 font-display">Height (cm)</label>
-        <input type="number" id="bmiHeightCm" min="50" max="250" step="0.1" placeholder="e.g. 175"
-               class="w-full px-3.5 py-2 rounded-xl border border-slate-200 text-sm text-slate-800 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-teal-400/50 focus:border-teal-400 transition-all">
-      </div>
-
-      <div id="bmiFeetInchesGroup" class="hidden">
-        <span class="block text-xs font-semibold text-slate-700 mb-1 font-display">Height</span>
-        <div class="grid grid-cols-2 gap-2">
-          <div>
-            <label for="bmiHeightFt" class="sr-only">Height feet</label>
-            <input type="number" id="bmiHeightFt" min="1" max="8" placeholder="feet"
-                   class="w-full px-3.5 py-2 rounded-xl border border-slate-200 text-sm text-slate-800 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-teal-400/50 focus:border-teal-400 transition-all">
-          </div>
-          <div>
-            <label for="bmiHeightIn" class="sr-only">Height inches</label>
-            <input type="number" id="bmiHeightIn" min="0" max="11" step="0.1" placeholder="inches"
-                   class="w-full px-3.5 py-2 rounded-xl border border-slate-200 text-sm text-slate-800 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-teal-400/50 focus:border-teal-400 transition-all">
-          </div>
-        </div>
-      </div>
-
-      <div>
-        <label for="bmiWeightUnit" class="block text-xs font-semibold text-slate-700 mb-1 font-display">Weight unit</label>
-        <select id="bmiWeightUnit" class="w-full px-3.5 py-2 rounded-xl border border-slate-200 text-sm text-slate-800 bg-white focus:outline-none focus:ring-2 focus:ring-teal-400/50 focus:border-teal-400 transition-all">
-          <option value="kg">Kilograms (kg)</option>
-          <option value="lbs">Pounds (lbs)</option>
-        </select>
-      </div>
-
-      <div>
-        <label for="bmiWeight" class="block text-xs font-semibold text-slate-700 mb-1 font-display">Weight</label>
-        <input type="number" id="bmiWeight" min="20" max="600" step="0.1" placeholder="e.g. 70"
-               class="w-full px-3.5 py-2 rounded-xl border border-slate-200 text-sm text-slate-800 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-teal-400/50 focus:border-teal-400 transition-all">
-      </div>
-    </div>
-
-    <!-- Live BMI Preview -->
-    <div id="bmiPreviewBox" class="mt-4 p-3 bg-teal-50/70 border border-teal-200/80 rounded-xl text-center hidden">
-      <p class="text-xs text-slate-500 font-medium">Calculated BMI</p>
-      <p id="bmiPreviewNum" class="text-2xl font-extrabold text-teal-700 font-display my-0.5">--</p>
-      <p id="bmiPreviewCategory" class="text-xs font-semibold text-teal-600">--</p>
-    </div>
-
-    <p id="bmiModalError" class="mt-2 text-xs text-red-600 hidden" role="alert"></p>
-
-    <!-- Modal Actions -->
-    <div class="mt-6 flex items-center justify-end gap-2.5 pt-3 border-t border-slate-100">
-      <button type="button" id="cancelBmiBtn" class="px-4 py-2 text-xs font-semibold text-slate-600 hover:text-slate-800 bg-slate-100 hover:bg-slate-200 rounded-xl transition-colors focus:outline-none focus:ring-2 focus:ring-slate-300 cursor-pointer">
-        Cancel
-      </button>
-      <button type="button" id="applyBmiBtn" class="px-5 py-2 text-xs font-bold text-white gradient-primary rounded-xl hover:opacity-95 transition-opacity shadow-xs focus:outline-none focus:ring-2 focus:ring-teal-400/50 cursor-pointer">
-        Apply BMI
-      </button>
+    <div class="w-full bg-[#f3e9d6] h-3 rounded-full overflow-hidden">
+      <div id="stepProgressBar" class="bg-[#0b7a85] h-full rounded-full transition-all duration-300 w-1/3"></div>
     </div>
   </div>
-</dialog>
+
+  <!-- Error Alert Summary -->
+  {% if errors %}
+  <div role="alert" aria-live="assertive" class="mb-8 bg-[#f9e1dc] border-2 border-[#f1b8af] rounded-card p-5 text-[18px] text-[#b03a2e]">
+    <div class="font-bold mb-1">Please check these items before proceeding:</div>
+    <ul class="list-disc list-inside space-y-1 text-[16px]">
+      {% for e in errors %}
+      <li>{{ e }}</li>
+      {% endfor %}
+    </ul>
+  </div>
+  {% endif %}
+
+  <!-- Client-side step validation error message -->
+  <div id="stepAlert" role="alert" aria-live="assertive" class="hidden mb-6 bg-[#f9e1dc] border-2 border-[#f1b8af] rounded-card p-4 text-[17px] font-semibold text-[#b03a2e]"></div>
+
+  <!-- Single Accessible Form (POST to /predict) -->
+  <form action="/predict" method="post" id="assessmentForm" novalidate>
+    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}" />
+
+    <!-- ========================================== -->
+    <!-- STEP 1: ABOUT YOU                          -->
+    <!-- ========================================== -->
+    <div id="step1Container" class="space-y-8">
+      <div class="health-card p-6 sm:p-8">
+        <h2 class="font-heading text-2xl sm:text-3xl font-bold text-[#063154] mb-2">
+          1. About you
+        </h2>
+        <p class="text-[17px] text-[#4f5b66] mb-6">
+          Basic demographic questions that calibrate your risk benchmarks.
+        </p>
+
+        <div class="space-y-6">
+          
+          <!-- Age Group -->
+          <div>
+            <label for="Age" class="block text-[18px] font-bold text-[#063154] mb-2">
+              How old are you? <span class="text-[#b03a2e]">*</span>
+            </label>
+            <select name="Age" id="Age" class="w-full" required>
+              <option value="" disabled {{ 'selected' if not (form_data and form_data.get('Age')) }}>Select your age range</option>
+              <option value="1" {{ 'selected' if form_data and form_data.get('Age') == '1' }}>18 to 24</option>
+              <option value="2" {{ 'selected' if form_data and form_data.get('Age') == '2' }}>25 to 29</option>
+              <option value="3" {{ 'selected' if form_data and form_data.get('Age') == '3' }}>30 to 34</option>
+              <option value="4" {{ 'selected' if form_data and form_data.get('Age') == '4' }}>35 to 39</option>
+              <option value="5" {{ 'selected' if form_data and form_data.get('Age') == '5' }}>40 to 44</option>
+              <option value="6" {{ 'selected' if form_data and form_data.get('Age') == '6' }}>45 to 49</option>
+              <option value="7" {{ 'selected' if form_data and form_data.get('Age') == '7' }}>50 to 54</option>
+              <option value="8" {{ 'selected' if form_data and form_data.get('Age') == '8' }}>55 to 59</option>
+              <option value="9" {{ 'selected' if form_data and form_data.get('Age') == '9' }}>60 to 64</option>
+              <option value="10" {{ 'selected' if form_data and form_data.get('Age') == '10' }}>65 to 69</option>
+              <option value="11" {{ 'selected' if form_data and form_data.get('Age') == '11' }}>70 to 74</option>
+              <option value="12" {{ 'selected' if form_data and form_data.get('Age') == '12' }}>75 to 79</option>
+              <option value="13" {{ 'selected' if form_data and form_data.get('Age') == '13' }}>80 or older</option>
+            </select>
+          </div>
+
+          <!-- Sex assigned at birth -->
+          <div>
+            <label for="Sex" class="block text-[18px] font-bold text-[#063154] mb-2">
+              Sex assigned at birth <span class="text-[#b03a2e]">*</span>
+            </label>
+            <select name="Sex" id="Sex" class="w-full" required>
+              <option value="" disabled {{ 'selected' if not (form_data and form_data.get('Sex') is not none) }}>Select sex</option>
+              <option value="0" {{ 'selected' if form_data and form_data.get('Sex') == '0' }}>Female</option>
+              <option value="1" {{ 'selected' if form_data and form_data.get('Sex') == '1' }}>Male</option>
+            </select>
+          </div>
+
+          <!-- Body Mass Index (BMI) & Calculator Trigger -->
+          <div class="bg-[#fbf6ec] border border-[#e5dcce] rounded-card p-5">
+            <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+              <div>
+                <label for="BMI" class="block text-[18px] font-bold text-[#063154]">
+                  Body Mass Index (BMI) <span class="text-[#b03a2e]">*</span>
+                </label>
+                <p class="text-[15px] text-[#4f5b66] mt-0.5">
+                  Healthy adult BMI is typically between 18.5 and 24.9.
+                </p>
+              </div>
+
+              <!-- High-visibility BMI Calculator Button -->
+              <button type="button" id="openBmiCalcBtn" 
+                      class="inline-flex items-center justify-center gap-2 text-[16px] sm:text-[17px] font-bold text-[#0b7a85] bg-[#e6f4f5] hover:bg-[#d5eeef] border-2 border-[#0b7a85] px-4 py-2.5 rounded-lg transition-all shadow-sm hover:shadow cursor-pointer min-h-[48px] self-start sm:self-auto shrink-0">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" aria-hidden="true">
+                  <rect x="4" y="2" width="16" height="20" rx="2"></rect>
+                  <line x1="8" y1="6" x2="16" y2="6"></line>
+                  <line x1="16" y1="14" x2="16" y2="18"></line>
+                  <path d="M8 10h.01M12 10h.01M16 10h.01M8 14h.01M12 14h.01M8 18h.01M12 18h.01"></path>
+                </svg>
+                <span>Don't know your BMI?</span>
+              </button>
+            </div>
+
+            <!-- BMI Input Field with On-Page Category Indicator -->
+            <div class="flex flex-wrap items-center gap-3 mt-4">
+              <div class="w-full sm:w-56">
+                <input type="number" step="0.1" min="10" max="80" name="BMI" id="BMI"
+                       value="{{ form_data.get('BMI', '') if form_data else '' }}"
+                       placeholder="e.g. 24.5"
+                       class="w-full font-mono text-xl font-bold" required>
+              </div>
+              <span class="text-[17px] font-mono text-[#4f5b66]">kg/m²</span>
+              <span id="onPageBmiCategory" class="text-[16px] font-bold text-[#0b7a85]"></span>
+            </div>
+            <p class="text-[14px] text-[#4f5b66] mt-2">
+              If you know your BMI, type it above. Otherwise, tap <strong>"Don't know your BMI?"</strong> to calculate it from your height and weight.
+            </p>
+          </div>
+
+          <!-- General Health -->
+          <div>
+            <label for="GenHlth" class="block text-[18px] font-bold text-[#063154] mb-2">
+              In general, how would you rate your health? <span class="text-[#b03a2e]">*</span>
+            </label>
+            <select name="GenHlth" id="GenHlth" class="w-full" required>
+              <option value="" disabled {{ 'selected' if not (form_data and form_data.get('GenHlth')) }}>Select health rating</option>
+              <option value="1" {{ 'selected' if form_data and form_data.get('GenHlth') == '1' }}>Excellent</option>
+              <option value="2" {{ 'selected' if form_data and form_data.get('GenHlth') == '2' }}>Very good</option>
+              <option value="3" {{ 'selected' if form_data and form_data.get('GenHlth') == '3' }}>Good</option>
+              <option value="4" {{ 'selected' if form_data and form_data.get('GenHlth') == '4' }}>Fair</option>
+              <option value="5" {{ 'selected' if form_data and form_data.get('GenHlth') == '5' }}>Poor</option>
+            </select>
+          </div>
+
+          <!-- Diabetes Duration -->
+          <div>
+            <label for="DiabetesDuration" class="block text-[18px] font-bold text-[#063154] mb-2">
+              How long have you had diabetes? <span class="text-[#b03a2e]">*</span>
+            </label>
+            <select name="DiabetesDuration" id="DiabetesDuration" class="w-full" required>
+              <option value="0" {{ 'selected' if not form_data or form_data.get('DiabetesDuration') == '0' }}>Less than 1 year or borderline</option>
+              <option value="1" {{ 'selected' if form_data and form_data.get('DiabetesDuration') == '1' }}>1 to 4 years</option>
+              <option value="2" {{ 'selected' if form_data and form_data.get('DiabetesDuration') == '2' }}>5 to 9 years</option>
+              <option value="3" {{ 'selected' if form_data and form_data.get('DiabetesDuration') == '3' }}>10 years or longer</option>
+            </select>
+          </div>
+
+        </div>
+
+        <!-- Step 1 Button (Next) -->
+        <div class="mt-8 pt-6 border-t border-[#e5dcce] flex justify-end">
+          <button type="button" id="step1NextBtn" class="btn-primary text-[20px] px-8 py-3.5 w-full sm:w-auto">
+            Next: Your health
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><line x1="5" y1="12" x2="19" y2="12"></line><polyline points="12 5 19 12 12 19"></polyline></svg>
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- ========================================== -->
+    <!-- STEP 2: YOUR HEALTH (8 Picture Tiles)      -->
+    <!-- ========================================== -->
+    <div id="step2Container" class="hidden space-y-8">
+      <div class="health-card p-6 sm:p-8">
+        <h2 class="font-heading text-2xl sm:text-3xl font-bold text-[#063154] mb-2">
+          2. Your health
+        </h2>
+        <p class="text-[17px] text-[#4f5b66] mb-6">
+          Tap each statement that applies to you. Leave unchecked if no.
+        </p>
+
+        <!-- 8 Yes/No Factor Picture Tiles -->
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-8">
+          
+          <!-- 1. HighBP -->
+          <label class="choice-tile {{ 'is-selected' if form_data and form_data.get('HighBP') in ['1', 1, 'on'] }}" id="tile-HighBP">
+            <input type="checkbox" name="HighBP" id="HighBP" value="1"
+                   {{ 'checked' if form_data and form_data.get('HighBP') in ['1', 1, 'on'] }}
+                   class="sr-only">
+            <div class="flex-shrink-0 mt-0.5">
+              {{ icon_heart("w-10 h-10") }}
+            </div>
+            <div class="flex-1">
+              <span class="block text-[18px] font-bold text-[#063154]">High blood pressure?</span>
+              <p class="text-[15px] text-[#4f5b66] mt-0.5 leading-snug">Doctor diagnosed or taking BP pills.</p>
+            </div>
+            <div class="check-indicator w-6 h-6 rounded-md border-2 border-[#e5dcce] flex items-center justify-center text-white bg-white">
+              <svg class="check-icon hidden w-4 h-4 text-[#0b7a85]" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round"><polyline points="20 6 9 17 4 12"></polyline></svg>
+            </div>
+          </label>
+
+          <!-- 2. HighChol -->
+          <label class="choice-tile {{ 'is-selected' if form_data and form_data.get('HighChol') in ['1', 1, 'on'] }}" id="tile-HighChol">
+            <input type="checkbox" name="HighChol" id="HighChol" value="1"
+                   {{ 'checked' if form_data and form_data.get('HighChol') in ['1', 1, 'on'] }}
+                   class="sr-only">
+            <div class="flex-shrink-0 mt-0.5">
+              {{ icon_kidneys("w-10 h-10") }}
+            </div>
+            <div class="flex-1">
+              <span class="block text-[18px] font-bold text-[#063154]">High cholesterol?</span>
+              <p class="text-[15px] text-[#4f5b66] mt-0.5 leading-snug">Told your blood fats are high.</p>
+            </div>
+            <div class="check-indicator w-6 h-6 rounded-md border-2 border-[#e5dcce] flex items-center justify-center text-white bg-white">
+              <svg class="check-icon hidden w-4 h-4 text-[#0b7a85]" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round"><polyline points="20 6 9 17 4 12"></polyline></svg>
+            </div>
+          </label>
+
+          <!-- 3. Smoker -->
+          <label class="choice-tile {{ 'is-selected' if form_data and form_data.get('Smoker') in ['1', 1, 'on'] }}" id="tile-Smoker">
+            <input type="checkbox" name="Smoker" id="Smoker" value="1"
+                   {{ 'checked' if form_data and form_data.get('Smoker') in ['1', 1, 'on'] }}
+                   class="sr-only">
+            <div class="flex-shrink-0 mt-0.5 text-[#e8765a]">
+              <svg class="w-10 h-10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><line x1="18" y1="12" x2="22" y2="12"></line><line x1="2" y1="12" x2="14" y2="12"></line><line x1="18" y1="9" x2="18" y2="15"></line></svg>
+            </div>
+            <div class="flex-1">
+              <span class="block text-[18px] font-bold text-[#063154]">Do you smoke?</span>
+              <p class="text-[15px] text-[#4f5b66] mt-0.5 leading-snug">Smoked 100+ cigarettes in lifetime.</p>
+            </div>
+            <div class="check-indicator w-6 h-6 rounded-md border-2 border-[#e5dcce] flex items-center justify-center text-white bg-white">
+              <svg class="check-icon hidden w-4 h-4 text-[#0b7a85]" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round"><polyline points="20 6 9 17 4 12"></polyline></svg>
+            </div>
+          </label>
+
+          <!-- 4. HeartDiseaseorAttack -->
+          <label class="choice-tile {{ 'is-selected' if form_data and form_data.get('HeartDiseaseorAttack') in ['1', 1, 'on'] }}" id="tile-HeartDiseaseorAttack">
+            <input type="checkbox" name="HeartDiseaseorAttack" id="HeartDiseaseorAttack" value="1"
+                   {{ 'checked' if form_data and form_data.get('HeartDiseaseorAttack') in ['1', 1, 'on'] }}
+                   class="sr-only">
+            <div class="flex-shrink-0 mt-0.5">
+              {{ icon_heart("w-10 h-10") }}
+            </div>
+            <div class="flex-1">
+              <span class="block text-[18px] font-bold text-[#063154]">Past heart trouble?</span>
+              <p class="text-[15px] text-[#4f5b66] mt-0.5 leading-snug">Heart attack, chest pain, or stent.</p>
+            </div>
+            <div class="check-indicator w-6 h-6 rounded-md border-2 border-[#e5dcce] flex items-center justify-center text-white bg-white">
+              <svg class="check-icon hidden w-4 h-4 text-[#0b7a85]" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round"><polyline points="20 6 9 17 4 12"></polyline></svg>
+            </div>
+          </label>
+
+          <!-- 5. Stroke -->
+          <label class="choice-tile {{ 'is-selected' if form_data and form_data.get('Stroke') in ['1', 1, 'on'] }}" id="tile-Stroke">
+            <input type="checkbox" name="Stroke" id="Stroke" value="1"
+                   {{ 'checked' if form_data and form_data.get('Stroke') in ['1', 1, 'on'] }}
+                   class="sr-only">
+            <div class="flex-shrink-0 mt-0.5 text-[#063154]">
+              <svg class="w-10 h-10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="9"></circle><path d="M12 7v5l3 3"></path></svg>
+            </div>
+            <div class="flex-1">
+              <span class="block text-[18px] font-bold text-[#063154]">Past stroke?</span>
+              <p class="text-[15px] text-[#4f5b66] mt-0.5 leading-snug">Told you had a stroke or mini-stroke.</p>
+            </div>
+            <div class="check-indicator w-6 h-6 rounded-md border-2 border-[#e5dcce] flex items-center justify-center text-white bg-white">
+              <svg class="check-icon hidden w-4 h-4 text-[#0b7a85]" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round"><polyline points="20 6 9 17 4 12"></polyline></svg>
+            </div>
+          </label>
+
+          <!-- 6. DiffWalk -->
+          <label class="choice-tile {{ 'is-selected' if form_data and form_data.get('DiffWalk') in ['1', 1, 'on'] }}" id="tile-DiffWalk">
+            <input type="checkbox" name="DiffWalk" id="DiffWalk" value="1"
+                   {{ 'checked' if form_data and form_data.get('DiffWalk') in ['1', 1, 'on'] }}
+                   class="sr-only">
+            <div class="flex-shrink-0 mt-0.5">
+              {{ icon_shoe("w-10 h-10") }}
+            </div>
+            <div class="flex-1">
+              <span class="block text-[18px] font-bold text-[#063154]">Is walking hard?</span>
+              <p class="text-[15px] text-[#4f5b66] mt-0.5 leading-snug">Hard to walk or climb stairs.</p>
+            </div>
+            <div class="check-indicator w-6 h-6 rounded-md border-2 border-[#e5dcce] flex items-center justify-center text-white bg-white">
+              <svg class="check-icon hidden w-4 h-4 text-[#0b7a85]" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round"><polyline points="20 6 9 17 4 12"></polyline></svg>
+            </div>
+          </label>
+
+          <!-- 7. BlurryVision -->
+          <label class="choice-tile {{ 'is-selected' if form_data and form_data.get('BlurryVision') in ['1', 1, 'on'] }}" id="tile-BlurryVision">
+            <input type="checkbox" name="BlurryVision" id="BlurryVision" value="1"
+                   {{ 'checked' if form_data and form_data.get('BlurryVision') in ['1', 1, 'on'] }}
+                   class="sr-only">
+            <div class="flex-shrink-0 mt-0.5">
+              {{ icon_eye("w-10 h-10") }}
+            </div>
+            <div class="flex-1">
+              <span class="block text-[18px] font-bold text-[#063154]">Is vision blurry?</span>
+              <p class="text-[15px] text-[#4f5b66] mt-0.5 leading-snug">Frequent blur or spots in eyes.</p>
+            </div>
+            <div class="check-indicator w-6 h-6 rounded-md border-2 border-[#e5dcce] flex items-center justify-center text-white bg-white">
+              <svg class="check-icon hidden w-4 h-4 text-[#0b7a85]" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round"><polyline points="20 6 9 17 4 12"></polyline></svg>
+            </div>
+          </label>
+
+          <!-- 8. NoDocbcCost -->
+          <label class="choice-tile {{ 'is-selected' if form_data and form_data.get('NoDocbcCost') in ['1', 1, 'on'] }}" id="tile-NoDocbcCost">
+            <input type="checkbox" name="NoDocbcCost" id="NoDocbcCost" value="1"
+                   {{ 'checked' if form_data and form_data.get('NoDocbcCost') in ['1', 1, 'on'] }}
+                   class="sr-only">
+            <div class="flex-shrink-0 mt-0.5 text-[#0b7a85]">
+              {{ icon_doctor("w-10 h-10") }}
+            </div>
+            <div class="flex-1">
+              <span class="block text-[18px] font-bold text-[#063154]">Cost stopped doctor visit?</span>
+              <p class="text-[15px] text-[#4f5b66] mt-0.5 leading-snug">Needed care in past year but money was tight.</p>
+            </div>
+            <div class="check-indicator w-6 h-6 rounded-md border-2 border-[#e5dcce] flex items-center justify-center text-white bg-white">
+              <svg class="check-icon hidden w-4 h-4 text-[#0b7a85]" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round"><polyline points="20 6 9 17 4 12"></polyline></svg>
+            </div>
+          </label>
+
+        </div>
+
+        <!-- Unwell Days Slider/Stepper in Last 30 Days -->
+        <div class="bg-[#f3e9d6] border border-[#e5dcce] rounded-card p-5 space-y-5">
+          <h3 class="font-heading text-xl font-bold text-[#063154]">
+            In the last 30 days, how many days did you feel unwell?
+          </h3>
+          
+          <!-- Physical health days -->
+          <div>
+            <div class="flex justify-between items-baseline mb-1">
+              <label for="PhysHlth" class="text-[17px] font-bold text-[#063154]">
+                Days physical health was not good:
+              </label>
+              <span id="physHlthValDisplay" class="font-mono text-xl font-bold text-[#063154]">
+                {{ form_data.get('PhysHlth', '0') if form_data else '0' }} days
+              </span>
+            </div>
+            <input type="range" min="0" max="30" name="PhysHlth" id="PhysHlth"
+                   value="{{ form_data.get('PhysHlth', '0') if form_data else '0' }}"
+                   class="w-full accent-[#0b7a85] cursor-pointer h-2 bg-[#ffffff] rounded-lg">
+            <div id="physhlth-warning" class="hidden mt-2 p-2 bg-[#fbeed0] text-[#a86a0a] text-sm rounded flex justify-between items-center">
+              <span>Value exceeds 30-day limit.</span>
+              <button type="button" id="capPhysHlthBtn" class="underline font-bold">Set to 30</button>
+            </div>
+          </div>
+
+          <!-- Mental health days -->
+          <div>
+            <div class="flex justify-between items-baseline mb-1">
+              <label for="MentHlth" class="text-[17px] font-bold text-[#063154]">
+                Days stress or emotional health was hard:
+              </label>
+              <span id="mentHlthValDisplay" class="font-mono text-xl font-bold text-[#063154]">
+                {{ form_data.get('MentHlth', '0') if form_data else '0' }} days
+              </span>
+            </div>
+            <input type="range" min="0" max="30" name="MentHlth" id="MentHlth"
+                   value="{{ form_data.get('MentHlth', '0') if form_data else '0' }}"
+                   class="w-full accent-[#0b7a85] cursor-pointer h-2 bg-[#ffffff] rounded-lg">
+            <div id="menthlth-warning" class="hidden mt-2 p-2 bg-[#fbeed0] text-[#a86a0a] text-sm rounded flex justify-between items-center">
+              <span>Value exceeds 30-day limit.</span>
+              <button type="button" id="capMentHlthBtn" class="underline font-bold">Set to 30</button>
+            </div>
+          </div>
+        </div>
+
+        <!-- Step 2 Navigation Buttons (Back & Next) -->
+        <div class="mt-8 pt-6 border-t border-[#e5dcce] flex flex-col-reverse sm:flex-row justify-between gap-3">
+          <button type="button" id="step2BackBtn" class="btn-secondary text-[19px] px-6 py-3.5">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><line x1="19" y1="12" x2="5" y2="12"></line><polyline points="12 19 5 12 12 5"></polyline></svg>
+            Back: About you
+          </button>
+          <button type="button" id="step2NextBtn" class="btn-primary text-[20px] px-8 py-3.5">
+            Next: Lab results
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><line x1="5" y1="12" x2="19" y2="12"></line><polyline points="12 5 19 12 12 19"></polyline></svg>
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- ========================================== -->
+    <!-- STEP 3: LAB RESULTS (OPTIONAL)             -->
+    <!-- ========================================== -->
+    <div id="step3Container" class="hidden space-y-8">
+      <div class="health-card p-6 sm:p-8">
+        <h2 class="font-heading text-2xl sm:text-3xl font-bold text-[#063154] mb-2">
+          3. Lab results (optional)
+        </h2>
+        <p class="text-[17px] text-[#4f5b66] mb-6">
+          If you have recent test results from a laboratory or clinic, enter them here.
+        </p>
+
+        <!-- Collapsible Toggle -->
+        <div class="bg-[#fbf6ec] border border-[#e5dcce] rounded-card p-5 mb-6">
+          <label class="flex items-center gap-3 cursor-pointer">
+            <input type="checkbox" id="hasLabsToggle" class="w-6 h-6 accent-[#0b7a85]">
+            <span class="text-[18px] font-bold text-[#063154]">I have recent lab results</span>
+          </label>
+          <p class="text-[16px] text-[#4f5b66] mt-2 ml-9">
+            Skip this if you do not have them. You will still get full complication risk estimates without labs.
+          </p>
+        </div>
+
+        <!-- Optional Lab Inputs Panel -->
+        <div id="labsInputsPanel" class="hidden space-y-6 pt-2 pb-6 border-b border-[#e5dcce]">
+          
+          <!-- 3-Month Sugar Test (HbA1c) -->
+          <div>
+            <label for="LabHbA1c" class="block text-[18px] font-bold text-[#063154] mb-1">
+              3-month sugar test (HbA1c)
+            </label>
+            <p class="text-[15px] text-[#4f5b66] mb-2">Target for most adults is under 7.0%.</p>
+            <div class="flex items-center gap-2 max-w-xs">
+              <input type="number" step="0.1" min="3.0" max="20.0" name="LabHbA1c" id="LabHbA1c"
+                     value="{{ form_data.get('LabHbA1c', '') if form_data else '' }}"
+                     placeholder="e.g. 7.2" class="w-full font-mono">
+              <span class="text-[17px] font-bold text-[#4f5b66] font-mono">%</span>
+            </div>
+          </div>
+
+          <!-- Top Blood Pressure Number -->
+          <div>
+            <label for="LabSystolicBP" class="block text-[18px] font-bold text-[#063154] mb-1">
+              Top blood pressure number
+            </label>
+            <p class="text-[15px] text-[#4f5b66] mb-2">The higher number (systolic). Target is under 130.</p>
+            <div class="flex items-center gap-2 max-w-xs">
+              <input type="number" step="1" min="60" max="250" name="LabSystolicBP" id="LabSystolicBP"
+                     value="{{ form_data.get('LabSystolicBP', '') if form_data else '' }}"
+                     placeholder="e.g. 128" class="w-full font-mono">
+              <span class="text-[17px] font-bold text-[#4f5b66] font-mono">mmHg</span>
+            </div>
+          </div>
+
+          <!-- Bad Cholesterol (LDL) -->
+          <div>
+            <label for="LabLDL" class="block text-[18px] font-bold text-[#063154] mb-1">
+              Bad cholesterol (LDL)
+            </label>
+            <p class="text-[15px] text-[#4f5b66] mb-2">Target for adults with diabetes is under 100 mg/dL.</p>
+            <div class="flex items-center gap-2 max-w-xs">
+              <input type="number" step="1" min="20" max="400" name="LabLDL" id="LabLDL"
+                     value="{{ form_data.get('LabLDL', '') if form_data else '' }}"
+                     placeholder="e.g. 95" class="w-full font-mono">
+              <span class="text-[17px] font-bold text-[#4f5b66] font-mono">mg/dL</span>
+            </div>
+          </div>
+
+        </div>
+
+        <!-- Step 3 Navigation Buttons (Back & Submit) -->
+        <div class="mt-8 pt-6 flex flex-col-reverse sm:flex-row justify-between items-center gap-4">
+          <button type="button" id="step3BackBtn" class="btn-secondary text-[19px] px-6 py-3.5 w-full sm:w-auto">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><line x1="19" y1="12" x2="5" y2="12"></line><polyline points="12 19 5 12 12 5"></polyline></svg>
+            Back: Your health
+          </button>
+          <button type="submit" id="submitBtn" class="btn-primary text-[20px] px-10 py-4 w-full sm:w-auto shadow-card">
+            See my results
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><polyline points="20 6 9 17 4 12"></polyline></svg>
+          </button>
+        </div>
+
+      </div>
+    </div>
+
+  </form>
+
+  <!-- Interactive BMI Calculator Modal -->
+  <dialog id="bmiModal" aria-labelledby="bmiModalTitle" aria-modal="true" class="rounded-2xl p-0 border border-[#e5dcce] shadow-2xl bg-[#ffffff] max-w-md w-[calc(100%-2rem)] fixed inset-0 m-auto backdrop:bg-[#063154]/60 z-50">
+    <div class="p-6 sm:p-7">
+      <div class="flex items-center justify-between pb-3 border-b border-[#e5dcce] mb-4">
+        <div class="flex items-center gap-2.5">
+          <div class="w-9 h-9 rounded-lg bg-[#e6f4f5] text-[#0b7a85] flex items-center justify-center shrink-0">
+            <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" aria-hidden="true">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M9 7h6m0 10v-3m-3 3h.01M9 17h.01M9 14h.01M12 14h.01M15 11h.01M12 11h.01M9 11h.01M7 21h10a2 2 0 002-2V5a2 2 0 00-2-2H7a2 2 0 00-2 2v14a2 2 0 002 2z" />
+            </svg>
+          </div>
+          <div>
+            <h2 id="bmiModalTitle" class="font-heading text-xl font-bold text-[#063154]">BMI Calculator</h2>
+          </div>
+        </div>
+        <button type="button" id="closeBmiModalBtn" aria-label="Close BMI Calculator" class="text-[#4f5b66] hover:text-[#063154] p-2 rounded-lg hover:bg-[#f3e9d6] transition-colors cursor-pointer">
+          <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5" aria-hidden="true">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" />
+          </svg>
+        </button>
+      </div>
+
+      <p class="text-[15px] text-[#4f5b66] mb-4">
+        Enter your height and weight. We will calculate your Body Mass Index (BMI).
+      </p>
+
+      <!-- Unit switch tabs -->
+      <div class="flex p-1 bg-[#f3e9d6] rounded-xl mb-4" role="tablist" aria-label="Measurement units">
+        <button type="button" role="tab" id="tabMetric" aria-selected="true" aria-controls="panelMetric"
+                class="flex-1 py-2 px-3 rounded-lg text-[15px] font-bold transition-all bg-[#ffffff] text-[#0b7a85] shadow-sm cursor-pointer">
+          Metric (cm / kg)
+        </button>
+        <button type="button" role="tab" id="tabImperial" aria-selected="false" aria-controls="panelImperial"
+                class="flex-1 py-2 px-3 rounded-lg text-[15px] font-bold transition-all text-[#4f5b66] hover:text-[#063154] cursor-pointer">
+          Imperial (ft, in / lbs)
+        </button>
+      </div>
+
+      <!-- Metric Panel -->
+      <div id="panelMetric" role="tabpanel" aria-labelledby="tabMetric" class="space-y-4">
+        <div>
+          <label for="bmiMetricHeight" class="block text-[15px] font-bold text-[#063154] mb-1">Height (cm)</label>
+          <input type="number" id="bmiMetricHeight" min="50" max="250" step="0.5" placeholder="e.g. 165"
+                 class="w-full font-mono text-[17px]">
+        </div>
+        <div>
+          <label for="bmiMetricWeight" class="block text-[15px] font-bold text-[#063154] mb-1">Weight (kg)</label>
+          <input type="number" id="bmiMetricWeight" min="20" max="300" step="0.5" placeholder="e.g. 65"
+                 class="w-full font-mono text-[17px]">
+        </div>
+      </div>
+
+      <!-- Imperial Panel -->
+      <div id="panelImperial" role="tabpanel" aria-labelledby="tabImperial" class="space-y-4 hidden">
+        <div>
+          <label class="block text-[15px] font-bold text-[#063154] mb-1">Height</label>
+          <div class="grid grid-cols-2 gap-2">
+            <div>
+              <label for="bmiImpFt" class="sr-only">Feet</label>
+              <div class="flex items-center gap-1">
+                <input type="number" id="bmiImpFt" min="1" max="8" step="1" placeholder="5"
+                       class="w-full font-mono text-[17px]">
+                <span class="text-[14px] text-[#4f5b66]">ft</span>
+              </div>
+            </div>
+            <div>
+              <label for="bmiImpIn" class="sr-only">Inches</label>
+              <div class="flex items-center gap-1">
+                <input type="number" id="bmiImpIn" min="0" max="11" step="0.5" placeholder="6"
+                       class="w-full font-mono text-[17px]">
+                <span class="text-[14px] text-[#4f5b66]">in</span>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div>
+          <label for="bmiImpLbs" class="block text-[15px] font-bold text-[#063154] mb-1">Weight (lbs)</label>
+          <input type="number" id="bmiImpLbs" min="40" max="600" step="0.5" placeholder="e.g. 145"
+                 class="w-full font-mono text-[17px]">
+        </div>
+      </div>
+
+      <!-- Live BMI Preview -->
+      <div id="bmiPreviewBox" class="mt-4 p-3 bg-[#e6f4f5] border border-[#bce0c6] rounded-xl text-center hidden">
+        <p class="text-[13px] text-[#4f5b66] font-semibold uppercase tracking-wider">Calculated BMI</p>
+        <p id="bmiPreviewNum" class="font-mono text-3xl font-extrabold text-[#0b7a85] my-1">--</p>
+        <p id="bmiPreviewCategory" class="text-[15px] font-bold text-[#0b7a85]">--</p>
+      </div>
+
+      <p id="bmiModalError" class="mt-2 text-[15px] font-bold text-[#b03a2e] hidden" role="alert"></p>
+
+      <!-- Modal Actions -->
+      <div class="mt-6 flex items-center justify-end gap-3 pt-3 border-t border-[#e5dcce]">
+        <button type="button" id="cancelBmiBtn" class="btn-secondary text-[16px] px-4 py-2">
+          Cancel
+        </button>
+        <button type="button" id="applyBmiBtn" class="btn-primary text-[16px] px-5 py-2">
+          Apply BMI
+        </button>
+      </div>
+    </div>
+  </dialog>
+
+</div>
 {% endblock %}
 
 {% block extra_scripts %}
 <script src="{{ url_for('static', filename='js/assessment.js') }}"></script>
 {% endblock %}
-

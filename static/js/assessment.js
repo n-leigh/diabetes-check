@@ -1,327 +1,408 @@
 /**
- * assessment.js - DiaBeates assessment form scripts
- * Strict CSP compliant: no inline scripts, event listeners attached via DOM.
+ * assessment.js - DiaBeates 3-step wizard and BMI calculator
+ * Strict CSP compliant: no inline scripts, no inline event handlers.
  */
-(function () {
+document.addEventListener('DOMContentLoaded', () => {
   'use strict';
 
-  // Stop propagation on tooltip/info icons
-  document.querySelectorAll('.js-stop-propagation').forEach((el) => {
-    el.addEventListener('click', (e) => e.stopPropagation());
-  });
+  // 1. Wizard Step Navigation Logic
+  let currentStep = 1;
 
-  const modal = document.getElementById('bmiModal');
-  const openBtn = document.getElementById('openBmiCalcBtn');
-  const closeBtn = document.getElementById('closeBmiModalBtn');
-  const cancelBtn = document.getElementById('cancelBmiBtn');
-  const applyBtn = document.getElementById('applyBmiBtn');
+  function updateProgressBar(step) {
+    const bar = document.getElementById('stepProgressBar');
+    const label = document.getElementById('stepProgressLabel');
+    const pct = document.getElementById('stepPercentLabel');
+    if (!bar || !label || !pct) return;
 
-  const heightUnit = document.getElementById('bmiHeightUnit');
-  const weightUnit = document.getElementById('bmiWeightUnit');
-  const cmHeightGroup = document.getElementById('bmiCmHeightGroup');
-  const feetInchesGroup = document.getElementById('bmiFeetInchesGroup');
-  const heightCm = document.getElementById('bmiHeightCm');
-  const heightFt = document.getElementById('bmiHeightFt');
-  const heightIn = document.getElementById('bmiHeightIn');
-  const weight = document.getElementById('bmiWeight');
-
-  const previewBox = document.getElementById('bmiPreviewBox');
-  const previewNum = document.getElementById('bmiPreviewNum');
-  const previewCat = document.getElementById('bmiPreviewCategory');
-  const errorMsg = document.getElementById('bmiModalError');
-
-  const targetBmiInput = document.getElementById('BMI');
-
-  function updateHeightInputs() {
-    const usesFeetAndInches = heightUnit.value === 'ftin';
-    cmHeightGroup.classList.toggle('hidden', usesFeetAndInches);
-    feetInchesGroup.classList.toggle('hidden', !usesFeetAndInches);
-    updateCalculation();
-    if (usesFeetAndInches) heightFt.focus();
-    else heightCm.focus();
-  }
-
-  if (heightUnit) heightUnit.addEventListener('change', updateHeightInputs);
-  if (weightUnit) weightUnit.addEventListener('change', updateCalculation);
-
-  function calculateBmi() {
-    let heightMeters;
-    if (heightUnit.value === 'cm') {
-      const centimeters = parseFloat(heightCm.value);
-      if (!centimeters || centimeters <= 0) return null;
-      heightMeters = centimeters / 100;
-    } else {
-      const feet = parseFloat(heightFt.value) || 0;
-      const inches = parseFloat(heightIn.value) || 0;
-      const totalInches = feet * 12 + inches;
-      if (totalInches <= 0) return null;
-      heightMeters = totalInches * 0.0254;
-    }
-
-    const enteredWeight = parseFloat(weight.value);
-    if (!enteredWeight || enteredWeight <= 0) return null;
-    const weightKg = weightUnit.value === 'lbs' ? enteredWeight * 0.45359237 : enteredWeight;
-    return weightKg / (heightMeters * heightMeters);
-  }
-
-  function getBmiCategory(bmi) {
-    if (bmi < 18.5) return { label: 'Underweight (< 18.5)', color: 'text-amber-600' };
-    if (bmi < 25.0) return { label: 'Normal weight (18.5 \u2013 24.9)', color: 'text-teal-600' };
-    if (bmi < 30.0) return { label: 'Overweight (25.0 \u2013 29.9)', color: 'text-amber-600' };
-    return { label: 'Obese (\u2265 30.0)', color: 'text-rose-600' };
-  }
-
-  function updateCalculation() {
-    if (!errorMsg || !previewBox || !previewNum || !previewCat) return;
-    errorMsg.classList.add('hidden');
-    errorMsg.textContent = '';
-    const bmi = calculateBmi();
-    if (bmi !== null && !isNaN(bmi) && isFinite(bmi) && bmi >= 5 && bmi <= 120) {
-      const cat = getBmiCategory(bmi);
-      previewNum.textContent = bmi.toFixed(1);
-      previewCat.textContent = cat.label;
-      previewCat.className = 'text-xs font-semibold ' + cat.color;
-      previewBox.classList.remove('hidden');
-    } else {
-      previewBox.classList.add('hidden');
+    if (step === 1) {
+      bar.style.width = '33.33%';
+      label.textContent = 'Step 1 of 3: About you';
+      pct.textContent = '33%';
+    } else if (step === 2) {
+      bar.style.width = '66.66%';
+      label.textContent = 'Step 2 of 3: Your health';
+      pct.textContent = '66%';
+    } else if (step === 3) {
+      bar.style.width = '100%';
+      label.textContent = 'Step 3 of 3: Lab results (optional)';
+      pct.textContent = '100%';
     }
   }
 
-  [heightCm, heightFt, heightIn, weight].forEach(input => {
-    if (input) {
-      input.addEventListener('input', updateCalculation);
-    }
-  });
+  function goToStep(step) {
+    const alertBox = document.getElementById('stepAlert');
+    if (alertBox) alertBox.classList.add('hidden');
 
-  function openModal() {
-    if (!modal) return;
-    if (typeof modal.showModal === 'function') {
-      modal.showModal();
-    } else {
-      modal.setAttribute('open', '');
-    }
-    updateCalculation();
-    if (heightUnit.value === 'cm' && heightCm) heightCm.focus();
-    else if (heightFt) heightFt.focus();
+    const s1 = document.getElementById('step1Container');
+    const s2 = document.getElementById('step2Container');
+    const s3 = document.getElementById('step3Container');
+
+    if (s1) s1.classList.toggle('hidden', step !== 1);
+    if (s2) s2.classList.toggle('hidden', step !== 2);
+    if (s3) s3.classList.toggle('hidden', step !== 3);
+    currentStep = step;
+    updateProgressBar(step);
+    window.scrollTo({ top: 0, behavior: 'smooth' });
   }
 
-  function closeModal() {
-    if (!modal) return;
-    if (typeof modal.close === 'function') {
-      modal.close();
-    } else {
-      modal.removeAttribute('open');
-    }
-    if (openBtn) {
-      openBtn.focus();
+  function showError(msg) {
+    const alertBox = document.getElementById('stepAlert');
+    if (alertBox) {
+      alertBox.textContent = msg;
+      alertBox.classList.remove('hidden');
+      alertBox.scrollIntoView({ behavior: 'smooth', block: 'center' });
     }
   }
 
-  if (openBtn) openBtn.addEventListener('click', openModal);
-  if (closeBtn) closeBtn.addEventListener('click', closeModal);
-  if (cancelBtn) cancelBtn.addEventListener('click', closeModal);
+  function nextStep(fromStep) {
+    const alertBox = document.getElementById('stepAlert');
+    if (alertBox) {
+      alertBox.classList.add('hidden');
+      alertBox.textContent = '';
+    }
 
-  if (modal) {
-    modal.addEventListener('click', (event) => {
-      if (event.target === modal) {
-        closeModal();
-      }
-    });
-    modal.addEventListener('cancel', () => {
-      if (openBtn) {
-        setTimeout(() => openBtn.focus(), 0);
-      }
-    });
-  }
+    if (fromStep === 1) {
+      const age = document.getElementById('Age');
+      const sex = document.getElementById('Sex');
+      const bmi = document.getElementById('BMI');
+      const genHlth = document.getElementById('GenHlth');
 
-  if (applyBtn) {
-    applyBtn.addEventListener('click', () => {
-      const bmi = calculateBmi();
-      if (bmi === null || isNaN(bmi) || !isFinite(bmi) || bmi <= 0) {
-        if (errorMsg) {
-          errorMsg.textContent = 'Please enter valid height and weight values.';
-          errorMsg.classList.remove('hidden');
-        }
+      if (!age || !age.value) {
+        showError('Please choose your age.');
+        if (age) age.focus();
         return;
       }
-      if (targetBmiInput) {
-        targetBmiInput.value = bmi.toFixed(1);
-        targetBmiInput.dispatchEvent(new Event('input', { bubbles: true }));
-        targetBmiInput.dispatchEvent(new Event('change', { bubbles: true }));
+      if (!sex || sex.value === '') {
+        showError('Please select your sex assigned at birth.');
+        if (sex) sex.focus();
+        return;
       }
-      closeModal();
-      if (targetBmiInput) {
-        targetBmiInput.focus();
+      if (!bmi || !bmi.value || parseFloat(bmi.value) <= 0) {
+        showError('Please enter your BMI or tap "Don\'t know your BMI?" to calculate it.');
+        if (bmi) bmi.focus();
+        return;
       }
-    });
-  }
-
-  function setupThirtyDayLimitWarning(inputId, warningId, capBtnId) {
-    const input = document.getElementById(inputId);
-    const warning = document.getElementById(warningId);
-    const capBtn = document.getElementById(capBtnId);
-    if (!input || !warning) return;
-
-    function checkValue() {
-      const raw = input.value.trim();
-      const val = parseFloat(raw);
-      if (raw !== '' && !isNaN(val) && val > 30) {
-        warning.classList.remove('hidden');
-        input.classList.add('border-amber-400', 'ring-2', 'ring-amber-400/50');
-      } else {
-        warning.classList.add('hidden');
-        input.classList.remove('border-amber-400', 'ring-2', 'ring-amber-400/50');
+      if (!genHlth || !genHlth.value) {
+        showError('Please rate your general health.');
+        if (genHlth) genHlth.focus();
+        return;
       }
-    }
-
-    input.addEventListener('input', checkValue);
-    input.addEventListener('change', checkValue);
-
-    if (capBtn) {
-      capBtn.addEventListener('click', () => {
-        input.value = 30;
-        checkValue();
-        input.focus();
-      });
-    }
-
-    checkValue();
-  }
-
-  setupThirtyDayLimitWarning('PhysHlth', 'physhlth-warning', 'capPhysHlthBtn');
-  setupThirtyDayLimitWarning('MentHlth', 'menthlth-warning', 'capMentHlthBtn');
-
-  const healthRating = document.getElementById('GenHlth');
-  const healthChoiceTip = document.getElementById('genhlth-choice-tip');
-  const healthChoiceDescription = document.getElementById('genhlth-choice-description');
-
-  function updateHealthChoiceTip() {
-    if (!healthRating || !healthChoiceTip || !healthChoiceDescription) return;
-    const selectedOption = healthRating.options[healthRating.selectedIndex];
-    if (!selectedOption || !selectedOption.dataset.description) {
-      healthChoiceTip.classList.add('hidden');
-      healthChoiceDescription.textContent = '';
-      return;
-    }
-    healthChoiceDescription.textContent = selectedOption.dataset.description;
-    healthChoiceTip.classList.remove('hidden');
-  }
-
-  if (healthRating) {
-    healthRating.addEventListener('change', updateHealthChoiceTip);
-    healthRating.addEventListener('focus', updateHealthChoiceTip);
-    updateHealthChoiceTip();
-  }
-
-  // Form Validation Logic
-  const form = document.querySelector('form[action="/predict"]');
-  const topErrorBanner = document.getElementById('formTopErrorBanner');
-  const closeTopErrorBtn = document.getElementById('closeFormTopErrorBannerBtn');
-
-  if (closeTopErrorBtn && topErrorBanner) {
-    closeTopErrorBtn.addEventListener('click', () => {
-      topErrorBanner.classList.add('hidden');
-      topErrorBanner.classList.remove('flex');
-    });
-  }
-
-  const validationRules = [
-    { id: 'BMI', required: true, min: 10.0, max: 80.0, msg: "Please enter your BMI (10.0 to 80.0)." },
-    { id: 'Age', required: true, msg: "Please select your age range." },
-    { id: 'GenHlth', required: true, msg: "Please rate your general health." },
-    { id: 'Sex', required: true, msg: "Please select your biological sex." },
-    { id: 'DiabetesDuration', required: true, msg: "Please select how long you've had diabetes." },
-    { id: 'PhysHlth', required: true, min: 0, max: 30, msg: "Please enter days of poor physical health (0 to 30)." },
-    { id: 'MentHlth', required: true, min: 0, max: 30, msg: "Please enter days of poor mental health (0 to 30)." },
-    { id: 'LabHbA1c', required: false, min: 3.0, max: 20.0, msg: "Please enter a valid HbA1c (3.0 to 20.0)." },
-    { id: 'LabSystolicBP', required: false, min: 60, max: 250, msg: "Please enter a valid Systolic BP (60 to 250)." },
-    { id: 'LabLDL', required: false, min: 20, max: 400, msg: "Please enter a valid LDL cholesterol (20 to 400)." }
-  ];
-
-  function clearErrorState(input, errorEl) {
-    input.classList.remove('border-rose-400', 'bg-rose-50/50', 'ring-2', 'ring-rose-400/50', 'border-teal-400');
-    input.setAttribute('aria-invalid', 'false');
-    if (errorEl) {
-      errorEl.textContent = '';
-      errorEl.classList.add('hidden');
+      goToStep(2);
     }
   }
 
-  function setErrorState(input, errorEl, msg) {
-    input.classList.add('border-rose-400', 'bg-rose-50/50');
-    input.classList.remove('border-teal-400');
-    input.setAttribute('aria-invalid', 'true');
-    if (errorEl) {
-      errorEl.textContent = msg;
-      errorEl.classList.remove('hidden');
+  // Hook step navigation buttons
+  const step1NextBtn = document.getElementById('step1NextBtn');
+  if (step1NextBtn) {
+    step1NextBtn.addEventListener('click', () => nextStep(1));
+  }
+
+  const step2BackBtn = document.getElementById('step2BackBtn');
+  if (step2BackBtn) {
+    step2BackBtn.addEventListener('click', () => goToStep(1));
+  }
+
+  const step2NextBtn = document.getElementById('step2NextBtn');
+  if (step2NextBtn) {
+    step2NextBtn.addEventListener('click', () => goToStep(3));
+  }
+
+  const step3BackBtn = document.getElementById('step3BackBtn');
+  if (step3BackBtn) {
+    step3BackBtn.addEventListener('click', () => goToStep(2));
+  }
+
+  // 2. Choice Tile Toggle Handler
+  function updateTile(checkbox) {
+    const tile = checkbox.closest('.choice-tile');
+    if (!tile) return;
+    const checkIcon = tile.querySelector('.check-icon');
+    if (checkbox.checked) {
+      tile.classList.add('is-selected');
+      if (checkIcon) checkIcon.classList.remove('hidden');
+    } else {
+      tile.classList.remove('is-selected');
+      if (checkIcon) checkIcon.classList.add('hidden');
     }
   }
 
-  validationRules.forEach(rule => {
-    const input = document.getElementById(rule.id);
-    if (input) {
-      input.addEventListener('input', () => {
-        const errorEl = document.getElementById(rule.id.toLowerCase() + '-error');
-        clearErrorState(input, errorEl);
-      });
-      input.addEventListener('change', () => {
-        const errorEl = document.getElementById(rule.id.toLowerCase() + '-error');
-        clearErrorState(input, errorEl);
-      });
-    }
+  document.querySelectorAll('.choice-tile input[type="checkbox"]').forEach(cb => {
+    updateTile(cb);
+    cb.addEventListener('change', () => updateTile(cb));
   });
 
-  if (form) {
-    form.addEventListener('submit', (e) => {
-      let isValid = true;
-      let firstInvalidInput = null;
-
-      validationRules.forEach(rule => {
-        const input = document.getElementById(rule.id);
-        if (!input) return;
-        const errorEl = document.getElementById(rule.id.toLowerCase() + '-error');
-        
-        let val = input.value.trim();
-        let hasError = false;
-
-        if (val === '') {
-          if (rule.required) {
-            hasError = true;
-          }
-        } else {
-          let numVal = parseFloat(val);
-          if (isNaN(numVal)) {
-            hasError = true;
-          } else if (rule.min !== undefined && numVal < rule.min) {
-            hasError = true;
-          } else if (rule.max !== undefined && numVal > rule.max) {
-            hasError = true;
-          }
-        }
-
-        if (hasError) {
-          setErrorState(input, errorEl, rule.msg);
-          isValid = false;
-          if (!firstInvalidInput) {
-            firstInvalidInput = input;
-          }
-        } else {
-          clearErrorState(input, errorEl);
-        }
-      });
-
-      if (!isValid) {
-        e.preventDefault();
-        if (topErrorBanner) {
-          topErrorBanner.classList.remove('hidden');
-          topErrorBanner.classList.add('flex');
-        }
-        if (firstInvalidInput) {
-          firstInvalidInput.scrollIntoView({ behavior: 'smooth', block: 'center' });
-          firstInvalidInput.focus({ preventScroll: true });
-        }
-      }
+  // Slider displays
+  const physHlth = document.getElementById('PhysHlth');
+  const physDisplay = document.getElementById('physHlthValDisplay');
+  if (physHlth && physDisplay) {
+    physHlth.addEventListener('input', () => {
+      physDisplay.textContent = physHlth.value + ' days';
     });
   }
 
-})();
+  const mentHlth = document.getElementById('MentHlth');
+  const mentDisplay = document.getElementById('mentHlthValDisplay');
+  if (mentHlth && mentDisplay) {
+    mentHlth.addEventListener('input', () => {
+      mentDisplay.textContent = mentHlth.value + ' days';
+    });
+  }
+
+  // 3. Labs Collapsible Toggle Handler
+  const hasLabsToggle = document.getElementById('hasLabsToggle');
+  const labsPanel = document.getElementById('labsInputsPanel');
+  if (hasLabsToggle && labsPanel) {
+    hasLabsToggle.addEventListener('change', () => {
+      labsPanel.classList.toggle('hidden', !hasLabsToggle.checked);
+    });
+
+    const preHbA1c = document.getElementById('LabHbA1c');
+    const preBP = document.getElementById('LabSystolicBP');
+    const preLDL = document.getElementById('LabLDL');
+    if ((preHbA1c && preHbA1c.value.trim() !== '') ||
+        (preBP && preBP.value.trim() !== '') ||
+        (preLDL && preLDL.value.trim() !== '')) {
+      hasLabsToggle.checked = true;
+      labsPanel.classList.remove('hidden');
+    }
+  }
+
+  // 4. BMI Modal & Live Calculator Logic
+  (function initBmi() {
+    const modal = document.getElementById('bmiModal');
+    const openBtn = document.getElementById('openBmiCalcBtn');
+    const closeBtn = document.getElementById('closeBmiModalBtn');
+    const cancelBtn = document.getElementById('cancelBmiBtn');
+    const applyBtn = document.getElementById('applyBmiBtn');
+
+    const tabMetric = document.getElementById('tabMetric');
+    const tabImperial = document.getElementById('tabImperial');
+    const panelMetric = document.getElementById('panelMetric');
+    const panelImperial = document.getElementById('panelImperial');
+
+    const metricHeight = document.getElementById('bmiMetricHeight');
+    const metricWeight = document.getElementById('bmiMetricWeight');
+    const impFt = document.getElementById('bmiImpFt');
+    const impIn = document.getElementById('bmiImpIn');
+    const impLbs = document.getElementById('bmiImpLbs');
+
+    const previewBox = document.getElementById('bmiPreviewBox');
+    const previewNum = document.getElementById('bmiPreviewNum');
+    const previewCat = document.getElementById('bmiPreviewCategory');
+    const errorMsg = document.getElementById('bmiModalError');
+
+    const targetBmiInput = document.getElementById('BMI');
+    const onPageCat = document.getElementById('onPageBmiCategory');
+
+    let currentUnit = 'metric';
+
+    function setTab(unit) {
+      currentUnit = unit;
+      if (!tabMetric || !tabImperial || !panelMetric || !panelImperial) return;
+      if (unit === 'metric') {
+        tabMetric.setAttribute('aria-selected', 'true');
+        tabMetric.className = 'flex-1 py-2 px-3 rounded-lg text-[15px] font-bold transition-all bg-[#ffffff] text-[#0b7a85] shadow-sm cursor-pointer';
+        tabImperial.setAttribute('aria-selected', 'false');
+        tabImperial.className = 'flex-1 py-2 px-3 rounded-lg text-[15px] font-bold transition-all text-[#4f5b66] hover:text-[#063154] cursor-pointer';
+        panelMetric.classList.remove('hidden');
+        panelImperial.classList.add('hidden');
+        if (metricHeight) metricHeight.focus();
+      } else {
+        tabImperial.setAttribute('aria-selected', 'true');
+        tabImperial.className = 'flex-1 py-2 px-3 rounded-lg text-[15px] font-bold transition-all bg-[#ffffff] text-[#0b7a85] shadow-sm cursor-pointer';
+        tabMetric.setAttribute('aria-selected', 'false');
+        tabMetric.className = 'flex-1 py-2 px-3 rounded-lg text-[15px] font-bold transition-all text-[#4f5b66] hover:text-[#063154] cursor-pointer';
+        panelImperial.classList.remove('hidden');
+        panelMetric.classList.add('hidden');
+        if (impFt) impFt.focus();
+      }
+      updateCalculation();
+    }
+
+    if (tabMetric) tabMetric.addEventListener('click', () => setTab('metric'));
+    if (tabImperial) tabImperial.addEventListener('click', () => setTab('imperial'));
+
+    function calculateBmi() {
+      if (currentUnit === 'metric') {
+        const h = parseFloat(metricHeight ? metricHeight.value : 0);
+        const w = parseFloat(metricWeight ? metricWeight.value : 0);
+        if (!h || h <= 0 || !w || w <= 0) return null;
+        const hm = h / 100;
+        return w / (hm * hm);
+      } else {
+        const ft = parseFloat(impFt ? impFt.value : 0) || 0;
+        const inches = parseFloat(impIn ? impIn.value : 0) || 0;
+        const totalIn = ft * 12 + inches;
+        const lbs = parseFloat(impLbs ? impLbs.value : 0);
+        if (totalIn <= 0 || !lbs || lbs <= 0) return null;
+        const hm = totalIn * 0.0254;
+        const wkg = lbs * 0.45359237;
+        return wkg / (hm * hm);
+      }
+    }
+
+    function getBmiCategory(bmi) {
+      if (bmi < 18.5) return { label: 'Underweight (< 18.5)', color: 'text-[#a86a0a]' };
+      if (bmi < 25.0) return { label: 'Normal weight (18.5 – 24.9)', color: 'text-[#2f7d4a]' };
+      if (bmi < 30.0) return { label: 'Overweight (25.0 – 29.9)', color: 'text-[#a86a0a]' };
+      return { label: 'Above ideal weight (≥ 30.0)', color: 'text-[#b03a2e]' };
+    }
+
+    function updateCalculation() {
+      if (errorMsg) {
+        errorMsg.classList.add('hidden');
+        errorMsg.textContent = '';
+      }
+      const bmi = calculateBmi();
+      if (previewBox && previewNum && previewCat) {
+        if (bmi !== null && !isNaN(bmi) && isFinite(bmi) && bmi >= 5 && bmi <= 120) {
+          const cat = getBmiCategory(bmi);
+          previewNum.textContent = bmi.toFixed(1);
+          previewCat.textContent = cat.label;
+          previewCat.className = 'text-[15px] font-bold ' + cat.color;
+          previewBox.classList.remove('hidden');
+        } else {
+          previewBox.classList.add('hidden');
+        }
+      }
+    }
+
+    [metricHeight, metricWeight, impFt, impIn, impLbs].forEach(input => {
+      if (input) {
+        input.addEventListener('input', updateCalculation);
+      }
+    });
+
+    function openModal() {
+      if (!modal) return;
+      if (typeof modal.showModal === 'function') {
+        modal.showModal();
+      } else {
+        modal.setAttribute('open', '');
+      }
+      updateCalculation();
+      if (currentUnit === 'metric' && metricHeight) {
+        metricHeight.focus();
+      } else if (impFt) {
+        impFt.focus();
+      }
+    }
+
+    function closeModal() {
+      if (!modal) return;
+      if (typeof modal.close === 'function') {
+        modal.close();
+      } else {
+        modal.removeAttribute('open');
+      }
+      if (openBtn) {
+        openBtn.focus();
+      }
+    }
+
+    if (openBtn) openBtn.addEventListener('click', openModal);
+    if (closeBtn) closeBtn.addEventListener('click', closeModal);
+    if (cancelBtn) cancelBtn.addEventListener('click', closeModal);
+
+    if (modal) {
+      modal.addEventListener('click', (event) => {
+        if (event.target === modal) {
+          closeModal();
+        }
+      });
+      modal.addEventListener('cancel', () => {
+        if (openBtn) {
+          setTimeout(() => openBtn.focus(), 0);
+        }
+      });
+    }
+
+    if (applyBtn) {
+      applyBtn.addEventListener('click', () => {
+        const bmi = calculateBmi();
+        if (bmi === null || isNaN(bmi) || !isFinite(bmi) || bmi < 10 || bmi > 80) {
+          if (errorMsg) {
+            errorMsg.textContent = 'Please enter valid height and weight values to get a BMI between 10 and 80.';
+            errorMsg.classList.remove('hidden');
+          }
+          return;
+        }
+        if (targetBmiInput) {
+          targetBmiInput.value = bmi.toFixed(1);
+          targetBmiInput.dispatchEvent(new Event('input', { bubbles: true }));
+          targetBmiInput.dispatchEvent(new Event('change', { bubbles: true }));
+        }
+        closeModal();
+        if (targetBmiInput) {
+          targetBmiInput.focus();
+        }
+      });
+    }
+
+    // On-page BMI category indicator
+    function updateOnPageCategory() {
+      if (!onPageCat || !targetBmiInput) return;
+      const val = parseFloat(targetBmiInput.value);
+      if (!isNaN(val) && val >= 10 && val <= 80) {
+        const cat = getBmiCategory(val);
+        onPageCat.textContent = '(' + cat.label + ')';
+        onPageCat.className = 'text-[16px] font-bold ' + cat.color;
+      } else {
+        onPageCat.textContent = '';
+      }
+    }
+
+    if (targetBmiInput) {
+      targetBmiInput.addEventListener('input', updateOnPageCategory);
+      targetBmiInput.addEventListener('change', updateOnPageCategory);
+      updateOnPageCategory();
+    }
+
+    // 30-Day Limit Warnings
+    function setupThirtyDayLimitWarning(inputId, warningId, capBtnId) {
+      const input = document.getElementById(inputId);
+      const warning = document.getElementById(warningId);
+      const capBtn = document.getElementById(capBtnId);
+      if (!input || !warning) return;
+
+      function checkValue() {
+        const raw = input.value.trim();
+        const val = parseFloat(raw);
+        if (raw !== '' && !isNaN(val) && val > 30) {
+          warning.classList.remove('hidden');
+          input.classList.add('border-amber-400', 'ring-2', 'ring-amber-400/50');
+        } else {
+          warning.classList.add('hidden');
+          input.classList.remove('border-amber-400', 'ring-2', 'ring-amber-400/50');
+        }
+      }
+
+      input.addEventListener('input', checkValue);
+      input.addEventListener('change', checkValue);
+
+      if (capBtn) {
+        capBtn.addEventListener('click', () => {
+          input.value = 30;
+          checkValue();
+          input.focus();
+        });
+      }
+
+      checkValue();
+    }
+
+    setupThirtyDayLimitWarning('PhysHlth', 'physhlth-warning', 'capPhysHlthBtn');
+    setupThirtyDayLimitWarning('MentHlth', 'menthlth-warning', 'capMentHlthBtn');
+  })();
+
+  // 5. Submit Button Loading State
+  const assessmentForm = document.getElementById('assessmentForm');
+  const submitBtn = document.getElementById('submitBtn');
+  if (assessmentForm && submitBtn) {
+    assessmentForm.addEventListener('submit', function () {
+      submitBtn.disabled = true;
+      submitBtn.textContent = 'Checking your results...';
+      submitBtn.classList.add('opacity-75');
+    });
+  }
+});
