@@ -37,6 +37,11 @@ When performing any frontend, UX, design, or UI copy work, **NEVER MODIFY**:
    - Preserve all CSRF token fields (`<input type="hidden" name="csrf_token" value="{{ csrf_token() }}">`).
    - Preserve all critical element IDs and accessibility attributes tested by automated test suites.
 
+> [!NOTE]
+> **Authentication & Account System Exception**:
+> `PLAN_ACCOUNTS.md` phases P1-P8 authorize additive changes to `app.py` and `database.py` (schema v5, auth, history ownership, admin). Clinical weights, thresholds, models, `rule_matrix.py`, `clinical_model.py`, `validation.py`, and `recommendations.py` logic stay untouched.
+> Any message about accounts, login, passwords, users, roles, admin, or history tracking must be handled by reading `PLAN_ACCOUNTS.md` first.
+
 ---
 
 ## 3. Forbidden "AI Tells" & Anti-Patterns
