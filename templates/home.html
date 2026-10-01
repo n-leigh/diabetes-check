@@ -1,52 +1,46 @@
 {% extends "base.html" %}
-{% block title %}DiaBeates — Diabetes Complication Risk Prediction{% endblock %}
-{% set active_page = 'home' %}
+{% from "macros/illustrations.html" import icon_heart, icon_kidneys, icon_foot, icon_eye, icon_doctor, icon_companion %}
+
+{% block title %}DiaBeates - Check Your Health Risks in 3 Minutes{% endblock %}
 
 {% block content %}
-<div class="flex-1 bg-slate-50">
+<div class="flex flex-col">
 
-  <!-- Hero Section with Rounded Floating Box Aligned to Navbar Width -->
-  <section class="pt-6 pb-12 px-4 sm:px-6 lg:px-8">
-    <div class="max-w-6xl mx-auto">
-      <div
-        class="floating-bg text-white rounded-3xl p-8 sm:p-12 lg:p-16 relative overflow-hidden border border-slate-900/40 shadow-[0_25px_60px_-15px_rgba(6,49,84,0.55),0_12px_28px_-6px_rgba(0,0,0,0.35)]">
-
-        <!-- Floating Background Ambient Elements (pointer-events-none to ensure full clickability) -->
-        <div class="absolute inset-0 pointer-events-none overflow-hidden select-none">
-          <div
-            class="floating-orb-1 absolute -top-16 -right-16 w-96 h-96 rounded-full bg-[#03bdcd] opacity-35 blur-3xl">
-          </div>
-          <div class="floating-orb-2 absolute top-1/3 -left-20 w-80 h-80 rounded-full bg-cyan-300 opacity-25 blur-3xl">
-          </div>
-          <div
-            class="floating-orb-3 absolute -bottom-10 right-1/4 w-96 h-96 rounded-full bg-[#063154] opacity-60 blur-3xl">
-          </div>
-          <div class="floating-glow absolute top-1/2 left-1/3 w-64 h-64 rounded-full bg-teal-400 opacity-20 blur-2xl">
+  <!-- 1. Hero Section (Cream background) -->
+  <section class="py-12 sm:py-16 md:py-20 bg-[#fbf6ec]">
+    <div class="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8">
+      <div class="grid grid-cols-1 md:grid-cols-12 gap-10 md:gap-12 items-center">
+        
+        <!-- Mobile-first Image (shown first on mobile, right on desktop) -->
+        <div class="md:col-span-5 md:order-2">
+          <div class="relative">
+            <img 
+              src="{{ url_for('static', filename='img/filipino_family_hero.webp') }}" 
+              alt="Warm Filipino family smiling together at home" 
+              class="w-full h-auto rounded-card object-cover border border-[#e5dcce] shadow-card aspect-[4/3]"
+              width="800" 
+              height="533" 
+              loading="eager"
+            >
           </div>
         </div>
 
-        <div class="max-w-5xl mx-auto text-center relative z-10">
-          <h1
-            class="font-display text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-extrabold leading-tight mb-6 tracking-tight text-center text-balance">
-            <span>Predict Diabetes Complications</span><br>
-            <span class="text-cyan-300">With Real Clinical Data</span>
+        <!-- Headline & CTA -->
+        <div class="md:col-span-7 md:order-1 space-y-6">
+          <h1 class="font-heading text-4xl sm:text-5xl md:text-6xl font-bold text-[#063154] tracking-tight leading-[1.1]">
+            Check your health risks in 3 minutes.
           </h1>
-          <p class="text-base sm:text-lg text-white/90 max-w-2xl mx-auto leading-relaxed mb-10 font-normal">
-            DiaBeates is a health screening aid that combines an evidence-aligned clinical rule matrix (ACC/AHA, KDIGO 2024, MNSI) with calibrated
-            machine learning models trained on authentic CDC NHANES diabetic cohorts, plus optional point-of-care lab
-            biomarker evaluation (HbA1c, systolic BP, LDL).
+          <p class="text-[20px] text-[#4f5b66] leading-relaxed max-w-lg">
+            Free. No name or email needed.
           </p>
-          <div class="flex flex-wrap justify-center items-center gap-4">
-            <a href="/assessment"
-              class="inline-flex items-center gap-2 bg-white text-[#063154] font-bold px-7 py-3.5 rounded-xl hover:bg-slate-50 hover:shadow-xl hover:shadow-cyan-950/40 hover:-translate-y-0.5 active:scale-95 transition-all duration-200 text-sm cursor-pointer shadow-md">
-              Start Risk Assessment
-              <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2.5">
-                <path d="M3 8h10M9 4l4 4-4 4" />
+          <div class="pt-2">
+            <a href="/assessment" class="btn-primary text-[20px] px-8 py-4 shadow-card" aria-label="Start Risk Assessment">
+              Start check
+              <span class="sr-only">Start Risk Assessment</span>
+              <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" aria-hidden="true">
+                <line x1="5" y1="12" x2="19" y2="12"></line>
+                <polyline points="12 5 19 12 12 19"></polyline>
               </svg>
-            </a>
-            <a href="/about"
-              class="inline-flex items-center gap-2 bg-white/10 backdrop-blur-md border border-white/30 text-white font-semibold px-7 py-3.5 rounded-xl hover:bg-white/20 hover:-translate-y-0.5 active:scale-95 transition-all duration-200 text-sm cursor-pointer">
-              Learn About the Clinical Models
             </a>
           </div>
         </div>
@@ -55,183 +49,147 @@
     </div>
   </section>
 
-  <!-- Complications We Assess Section -->
-  <section class="py-16 px-4 bg-slate-50">
-    <div class="max-w-6xl mx-auto">
-      <div class="text-center mb-12">
-        <h2 class="font-display text-3xl font-extrabold text-slate-900 mb-3">Complications We Assess</h2>
-        <p class="text-slate-500 max-w-2xl mx-auto text-sm leading-relaxed">
-          Evaluates four complication domains using a dual-engine architecture: transparent clinical scoring rules
-          aligned with major medical guidelines and calibrated machine learning models trained on CDC clinical cohorts.
+  <!-- 2. How It Works (Sand background band) -->
+  <section class="py-14 sm:py-18 bg-[#f3e9d6] border-y border-[#e5dcce]">
+    <div class="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8">
+      <div class="text-center max-w-2xl mx-auto mb-10">
+        <h2 class="font-heading text-3xl sm:text-4xl font-bold text-[#063154]">
+          How it works
+        </h2>
+      </div>
+
+      <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+        <!-- Step 1 -->
+        <div class="health-card p-6 flex flex-col items-center text-center">
+          <div class="mb-4">
+            {{ icon_companion("w-20 h-20") }}
+          </div>
+          <span class="inline-block px-3 py-1 bg-[#fbeed0] text-[#a86a0a] text-[15px] font-bold rounded-full mb-3">Step 1</span>
+          <h3 class="font-heading text-xl font-bold text-[#063154] mb-2">Answer 15 easy questions</h3>
+          <p class="text-[17px] text-[#4f5b66] leading-snug">
+            Simple yes or no questions about your body and habits.
+          </p>
+        </div>
+
+        <!-- Step 2 -->
+        <div class="health-card p-6 flex flex-col items-center text-center">
+          <div class="mb-4">
+            {{ icon_heart("w-20 h-20") }}
+          </div>
+          <span class="inline-block px-3 py-1 bg-[#fbeed0] text-[#a86a0a] text-[15px] font-bold rounded-full mb-3">Step 2</span>
+          <h3 class="font-heading text-xl font-bold text-[#063154] mb-2">See your results</h3>
+          <p class="text-[17px] text-[#4f5b66] leading-snug">
+            Clear, honest results for your heart, kidneys, nerves, and eyes.
+          </p>
+        </div>
+
+        <!-- Step 3 -->
+        <div class="health-card p-6 flex flex-col items-center text-center">
+          <div class="mb-4">
+            {{ icon_doctor("w-20 h-20") }}
+          </div>
+          <span class="inline-block px-3 py-1 bg-[#fbeed0] text-[#a86a0a] text-[15px] font-bold rounded-full mb-3">Step 3</span>
+          <h3 class="font-heading text-xl font-bold text-[#063154] mb-2">Know what to ask your doctor</h3>
+          <p class="text-[17px] text-[#4f5b66] leading-snug">
+            Print or save simple questions for your next clinic visit.
+          </p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- 3. What We Check (Cream background band) -->
+  <section class="py-14 sm:py-18 bg-[#fbf6ec]">
+    <div class="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8">
+      <div class="text-center max-w-2xl mx-auto mb-10">
+        <h2 class="font-heading text-3xl sm:text-4xl font-bold text-[#063154]">
+          What we check
+        </h2>
+        <p class="text-[19px] text-[#4f5b66] mt-2">
+          High blood sugar can quietly affect four key parts of your body.
         </p>
       </div>
-      <div class="grid sm:grid-cols-2 lg:grid-cols-4 gap-6">
-        <div
-          class="bg-[#025f67] text-white rounded-3xl p-7 text-center border border-teal-600/30 shadow-[0_20px_40px_-10px_rgba(2,95,103,0.45),0_10px_20px_-5px_rgba(0,0,0,0.25)] hover:shadow-[0_25px_50px_-8px_rgba(2,95,103,0.55),0_12px_24px_-4px_rgba(0,0,0,0.3)] hover:-translate-y-1.5 transition-all duration-300 flex flex-col justify-between">
-          <div>
-            <div
-              class="w-12 h-12 mx-auto mb-3.5 rounded-xl bg-white/10 flex items-center justify-center text-[#37f6f2] shadow-inner">
-              <svg class="w-6 h-6" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
-                stroke-linecap="round" stroke-linejoin="round">
-                <path
-                  d="M19 14c1.49-1.46 3-3.21 3-5.5A5.5 5.5 0 0 0 16.5 3c-1.76 0-3 .5-4.5 2-1.5-1.5-2.74-2-4.5-2A5.5 5.5 0 0 0 2 8.5c0 2.3 1.5 4.05 3 5.5l7 7Z" />
-                <path d="M3.22 12H9.5l1.5-3 2 6 1.5-3h6.78" />
-              </svg>
-            </div>
-            <div class="font-display font-bold text-lg text-white mb-1">Cardiovascular</div>
-            <div class="text-xs text-teal-200/90 font-medium mb-2">ACC/AHA ASCVD &amp; UKPDS Aligned</div>
-            <div class="text-xs text-teal-100/85 leading-relaxed">
-              Hypertension, dyslipidemia, smoking, stroke/CAD history, age, and BMI. Paired with calibrated ML model
-              (AUROC 0.764).
-            </div>
+
+      <div class="grid grid-cols-1 sm:grid-cols-2 gap-6">
+        <!-- Tile 1: Heart -->
+        <div class="health-card p-6 sm:p-8 flex items-center gap-6">
+          <div class="flex-shrink-0">
+            {{ icon_heart("w-24 h-24") }}
           </div>
-          <div class="mt-4 pt-3 border-t border-teal-500/30 text-[11px] text-teal-200/80">
-            CDC NHANES CVD Cohort
+          <div>
+            <h3 class="font-heading text-2xl font-bold text-[#063154] mb-1">Heart</h3>
+            <p class="text-[18px] text-[#4f5b66] leading-snug">Can high sugar harm your heart? We check.</p>
           </div>
         </div>
 
-        <div
-          class="bg-[#025f67] text-white rounded-3xl p-7 text-center border border-teal-600/30 shadow-[0_20px_40px_-10px_rgba(2,95,103,0.45),0_10px_20px_-5px_rgba(0,0,0,0.25)] hover:shadow-[0_25px_50px_-8px_rgba(2,95,103,0.55),0_12px_24px_-4px_rgba(0,0,0,0.3)] hover:-translate-y-1.5 transition-all duration-300 flex flex-col justify-between">
-          <div>
-            <div
-              class="w-12 h-12 mx-auto mb-3.5 rounded-xl bg-white/10 flex items-center justify-center text-[#37f6f2] shadow-inner">
-              <svg class="w-6 h-6" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
-                stroke-linecap="round" stroke-linejoin="round">
-                <circle cx="12" cy="4" r="1.5" />
-                <line x1="12" y1="6" x2="12" y2="12" />
-                <line x1="12" y1="8" x2="8" y2="11" />
-                <line x1="12" y1="8" x2="16" y2="11" />
-                <line x1="12" y1="12" x2="9" y2="20" />
-                <line x1="12" y1="12" x2="15" y2="18" />
-                <path d="M9 20l-1 2" />
-                <path d="M15 18l1 3" />
-              </svg>
-            </div>
-            <div class="font-display font-bold text-lg text-white mb-1">Neuropathy &amp; Mobility</div>
-            <div class="text-xs text-teal-200/90 font-medium mb-2">MNSI Functional Screening Aligned</div>
-            <div class="text-xs text-teal-100/85 leading-relaxed">
-              Walking limitations, physical health deficit days, BMI, and microvascular burden. Paired with Gradient
-              Boosting (AUROC 0.799).
-            </div>
+        <!-- Tile 2: Kidneys -->
+        <div class="health-card p-6 sm:p-8 flex items-center gap-6">
+          <div class="flex-shrink-0">
+            {{ icon_kidneys("w-24 h-24") }}
           </div>
-          <div class="mt-4 pt-3 border-t border-teal-500/30 text-[11px] text-teal-200/80">
-            CDC BRFSS Diabetic Cohort
+          <div>
+            <h3 class="font-heading text-2xl font-bold text-[#063154] mb-1">Kidneys</h3>
+            <p class="text-[18px] text-[#4f5b66] leading-snug">How well are your kidneys filtering? We check.</p>
           </div>
         </div>
 
-        <div
-          class="bg-[#025f67] text-white rounded-3xl p-7 text-center border border-teal-600/30 shadow-[0_20px_40px_-10px_rgba(2,95,103,0.45),0_10px_20px_-5px_rgba(0,0,0,0.25)] hover:shadow-[0_25px_50px_-8px_rgba(2,95,103,0.55),0_12px_24px_-4px_rgba(0,0,0,0.3)] hover:-translate-y-1.5 transition-all duration-300 flex flex-col justify-between">
-          <div>
-            <div
-              class="w-12 h-12 mx-auto mb-3.5 rounded-xl bg-white/10 flex items-center justify-center text-[#37f6f2] shadow-inner">
-              <svg class="w-6 h-6" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
-                stroke-linecap="round" stroke-linejoin="round">
-                <path d="M4 2v6a4 4 0 0 0 8 0V2" />
-                <path d="M4 2h2M10 2h2" />
-                <path d="M8 15a6 6 0 0 0 12 0v-3" />
-                <circle cx="20" cy="10" r="2" />
-              </svg>
-            </div>
-            <div class="font-display font-bold text-lg text-white mb-1">Nephropathy &amp; Renal Staging</div>
-            <div class="text-xs text-teal-200/90 font-medium mb-2">KDIGO 2024 &amp; CKD-EPI Aligned</div>
-            <div class="text-xs text-teal-100/85 leading-relaxed">
-              Hypertension, systemic self-rated health, mental distress, and care access barriers. Paired with
-              calibrated ML model (AUROC 0.763).
-            </div>
+        <!-- Tile 3: Nerves and feet -->
+        <div class="health-card p-6 sm:p-8 flex items-center gap-6">
+          <div class="flex-shrink-0">
+            {{ icon_foot("w-24 h-24") }}
           </div>
-          <div class="mt-4 pt-3 border-t border-teal-500/30 text-[11px] text-teal-200/80">
-            CDC NHANES CKD Cohort
+          <div>
+            <h3 class="font-heading text-2xl font-bold text-[#063154] mb-1">Nerves and feet</h3>
+            <p class="text-[18px] text-[#4f5b66] leading-snug">Is numbness or foot pain slowing you down? We check.</p>
           </div>
         </div>
 
-        <div
-          class="bg-[#025f67] text-white rounded-3xl p-7 text-center border border-teal-600/30 shadow-[0_20px_40px_-10px_rgba(2,95,103,0.45),0_10px_20px_-5px_rgba(0,0,0,0.25)] hover:shadow-[0_25px_50px_-8px_rgba(2,95,103,0.55),0_12px_24px_-4px_rgba(0,0,0,0.3)] hover:-translate-y-1.5 transition-all duration-300 flex flex-col justify-between">
-          <div>
-            <div
-              class="w-12 h-12 mx-auto mb-3.5 rounded-xl bg-white/10 flex items-center justify-center text-[#37f6f2] shadow-inner">
-              <svg class="w-6 h-6" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
-                stroke-linecap="round" stroke-linejoin="round">
-                <path d="M2 12s3-7 10-7 10 7 10 7-3 7-10 7-10-7-10-7Z" />
-                <circle cx="12" cy="12" r="3" />
-              </svg>
-            </div>
-            <div class="font-display font-bold text-lg text-white mb-1">Diabetic Retinopathy</div>
-            <div class="text-xs text-teal-200/90 font-medium mb-2">ADA &amp; AAO Screening Aligned</div>
-            <div class="text-xs text-teal-100/85 leading-relaxed">
-              Diabetes duration, subjective blurry vision, and vascular capillary stress factors. Paired with calibrated
-              ML model (AUROC 0.749).
-            </div>
+        <!-- Tile 4: Eyes -->
+        <div class="health-card p-6 sm:p-8 flex items-center gap-6">
+          <div class="flex-shrink-0">
+            {{ icon_eye("w-24 h-24") }}
           </div>
-          <div class="mt-4 pt-3 border-t border-teal-500/30 text-[11px] text-teal-200/80">
-            CDC NHANES Retinopathy Cohort
+          <div>
+            <h3 class="font-heading text-2xl font-bold text-[#063154] mb-1">Eyes</h3>
+            <p class="text-[18px] text-[#4f5b66] leading-snug">Is your vision staying clear? We check.</p>
           </div>
         </div>
       </div>
     </div>
   </section>
 
-  <!-- Core System Capabilities Highlights -->
-  <section class="py-12 px-4 bg-white border-y border-slate-200/80">
-    <div class="max-w-6xl mx-auto">
-      <div class="grid sm:grid-cols-3 gap-6">
-        <div class="p-5 rounded-2xl bg-slate-50 border border-slate-200">
-          <div class="w-9 h-9 rounded-xl bg-teal-100 text-teal-700 flex items-center justify-center mb-3">
-            <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-              <path stroke-linecap="round" stroke-linejoin="round" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
-            </svg>
-          </div>
-          <h3 class="font-display font-bold text-slate-800 text-sm mb-1">Dual-Engine Architecture</h3>
-          <p class="text-xs text-slate-500 leading-relaxed">
-            Transparent rule matrix aligned with clinical guidelines alongside calibrated ML models reporting AUROC and
-            Brier scores.
-          </p>
+  <!-- 4. Video & Reassurance Band (Sand background band) -->
+  <section class="py-14 sm:py-18 bg-[#f3e9d6] border-t border-[#e5dcce]">
+    <div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
+      
+      <!-- Privacy Reassurance Message -->
+      <div class="bg-[#ffffff] rounded-card p-6 sm:p-8 border border-[#e5dcce] shadow-card text-center mb-10">
+        <div class="inline-flex items-center justify-center w-12 h-12 rounded-full bg-[#e4f2e7] text-[#2f7d4a] mb-3">
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round">
+            <rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect>
+            <path d="M7 11V7a5 5 0 0 1 10 0v4"></path>
+          </svg>
         </div>
-
-        <div class="p-5 rounded-2xl bg-slate-50 border border-slate-200">
-          <div class="w-9 h-9 rounded-xl bg-teal-100 text-teal-700 flex items-center justify-center mb-3">
-            <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-              <path stroke-linecap="round" stroke-linejoin="round"
-                d="M19.428 15.428a2 2 0 00-1.022-.547l-2.387-.477a6 6 0 00-3.86.517l-.318.158a6 6 0 01-3.86.517L6.05 15.21a2 2 0 00-1.806.547M8 4h8l-1 1v5.172a2 2 0 00.586 1.414l5 5c1.26 1.26.367 3.414-1.415 3.414H4.828c-1.782 0-2.674-2.154-1.414-3.414l5-5A2 2 0 009 10.172V5L8 4z" />
-            </svg>
-          </div>
-          <h3 class="font-display font-bold text-slate-800 text-sm mb-1">Optional Lab Biomarkers</h3>
-          <p class="text-xs text-slate-500 leading-relaxed">
-            Directly benchmark HbA1c, systolic blood pressure, and LDL cholesterol against ADA and KDIGO point-of-care
-            clinical targets.
-          </p>
-        </div>
-
-        <div class="p-5 rounded-2xl bg-slate-50 border border-slate-200">
-          <div class="w-9 h-9 rounded-xl bg-teal-100 text-teal-700 flex items-center justify-center mb-3">
-            <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-              <path stroke-linecap="round" stroke-linejoin="round"
-                d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
-            </svg>
-          </div>
-          <h3 class="font-display font-bold text-slate-800 text-sm mb-1">Production Security &amp; Privacy</h3>
-          <p class="text-xs text-slate-500 leading-relaxed">
-            Protected with CSRF tokens, client-side session isolation, non-destructive WAL migrations, and assessment
-            archiving.
-          </p>
-        </div>
+        <h3 class="font-heading text-2xl font-bold text-[#063154] mb-2">
+          Your answers stay private.
+        </h3>
+        <p class="text-[19px] text-[#4f5b66] max-w-lg mx-auto">
+          We do not ask for your name, phone number, or email. Nothing is shared.
+        </p>
       </div>
-    </div>
-  </section>
 
-  <section class="py-16 px-4">
-    <div class="max-w-4xl mx-auto">
-      <div class="scan-light-card-inner p-10 sm:p-14 text-center">
-        <h2 class="font-display text-3xl font-extrabold text-slate-900 mb-4">Ready to assess your risk?</h2>
-        <p class="text-slate-500 mb-8 max-w-lg mx-auto">Enter your health indicators and optional lab readings to
-          receive dual-engine risk projections in seconds.</p>
-        <a href="/assessment"
-          class="inline-flex items-center gap-2 gradient-primary text-white font-bold px-8 py-4 rounded-xl hover:opacity-95 hover:shadow-xl hover:shadow-cyan-900/25 hover:-translate-y-0.5 active:scale-95 transition-all duration-200 text-sm shadow-md">
-          Start Risk Assessment
-          <svg width="14" height="14" viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="2.5">
-            <path d="M2 7h10M8 3l4 4-4 4" />
+      <!-- Final Big Button -->
+      <div class="text-center mt-8">
+        <a href="/assessment" class="btn-primary text-[20px] px-10 py-4 shadow-card" aria-label="Start Risk Assessment">
+          Start check
+          <span class="sr-only">Start Risk Assessment</span>
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" aria-hidden="true">
+            <line x1="5" y1="12" x2="19" y2="12"></line>
+            <polyline points="12 5 19 12 12 19"></polyline>
           </svg>
         </a>
       </div>
+
     </div>
   </section>
 
