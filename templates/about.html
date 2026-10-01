@@ -1,162 +1,114 @@
 {% extends "base.html" %}
-{% block title %}About — DiaBeates{% endblock %}
+
+{% block title %}DiaBeates - About Us & Privacy{% endblock %}
 {% set active_page = 'about' %}
 
 {% block content %}
-<div class="flex-1 bg-slate-50">
+<div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8 sm:py-12">
 
-  <section class="relative isolate overflow-hidden py-16 sm:py-20 px-4 border-b border-slate-200/80">
-    <div class="absolute inset-0 -z-20 bg-gradient-to-br from-[#063154] via-[#044c68] to-[#03bdcd]"></div>
-    <div class="absolute inset-0 -z-10 bg-[#063154]/60 backdrop-blur-xs"></div>
-    <div class="max-w-4xl mx-auto text-center relative z-10">
-      <div class="inline-block border border-white/30 text-white font-semibold rounded-full px-4 py-1 text-xs uppercase tracking-wider mb-6 bg-gradient-to-r from-teal-500/60 to-[#063154]/70 shadow-sm backdrop-blur-sm">
-        Health Screening Tool
-      </div>
-      <h1 class="font-display text-4xl sm:text-5xl font-extrabold mb-5 tracking-tight">
-        <span class="text-white">Understand your risk</span><br>
-        <span class="text-cyan-300">before complications advance</span>
-      </h1>
-      <p class="text-white/90 text-base max-w-2xl mx-auto leading-relaxed">
-        DiaBeates is a web-based diabetes risk screening aid that helps individuals estimate their
-        likelihood of developing diabetes-related complications based on their health indicators.
+  <!-- Header -->
+  <div class="pb-6 border-b border-[#e5dcce] mb-8">
+    <h1 class="font-heading text-3xl sm:text-4xl md:text-5xl font-bold text-[#063154]">
+      About DiaBeates
+    </h1>
+    <p class="text-[19px] text-[#4f5b66] mt-2">
+      A calm, simple health check made for families in the Philippines.
+    </p>
+  </div>
+
+  <!-- Editorial Card with Photo & 3 Main Plain-Language Sections -->
+  <div class="health-card p-6 sm:p-8 space-y-8 mb-10">
+
+    <!-- Hero Photo -->
+    <div class="overflow-hidden rounded-card border border-[#e5dcce]">
+      <img 
+        src="{{ url_for('static', filename='img/doctor_consult.webp') }}" 
+        alt="Healthcare worker talking warmly with a patient in a clinic" 
+        class="w-full h-auto object-cover max-h-[360px]"
+        width="640" 
+        height="800" 
+        loading="lazy"
+      >
+    </div>
+
+    <!-- Section 1: What this is -->
+    <div>
+      <h2 class="font-heading text-2xl sm:text-3xl font-bold text-[#063154] mb-2">
+        What this is
+      </h2>
+      <p class="text-[18px] text-[#1f2a33] leading-relaxed">
+        DiaBeates is a free health screening website made for ordinary people and families in the Philippines. It helps you check whether high blood sugar might be affecting your heart, kidneys, feet, or eyes before serious problems start. DiaBeates is a screening aid and is not a diagnostic device.
       </p>
     </div>
-  </section>
 
-  <section class="py-16 px-4 bg-white">
-    <div class="max-w-4xl mx-auto">
-      <div class="grid md:grid-cols-2 gap-12 items-center">
+    <!-- Section 2: How we work out your results -->
+    <div class="pt-6 border-t border-[#e5dcce]">
+      <h2 class="font-heading text-2xl sm:text-3xl font-bold text-[#063154] mb-2">
+        How we work out your results
+      </h2>
+      <p class="text-[18px] text-[#1f2a33] leading-relaxed mb-2">
+        We compare your answers with proven medical guidelines from diabetes specialists.
+        We check whether your blood pressure, sugar, weight, and daily habits show signs of strain.
+        Then we group your risk into three clear levels: Good, Worth a check, or See a doctor soon.
+      </p>
+    </div>
+
+    <!-- Section 3: Your privacy -->
+    <div class="pt-6 border-t border-[#e5dcce]">
+      <h2 class="font-heading text-2xl sm:text-3xl font-bold text-[#063154] mb-2">
+        Your privacy
+      </h2>
+      <p class="text-[18px] text-[#1f2a33] leading-relaxed">
+        We do not ask for your name, phone number, or email address. We never track you or sell your health answers. Everything you type stays private on your phone or computer.
+      </p>
+    </div>
+
+    <!-- Progressive Disclosure for Doctors and Researchers -->
+    <details class="technical-details pt-6 border-t border-[#e5dcce]">
+      <summary class="font-heading text-xl font-bold text-[#0b7a85] cursor-pointer">
+        For doctors and researchers: clinical documentation &amp; citations
+      </summary>
+      <div class="technical-content mt-4 p-5 bg-[#fbf6ec] rounded-card border border-[#e5dcce] text-sm text-[#1f2a33] space-y-4">
+        
         <div>
-          <h2 class="font-display text-3xl font-extrabold text-slate-900 mb-4">What DiaBeates does</h2>
-          <div class="space-y-4 text-slate-500 text-base leading-relaxed">
-            <p>
-              Diabetes can progress quietly, and many complications become more difficult to manage when
-              they are identified too late. DiaBeates is designed to make that first step easier by
-              translating routine health information into a practical risk assessment.
-            </p>
-            <p>
-              DiaBeates was built to assess risk in two ways at once: a transparent, clinically-cited
-              <strong>rule matrix</strong> and a <strong>trained classification model</strong>, shown
-              side by side to support earlier follow-up and better-informed discussion with clinicians.
-            </p>
-            <p>
-              Early screening matters because small changes in blood pressure, cholesterol, lifestyle,
-              mobility, and overall health burden can signal elevated risk before significant illness
-              develops. DiaBeates supports informed decision-making by turning those signals into a clear,
-              explainable summary that is easy to understand and discuss with a healthcare professional.
-            </p>
-          </div>
-        </div>
-        <div class="space-y-4">
-          <div class="rounded-2xl border p-5 bg-teal-50 border-teal-200">
-            <span class="text-xs font-semibold px-2.5 py-0.5 rounded-full bg-white border border-teal-200 text-teal-600">Transparent Risk Logic</span>
-            <h3 class="font-display font-bold text-base mb-2 mt-3 text-teal-600">Structured clinical rules</h3>
-            <p class="text-sm text-slate-600 leading-relaxed">
-              Encodes established risk factors (hypertension, cholesterol, smoking, mobility
-              difficulty, general health burden) into a transparent point system, cited to ADA
-              Standards of Care and NHANES threshold research. Every score is explainable, no black box.
-            </p>
-          </div>
-          <div class="rounded-2xl border p-5 bg-sky-50 border-sky-200">
-            <span class="text-xs font-semibold px-2.5 py-0.5 rounded-full bg-white border border-sky-200 text-sky-600">Predictive Modeling</span>
-            <h3 class="font-display font-bold text-base mb-2 mt-3 text-sky-600">Statistical classification</h3>
-            <p class="text-sm text-slate-600 leading-relaxed">
-              In addition to rule-based assessment, the system applies statistical classification models to
-              detect patterns in the submitted health indicators and generate a category prediction for
-              comparison with the rule-matrix result.
-            </p>
-          </div>
-        </div>
-      </div>
-    </div>
-  </section>
-
-  <section class="py-16 px-4 bg-slate-50 border-t border-slate-100">
-    <div class="max-w-5xl mx-auto">
-      <h2 class="font-display text-3xl font-extrabold text-slate-900 mb-8 text-center">Built for clarity, transparency, and action</h2>
-
-      <div class="grid md:grid-cols-3 gap-6">
-        <div class="bg-white border border-slate-200 rounded-2xl p-6 shadow-sm">
-          <div class="w-10 h-10 rounded-full bg-teal-100 flex items-center justify-center mb-4 text-teal-700 font-bold">01</div>
-          <h3 class="font-display font-bold text-slate-800 mb-2">Complete-data validation</h3>
-          <p class="text-sm text-slate-600 leading-relaxed">
-            Every assessment is checked for required inputs and valid values before analysis so the
-            screening estimate uses complete, usable information.
+          <h3 class="font-bold text-[#063154] text-base mb-1">Dual-Engine Clinical Architecture</h3>
+          <p class="text-xs text-[#4f5b66] leading-relaxed">
+            DiaBeates executes a dual-tier screening pipeline combining deterministic rule-matrix scoring with calibrated machine-learning classification models.
           </p>
         </div>
 
-        <div class="bg-white border border-slate-200 rounded-2xl p-6 shadow-sm">
-          <div class="w-10 h-10 rounded-full bg-sky-100 flex items-center justify-center mb-4 text-sky-700 font-bold">02</div>
-          <h3 class="font-display font-bold text-slate-800 mb-2">Personalized guidance</h3>
-          <p class="text-sm text-slate-600 leading-relaxed">
-            Results are paired with practical health guidance designed to help users understand what the
-            risk level may mean and which habits or follow-up steps deserve attention.
-          </p>
+        <div>
+          <h4 class="font-bold text-[#063154] mb-1">Guideline Alignments &amp; Cohorts</h4>
+          <ul class="list-disc list-inside space-y-1 text-xs text-[#4f5b66]">
+            <li><strong>Cardiovascular:</strong> 2019 ACC/AHA Primary Prevention of Cardiovascular Disease Guideline. Logistic Regression trained on CDC NHANES (N=2,488, AUROC 0.7716, Brier 0.1691).</li>
+            <li><strong>Kidneys (Nephropathy):</strong> KDIGO 2024 Clinical Practice Guideline for the Evaluation and Management of Chronic Kidney Disease. Evaluated against stage-stratified albuminuria/eGFR risk matrices.</li>
+            <li><strong>Nerves &amp; Mobility:</strong> Michigan Neuropathy Screening Instrument (MNSI) physical impairment criteria. Gradient Boosting Classifier trained on CDC BRFSS (N=5,000, AUROC 0.7992, Brier 0.1765).</li>
+            <li><strong>Retinopathy:</strong> ADA Standards of Care Retinopathy screening protocol. Logistic Regression trained on CDC NHANES (AUROC 0.6420, Brier 0.1636). Given lower discrimination in survey data, annual dilated eye exams are advised universally.</li>
+          </ul>
         </div>
 
-        <div class="bg-white border border-slate-200 rounded-2xl p-6 shadow-sm">
-          <div class="w-10 h-10 rounded-full bg-amber-100 flex items-center justify-center mb-4 text-amber-700 font-bold">03</div>
-          <h3 class="font-display font-bold text-slate-800 mb-2">Referral advisories</h3>
-          <p class="text-sm text-slate-600 leading-relaxed">
-            For higher-risk cases, the system can suggest when a physician review may be appropriate,
-            helping users act sooner when elevated risk warrants medical attention.
-          </p>
-        </div>
-      </div>
-    </div>
-  </section>
-
-  <section class="py-16 px-4 bg-white border-t border-slate-100">
-    <div class="max-w-4xl mx-auto">
-      <h2 class="font-display text-3xl font-extrabold text-slate-900 mb-8 text-center">Ethics, Limitations, and Disclaimer</h2>
-
-      <div class="space-y-4">
-
-        <div class="bg-amber-50 border border-amber-200 rounded-2xl p-6 flex items-start gap-4">
-          <svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor" class="text-amber-500 shrink-0 mt-0.5">
-            <path fill-rule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clip-rule="evenodd"/>
-          </svg>
-          <div>
-            <h3 class="font-display font-bold text-amber-800 mb-2">Not a diagnostic tool</h3>
-            <p class="text-sm text-amber-700 leading-relaxed">
-              DiaBeates is a health screening aid built to demonstrate classification modeling on a
-              healthcare screening problem. It is not a certified or clinically validated medical
-              device. Risk levels shown are statistical estimates, not diagnoses. Results should never
-              replace evaluation by a licensed healthcare provider, and no treatment decision should be
-              made on this tool's output alone.
-            </p>
-          </div>
-        </div>
-
-        <div class="bg-slate-50 border border-slate-200 rounded-2xl p-6">
-          <h3 class="font-display font-bold text-slate-800 mb-2">Empirical Ground Truth from CDC Clinical Registries</h3>
-          <p class="text-sm text-slate-600 leading-relaxed">
-            In DiaBeates (Version 2.0-clinical), machine learning models are trained directly on authentic clinical endpoints from CDC National Health and Nutrition Examination Survey (NHANES) cohorts (physician-diagnosed CVD, KDIGO laboratory-confirmed CKD, and digital retinal photography grading) and the CDC BRFSS registry (functional mobility impairment). The clinical rule matrix operates as an independent, transparent guideline explanation layer and does not provide training labels, ensuring completely non-circular, empirical risk estimation.
-          </p>
-        </div>
-
-        <div class="bg-slate-50 border border-slate-200 rounded-2xl p-6">
-          <h3 class="font-display font-bold text-slate-800 mb-2">Dataset Scope &amp; Clinical Targets</h3>
-          <p class="text-sm text-slate-600 leading-relaxed">
-            Training data is curated from CDC NHANES (2017–2018, 2021–2023, 2007–2008) and CDC BRFSS diabetic cohorts. The optional point-of-care laboratory layer evaluates HbA1c against ADA 2026 Standards of Care (&lt;7.0% optimal), Systolic Blood Pressure against KDIGO 2024 / ADA targets (&lt;120 mmHg optimal), and LDL cholesterol against ADA 2026 primary prevention targets (&lt;70 mg/dL optimal for diabetes).
-          </p>
-        </div>
-
-        <div class="bg-slate-50 border border-slate-200 rounded-2xl p-6">
-          <h3 class="font-display font-bold text-slate-800 mb-2">Data handling</h3>
-          <h3 class="font-display font-bold text-slate-800 mb-2">Data Processing &amp; Local Storage</h3>
-          <p class="text-sm text-slate-600 leading-relaxed">
-            Assessments entered into this system are stored locally in the app's own database for
-            demonstration purposes (e.g. the History page). No real patient data, consent process, or
-            production-grade privacy safeguards are involved, this system is not intended for
-            deployment with real patient records without further ethical review and safeguards.
-            Assessments are processed by the local Flask application on this computer. If you choose to save an assessment, it is stored in the local encrypted database and associated with this browser session. Data is not sent to external clouds, remote APIs, third-party analytics, or remote fonts.
-          </p>
+        <div>
+          <h4 class="font-bold text-[#063154] mb-1">Key Literature Citations</h4>
+          <ol class="list-decimal list-inside space-y-1 text-xs text-[#4f5b66]">
+            <li>Arnett DK, et al. 2019 ACC/AHA Guideline on the Primary Prevention of Cardiovascular Disease. <em>Circulation</em>. 2019;140(11):e596-e646.</li>
+            <li>Kidney Disease: Improving Global Outcomes (KDIGO) Diabetes Work Group. KDIGO 2024 Clinical Practice Guideline for CKD. <em>Kidney Int</em>. 2024.</li>
+            <li>Herman WH, et al. Use of the Michigan Neuropathy Screening Instrument for screening diabetic neuropathy. <em>Diabetic Medicine</em>. 2012;29(7):937-944.</li>
+            <li>American Diabetes Association. 12. Retinopathy, Neuropathy, and Foot Care: Standards of Care in Diabetes—2026. <em>Diabetes Care</em>. 2026;49(Suppl 1):S202-S221.</li>
+          </ol>
         </div>
 
       </div>
-    </div>
-  </section>
+    </details>
+
+  </div>
+
+  <!-- Action CTA -->
+  <div class="text-center pt-2">
+    <a href="/assessment" class="btn-primary text-[20px] px-8 py-4 shadow-card" aria-label="Start Risk Assessment">
+      Start your check now
+      <span class="sr-only">Start Risk Assessment</span>
+    </a>
+  </div>
 
 </div>
 {% endblock %}
