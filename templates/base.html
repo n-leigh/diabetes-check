@@ -33,6 +33,9 @@
 
         <!-- Desktop Navigation: Plain Nouns (Check, History, About) -->
         <nav class="hidden md:flex items-center gap-8" aria-label="Main Navigation">
+          <a href="/" class="text-[19px] font-semibold transition-colors duration-150 py-1.5 {{ 'text-[#063154] border-b-2 border-[#0b7a85]' if active_page == 'home' else 'text-[#4f5b66] hover:text-[#063154]' }}">
+            Home
+          </a>
           <a href="/assessment" class="text-[19px] font-semibold transition-colors duration-150 py-1.5 {{ 'text-[#063154] border-b-2 border-[#0b7a85]' if active_page == 'assessment' else 'text-[#4f5b66] hover:text-[#063154]' }}">
             Check
           </a>
@@ -56,6 +59,7 @@
 
       <!-- Mobile Menu Dropdown -->
       <div id="mobileMenu" class="hidden md:hidden py-4 border-t border-[#e5dcce] space-y-3">
+        <a href="/" class="block px-4 py-3 text-[19px] font-semibold rounded-lg {{ 'bg-[#e6f4f5] text-[#063154]' if active_page == 'home' else 'text-[#4f5b66] hover:bg-[#f3e9d6]' }}">Home</a>
         <a href="/assessment" class="block px-4 py-3 text-[19px] font-semibold rounded-lg {{ 'bg-[#e6f4f5] text-[#063154]' if active_page == 'assessment' else 'text-[#4f5b66] hover:bg-[#f3e9d6]' }}">Check</a>
         <a href="/history" class="block px-4 py-3 text-[19px] font-semibold rounded-lg {{ 'bg-[#e6f4f5] text-[#063154]' if active_page == 'history' else 'text-[#4f5b66] hover:bg-[#f3e9d6]' }}">History</a>
         <a href="/about" class="block px-4 py-3 text-[19px] font-semibold rounded-lg {{ 'bg-[#e6f4f5] text-[#063154]' if active_page == 'about' else 'text-[#4f5b66] hover:bg-[#f3e9d6]' }}">About</a>
