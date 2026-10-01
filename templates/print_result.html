@@ -2,179 +2,183 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <title>DiaBeates Risk Summary — {{ created_at|display_time }} PHT</title>
+  <title>DiaBeates Health Summary — {{ created_at|display_time }} PHT</title>
+  <link rel="icon" type="image/svg+xml" href="{{ url_for('static', filename='logo.svg') }}">
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/clinical.css') }}">
   <link rel="stylesheet" href="{{ url_for('static', filename='css/print.css') }}">
 </head>
 <body>
 
+  <!-- Print action toolbar (hidden on paper) -->
   <div class="print-toolbar">
-    <span>This is your printable summary, use your browser's print dialog to print or save as PDF.</span>
-    <button id="printTriggerBtn" type="button">Print / Save as PDF</button>
+    <span>DiaBeates Clinical Risk Summary &mdash; Print or Save as PDF</span>
+    <button type="button" id="printTriggerBtn">Print / Save PDF</button>
   </div>
 
+  <!-- Header -->
   <div class="header">
     <div class="brand">
-      <img src="{{ url_for('static', filename='logo.png') }}" alt="DiaBeates logo">
-      <span class="brand-name">Dia<span class="accent">Beates</span></span>
+      <div class="w-8 h-8 rounded-full bg-[#e6f4f5] border border-[#0b7a85] flex items-center justify-center text-[#0b7a85] font-bold text-lg">
+        D
+      </div>
+      <div>
+        <div class="brand-title">DiaBeates</div>
+        <div class="text-[12px] text-[#4f5b66]">Health Screening Report</div>
+      </div>
     </div>
     <div class="meta">
-      {% if assessment_id %}
-      Assessment #{{ assessment_id }}<br>
-      {% else %}
-      In-Memory Assessment Summary<br>
-      {% endif %}
-      {{ created_at|display_time }} PHT
+      <div>Report ID: #{{ assessment_id if assessment_id else 'PREVIEW' }}</div>
+      <div>Date: {{ created_at|display_time }} PHT</div>
     </div>
   </div>
 
-  <h1 class="title">Diabetes Complication Risk Summary</h1>
-  <p class="subtitle">Generated from DiaBeates Dual-Engine Clinical Architecture (Rule Matrix-clinical: ACC/AHA, KDIGO 2024, MNSI) and calibrated machine learning models. Keep this for your own records or to share with a healthcare provider.</p>
+  <h1 class="title">Health Risk Summary for Your Doctor</h1>
+  <p class="subtitle">
+    Take this printed page to your next clinic visit. It summarizes self-reported health factors and screened complication risks.
+  </p>
 
+  <!-- Section 1: Risk Overview Table -->
   <section>
-    <h2 class="section-title">Information Provided</h2>
-    <div class="info-grid">
-      <div class="info-item"><div class="label">BMI</div><div class="value">{{ patient_display.BMI }}</div></div>
-      <div class="info-item"><div class="label">Age range</div><div class="value">{{ patient_display.Age }}</div></div>
-      <div class="info-item"><div class="label">Sex</div><div class="value">{{ patient_display.Sex }}</div></div>
-      <div class="info-item"><div class="label">General health</div><div class="value">{{ patient_display.GenHlth }}</div></div>
-      <div class="info-item"><div class="label">Poor physical health days</div><div class="value">{{ patient_display.PhysHlth }} / 30</div></div>
-      <div class="info-item"><div class="label">Poor mental health days</div><div class="value">{{ patient_display.MentHlth }} / 30</div></div>
-    </div>
-    {% if patient_display.risk_factors %}
-    <div class="risk-factors-list">
-      <div class="label-subdued">Reported risk factors</div>
-      {% for rf in patient_display.risk_factors %}<span>{{ rf }}</span>{% endfor %}
-    </div>
-    {% endif %}
-  </section>
-
-  <section>
-    <h2 class="section-title">Complication Risk Results</h2>
-    <div class="method-note">
-      <strong>How to read this table:</strong> The rule-matrix score is a points-based summary of reported factors.
-      The calibrated ML probability is an estimate from the named model and is not a diagnosis. These outputs use
-      different methods and should not be compared as if they were the same scale.
-    </div>
+    <h2 class="section-title">Complication Risk Projections</h2>
     <table class="risk-table">
       <thead>
-        <tr><th>Category</th><th>Rule-Matrix Result</th><th>Calibrated ML Result</th><th>Methods' Categories</th></tr>
+        <tr>
+          <th>Complication</th>
+          <th>Screening Status (Rule-Matrix Result)</th>
+          <th>Estimated Score</th>
+          <th>What to Discuss</th>
+        </tr>
       </thead>
       <tbody>
-        {% for cat in categories %}
-        {% set res = rule_results.get(cat) %}
-        {% if res %}
+        <!-- 1. Heart -->
+        {% set cv = rule_results.get('Cardiovascular', {}) %}
+        {% set cv_lbl = cv.get('label', 'Low') %}
         <tr>
-          <td class="cat-name">
-            {% if cat == 'cardiovascular' %}
-              Cardiovascular (ACC/AHA)
-            {% elif cat == 'general_burden' %}
-              Nephropathy &amp; Renal (KDIGO)
-            {% elif cat == 'neuropathy_mobility' %}
-              Neuropathy &amp; Mobility (MNSI)
-            {% else %}
-              Diabetic Retinopathy (ADA)
-            {% endif %}
+          <td class="font-semibold">Heart (Cardiovascular / ASCVD)</td>
+          <td class="{% if cv_lbl == 'Low' %}tag-low{% elif cv_lbl == 'Moderate' %}tag-mod{% else %}tag-high{% endif %}">
+            {{ cv_lbl }}
           </td>
-          <td>
-            <strong>{{ res.score }} pts</strong><br>
-            <span class="risk-subtext">{{ res.percentage }}% of rule maximum</span><br>
-            <span class="tier-badge tier-{{ res.label }}">Rule: {% if res.label == 'Low' %}Lower{% elif res.label == 'Moderate' %}Moderate{% else %}Higher{% endif %}</span>
-          </td>
-          <td>
-            {% set cal_qual = model_metadata.get(cat, {}).get('calibration_quality', 'fair') if model_metadata is defined else 'fair' %}
-            {% if model_confidences and model_confidences.get(cat) is not none %}
-              <strong>{{ model_confidences[cat] }}%</strong><br>
-              <span class="risk-subtext">Calibrated ML probability</span><br>
-            {% else %}
-              <strong>Not available</strong><br>
-            {% endif %}
-            <span class="risk-model-name">{{ model_names.get(cat, 'Model unavailable') }}</span>
-            {% if model_confidences and model_confidences.get(cat) is not none and cal_qual != 'weak' %}
-              <br><span class="risk-subtext-detail">Calibration: {{ cal_qual }}</span>
-            {% endif %}
-            {% if model_metadata is defined and model_metadata.get(cat) %}
-              {% set unc = model_metadata[cat].get('uncertainty_level', 'moderate') %}
-              <span class="risk-uncertainty">· Uncertainty: {{ unc }}</span>
-              {% if model_metadata[cat].model_status == 'experimental' %}
-              <span class="risk-experimental"> · Experimental</span>
-              {% endif %}
-            {% endif %}
-          </td>
-          <td>
-            <span class="tier-badge tier-{{ res.label }}">Rule: {% if res.label == 'Low' %}Lower{% elif res.label == 'Moderate' %}Moderate{% else %}Higher{% endif %}</span><br>
-            <span class="risk-model-name">ML: {{ model_results.get(cat, 'Not available') }}</span>
-          </td>
+          <td class="font-mono">{{ cv.get('percentage', 0) }}% ({{ cv.get('score', 0) }} pts)</td>
+          <td class="text-muted">Blood pressure checks, heart health, exercise habits.</td>
         </tr>
-        {% endif %}
-        {% endfor %}
+
+        <!-- 2. Kidneys -->
+        {% set neph = rule_results.get('Nephropathy', {}) %}
+        {% set neph_lbl = neph.get('label', 'Low') %}
+        <tr>
+          <td class="font-semibold">Kidneys (Nephropathy / CKD)</td>
+          <td class="{% if neph_lbl == 'Low' %}tag-low{% elif neph_lbl == 'Moderate' %}tag-mod{% else %}tag-high{% endif %}">
+            {{ neph_lbl }}
+          </td>
+          <td class="font-mono">{{ neph.get('percentage', 0) }}% ({{ neph.get('score', 0) }} pts)</td>
+          <td class="text-muted">Urine protein test (uACR) and kidney blood filtration (eGFR).</td>
+        </tr>
+
+        <!-- 3. Nerves and feet -->
+        {% set neuro = rule_results.get('Neuropathy_Mobility', {}) %}
+        {% set neuro_lbl = neuro.get('label', 'Low') %}
+        <tr>
+          <td class="font-semibold">Nerves &amp; feet (Neuropathy &amp; Mobility)</td>
+          <td class="{% if neuro_lbl == 'Low' %}tag-low{% elif neuro_lbl == 'Moderate' %}tag-mod{% else %}tag-high{% endif %}">
+            {{ neuro_lbl }}
+          </td>
+          <td class="font-mono">{{ neuro.get('percentage', 0) }}% ({{ neuro.get('score', 0) }} pts)</td>
+          <td class="text-muted">Foot sensory exam, checking for numbness, proper footwear.</td>
+        </tr>
+
+        <!-- 4. Eyes -->
+        {% set ret = rule_results.get('Retinopathy', {}) %}
+        {% set ret_lbl = ret.get('label', 'Low') %}
+        <tr>
+          <td class="font-semibold">Eyes (Diabetic Retinopathy (ADA))</td>
+          <td class="{% if ret_lbl == 'Low' %}tag-low{% elif ret_lbl == 'Moderate' %}tag-mod{% else %}tag-high{% endif %}">
+            {{ ret_lbl }}
+          </td>
+          <td class="font-mono">{{ ret.get('percentage', 0) }}% ({{ ret.get('score', 0) }} pts)</td>
+          <td class="text-muted">Dilated eye exam by an optometrist or ophthalmologist.</td>
+        </tr>
       </tbody>
     </table>
   </section>
 
-  {% if patient_drivers %}
+  <!-- Section 2: Patient Self-Reported Factors -->
   <section>
-    <h2 class="section-title">Key Clinical Risk Drivers (Individual Feature Attribution)</h2>
-    <div class="drivers-grid">
-      {% for cat in categories %}
-      <div class="driver-card">
-        <div class="driver-title">
-          {% if cat == 'cardiovascular' %}Cardiovascular{% elif cat == 'general_burden' %}Nephropathy{% elif cat == 'neuropathy_mobility' %}Neuropathy{% else %}Retinopathy{% endif %}
-        </div>
-        <ul class="driver-list">
-          {% for d in patient_drivers.get(cat, []) %}
-          <li class="driver-item"><strong>{{ d.factor }}</strong> ({{ d.impact }}): {{ d.detail }}</li>
-          {% endfor %}
-        </ul>
-      </div>
-      {% endfor %}
+    <h2 class="section-title">Self-Reported Health Profile</h2>
+    <div class="patient-info-grid">
+      <div><span class="patient-info-label">BMI:</span> <strong>{{ patient_display.BMI if patient_display else 'N/A' }}</strong></div>
+      <div><span class="patient-info-label">Age bracket:</span> <strong>{{ patient_display.Age if patient_display else 'N/A' }}</strong></div>
+      <div><span class="patient-info-label">Sex:</span> <strong>{{ patient_display.Sex if patient_display else 'N/A' }}</strong></div>
+      <div><span class="patient-info-label">Diabetes duration:</span> <strong>{{ patient_display.DiabetesDuration if patient_display else 'N/A' }}</strong></div>
+      <div><span class="patient-info-label">High blood pressure:</span> <strong>{{ patient_display.HighBP if patient_display else 'No' }}</strong></div>
+      <div><span class="patient-info-label">High cholesterol:</span> <strong>{{ patient_display.HighChol if patient_display else 'No' }}</strong></div>
+      <div><span class="patient-info-label">Smoker:</span> <strong>{{ patient_display.Smoker if patient_display else 'No' }}</strong></div>
+      <div><span class="patient-info-label">Walking difficulty:</span> <strong>{{ patient_display.DiffWalk if patient_display else 'No' }}</strong></div>
+      <div><span class="patient-info-label">General health:</span> <strong>{{ patient_display.GenHlth if patient_display else 'Good' }}</strong></div>
+      <div><span class="patient-info-label">Past heart trouble:</span> <strong>{{ patient_display.HeartDiseaseorAttack if patient_display else 'No' }}</strong></div>
+      <div><span class="patient-info-label">Past stroke:</span> <strong>{{ patient_display.Stroke if patient_display else 'No' }}</strong></div>
+      <div><span class="patient-info-label">Blurry vision:</span> <strong>{{ patient_display.BlurryVision if patient_display else 'No' }}</strong></div>
     </div>
+  </section>
+
+  <!-- Section 3: Lab Biomarkers (If entered) -->
+  {% if lab_assessment and lab_assessment.details %}
+  <section>
+    <h2 class="section-title">Laboratory Biomarkers (Optional)</h2>
+    <table class="risk-table">
+      <thead>
+        <tr>
+          <th>Test Name</th>
+          <th>Entered Value</th>
+          <th>Clinical Target</th>
+          <th>Status</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% if lab_assessment.details.get('hba1c') %}
+        <tr>
+          <td>HbA1c (Glycated Hemoglobin)</td>
+          <td class="font-mono">{{ lab_assessment.details.hba1c.value }}%</td>
+          <td>&lt; 7.0%</td>
+          <td>{{ lab_assessment.details.hba1c.label or 'Reported' }}</td>
+        </tr>
+        {% endif %}
+        {% if lab_assessment.details.get('systolic_bp') %}
+        <tr>
+          <td>Systolic Blood Pressure</td>
+          <td class="font-mono">{{ lab_assessment.details.systolic_bp.value }} mmHg</td>
+          <td>&lt; 130 mmHg</td>
+          <td>{{ lab_assessment.details.systolic_bp.label or 'Reported' }}</td>
+        </tr>
+        {% endif %}
+        {% if lab_assessment.details.get('ldl') %}
+        <tr>
+          <td>LDL Cholesterol</td>
+          <td class="font-mono">{{ lab_assessment.details.ldl.value }} mg/dL</td>
+          <td>&lt; 100 mg/dL</td>
+          <td>{{ lab_assessment.details.ldl.label or 'Reported' }}</td>
+        </tr>
+        {% endif %}
+      </tbody>
+    </table>
   </section>
   {% endif %}
 
-  {% if lab_assessment %}
+  <!-- Section 4: Recommended Questions for Clinic Visit -->
   <section>
-    <h2 class="section-title">Lab-Based Assessment (Point-of-Care Guidelines)</h2>
-    <div class="info-grid mb-10">
-      {% if lab_assessment.details.hba1c %}<div class="info-item"><div class="label">HbA1c</div><div class="value">{{ lab_assessment.details.hba1c.value }}%</div></div>{% endif %}
-      {% if lab_assessment.details.systolic_bp %}<div class="info-item"><div class="label">Systolic BP</div><div class="value">{{ lab_assessment.details.systolic_bp.value }} mmHg</div></div>{% endif %}
-      {% if lab_assessment.details.ldl %}<div class="info-item"><div class="label">LDL Cholesterol</div><div class="value">{{ lab_assessment.details.ldl.value }} mg/dL</div></div>{% endif %}
-    </div>
-    <span class="tier-badge tier-{{ lab_assessment.label }}">{{ lab_assessment.label }} Risk</span>
-  </section>
-  {% endif %}
-
-  <section>
-    <h2 class="section-title">Clinician Review Notes</h2>
-    <div class="review-grid">
-      <div class="review-field"><div class="label">Reviewed by</div></div>
-      <div class="review-field"><div class="label">Review date</div></div>
-      <div class="review-field"><div class="label">Follow-up or action discussed</div></div>
-      <div class="review-field"><div class="label">Next review date</div></div>
-    </div>
-    <div class="label-clinical-notes">Clinical notes</div>
-    <div class="review-notes" aria-label="Blank area for clinician review notes"></div>
+    <h2 class="section-title">Questions to Ask Your Doctor</h2>
+    <ol class="space-y-2 text-[14px] text-[#1f2a33] pl-5 list-decimal">
+      <li><strong>Heart:</strong> "Should I check my blood pressure more often at home or at the barangay health center?"</li>
+      <li><strong>Kidneys:</strong> "Is it time for a simple urine test (uACR) and blood test to check my kidney filtration?"</li>
+      <li><strong>Feet:</strong> "Can you check the feeling in my feet today with a monofilament test?"</li>
+      <li><strong>Eyes:</strong> "Do I need a referral for a dilated eye exam to check the back of my eyes?"</li>
+      <li><strong>Sugar targets:</strong> "What is my personal target for my 3-month sugar test (HbA1c)?"</li>
+    </ol>
   </section>
 
-  <section>
-    <h2 class="section-title">What You Can Do</h2>
-    {% for item in recommendations.steps %}
-    <div class="rec-item">
-      <div class="rec-title">{{ item.title }}</div>
-      <div class="rec-desc">{{ item.description }}</div>
-    </div>
-    {% endfor %}
-  </section>
-
-  <div class="disclaimer">
-    <strong>Health screening tool — not a medical diagnosis.</strong> This summary is generated for educational and preliminary screening
-    purposes. It estimates complication risk using statistical models trained on population health data (CDC NHANES and BRFSS
-    clinical cohorts) and evidence-aligned clinical rule scoring. The rule-based score and model estimate use different
-    methods and should not be compared directly. These results support screening and education, not diagnosis. A lower
-    estimate does not rule out disease, and a higher estimate does not confirm disease.
-    Please share this summary with a licensed healthcare provider for interpretation and any decisions about your care.
+  <!-- Disclaimer Footer -->
+  <div class="print-footer-notice">
+    <strong>Notice:</strong> DiaBeates is a clinical decision-support screening aid, not a diagnostic medical device. Projections are based on clinical guidelines (ADA 2026, KDIGO 2024, AAO) and calibrated machine-learning models. All results must be reviewed and interpreted by a licensed medical provider.
   </div>
-
-  <p class="footer-note">DiaBeates — Dual-engine diabetes complication risk screening tool.</p>
 
   <script src="{{ url_for('static', filename='js/print.js') }}"></script>
 </body>
