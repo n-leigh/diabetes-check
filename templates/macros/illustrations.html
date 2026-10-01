@@ -1,0 +1,154 @@
+{# templates/macros/illustrations.html #}
+
+{% macro icon_heart(size="w-24 h-24", color="text-[var(--coral)]") %}
+<svg class="{{ size }} {{ color }} flex-shrink-0" viewBox="0 0 96 96" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+  <!-- Aorta & vessels -->
+  <path d="M42 22V12C42 10.9 42.9 10 44 10H52C53.1 10 54 10.9 54 12V22" stroke="var(--navy)" stroke-width="2" stroke-linecap="round"/>
+  <path d="M48 10V6" stroke="var(--navy)" stroke-width="2" stroke-linecap="round"/>
+  <path d="M44 8H52" stroke="var(--navy)" stroke-width="2" stroke-linecap="round"/>
+  <path d="M34 26L30 16" stroke="var(--navy)" stroke-width="2" stroke-linecap="round"/>
+  <path d="M62 26L66 16" stroke="var(--navy)" stroke-width="2" stroke-linecap="round"/>
+  <!-- Heart body -->
+  <path d="M48 84C48 84 20 64 20 38C20 27 28 20 38 20C44 20 48 24 48 24C48 24 52 20 58 20C68 20 76 27 76 38C76 64 48 84 48 84Z" fill="#fde8e4" stroke="var(--coral)" stroke-width="2.5" stroke-linejoin="round"/>
+  <!-- Gentle ECG line across heart -->
+  <path d="M28 42H38L42 34L46 50L50 38L54 44H68" stroke="var(--navy)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+  <!-- Warm glow sparkle -->
+  <circle cx="64" cy="30" r="2" fill="var(--marigold)"/>
+</svg>
+{% endmacro %}
+
+{% macro icon_kidneys(size="w-24 h-24", color="text-[var(--marigold)]") %}
+<svg class="{{ size }} {{ color }} flex-shrink-0" viewBox="0 0 96 96" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+  <!-- Adrenal glands -->
+  <path d="M26 26C28 22 34 22 36 26" stroke="var(--navy)" stroke-width="2" stroke-linecap="round"/>
+  <path d="M60 26C62 22 68 22 70 26" stroke="var(--navy)" stroke-width="2" stroke-linecap="round"/>
+  <!-- Left kidney -->
+  <path d="M36 26C42 26 44 38 40 46C36 54 40 66 34 68C26 70 18 60 18 46C18 32 26 26 36 26Z" fill="#fbeed0" stroke="var(--marigold)" stroke-width="2.5" stroke-linejoin="round"/>
+  <!-- Right kidney -->
+  <path d="M60 26C54 26 52 38 56 46C60 54 56 66 62 68C70 70 78 60 78 46C78 32 70 26 60 26Z" fill="#fbeed0" stroke="var(--marigold)" stroke-width="2.5" stroke-linejoin="round"/>
+  <!-- Ureters meeting bladder -->
+  <path d="M38 48C42 54 44 68 46 80" stroke="var(--navy)" stroke-width="2" stroke-linecap="round"/>
+  <path d="M58 48C54 54 52 68 50 80" stroke="var(--navy)" stroke-width="2" stroke-linecap="round"/>
+  <path d="M42 80C42 84 54 84 54 80" stroke="var(--navy)" stroke-width="2" stroke-linecap="round"/>
+  <!-- Filter sparkles -->
+  <circle cx="28" cy="44" r="2" fill="var(--teal)"/>
+  <circle cx="68" cy="44" r="2" fill="var(--teal)"/>
+</svg>
+{% endmacro %}
+
+{% macro icon_foot(size="w-24 h-24", color="text-[var(--teal)]") %}
+<svg class="{{ size }} {{ color }} flex-shrink-0" viewBox="0 0 96 96" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+  <!-- Lower leg and foot contour -->
+  <path d="M32 12V38C32 46 26 56 22 62C18 68 20 74 26 76C32 78 46 76 56 76C68 76 74 74 80 68C84 64 84 58 78 54C72 50 64 54 56 50C48 46 46 38 46 26V12" fill="#e6f4f5" stroke="var(--teal)" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
+  <!-- Sensory & nerve vibration wave lines -->
+  <path d="M84 74C88 70 90 62 86 56" stroke="var(--marigold)" stroke-width="2" stroke-linecap="round"/>
+  <path d="M88 80C94 74 96 60 90 52" stroke="var(--marigold)" stroke-width="2" stroke-linecap="round"/>
+  <path d="M14 68C12 62 14 54 18 48" stroke="var(--navy)" stroke-width="2" stroke-linecap="round"/>
+  <path d="M10 74C6 64 8 50 14 42" stroke="var(--navy)" stroke-width="2" stroke-linecap="round"/>
+  <!-- Ground walking base -->
+  <path d="M20 84H78" stroke="var(--navy)" stroke-width="2" stroke-linecap="round"/>
+</svg>
+{% endmacro %}
+
+{% macro icon_eye(size="w-24 h-24", color="text-[var(--navy)]") %}
+<svg class="{{ size }} {{ color }} flex-shrink-0" viewBox="0 0 96 96" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+  <!-- Eye contour -->
+  <path d="M12 48C12 48 26 26 48 26C70 26 84 48 84 48C84 48 70 70 48 70C26 70 12 48 12 48Z" fill="#e6f4f5" stroke="var(--navy)" stroke-width="2.5" stroke-linejoin="round"/>
+  <!-- Iris -->
+  <circle cx="48" cy="48" r="16" fill="#ffffff" stroke="var(--teal)" stroke-width="2"/>
+  <!-- Pupil -->
+  <circle cx="48" cy="48" r="9" fill="var(--navy)"/>
+  <!-- Reflection highlight -->
+  <circle cx="51" cy="45" r="3" fill="#ffffff"/>
+  <!-- Vision rays -->
+  <path d="M48 16V10" stroke="var(--marigold)" stroke-width="2" stroke-linecap="round"/>
+  <path d="M68 22L73 17" stroke="var(--marigold)" stroke-width="2" stroke-linecap="round"/>
+  <path d="M28 22L23 17" stroke="var(--marigold)" stroke-width="2" stroke-linecap="round"/>
+</svg>
+{% endmacro %}
+
+{% macro icon_water(size="w-24 h-24", color="text-[var(--teal)]") %}
+<svg class="{{ size }} {{ color }} flex-shrink-0" viewBox="0 0 96 96" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+  <!-- Glass body -->
+  <path d="M26 18H70L62 82C62 85 59 88 55 88H41C37 88 34 85 34 82L26 18Z" fill="#e6f4f5" stroke="var(--teal)" stroke-width="2.5" stroke-linejoin="round"/>
+  <!-- Water level wave -->
+  <path d="M28 36C34 33 42 39 48 36C54 33 62 39 68 36" stroke="var(--navy)" stroke-width="2" stroke-linecap="round"/>
+  <!-- Lemon slice on rim -->
+  <path d="M64 12C68 8 76 8 80 12C84 16 84 24 80 28L68 24L64 12Z" fill="#fbeed0" stroke="var(--marigold)" stroke-width="2" stroke-linejoin="round"/>
+  <!-- Refreshing bubbles -->
+  <circle cx="42" cy="54" r="3" fill="var(--teal)" stroke="var(--navy)" stroke-width="1.5"/>
+  <circle cx="52" cy="66" r="2" fill="var(--teal)"/>
+  <circle cx="46" cy="72" r="2.5" fill="var(--teal)"/>
+</svg>
+{% endmacro %}
+
+{% macro icon_shoe(size="w-24 h-24", color="text-[var(--marigold)]") %}
+<svg class="{{ size }} {{ color }} flex-shrink-0" viewBox="0 0 96 96" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+  <!-- Walking Sneaker -->
+  <path d="M18 52L26 34C28 30 32 28 36 28H44L48 40L68 44C76 45 82 50 84 58V72H16V62C16 58 17 54 18 52Z" fill="#fbeed0" stroke="var(--navy)" stroke-width="2.5" stroke-linejoin="round"/>
+  <!-- Sole cushion -->
+  <path d="M12 72H86V78C86 81 83 84 80 84H18C15 84 12 81 12 78V72Z" fill="#e4f2e7" stroke="var(--status-good-text)" stroke-width="2"/>
+  <!-- Laces -->
+  <path d="M38 34H44" stroke="var(--navy)" stroke-width="2" stroke-linecap="round"/>
+  <path d="M40 40H48" stroke="var(--navy)" stroke-width="2" stroke-linecap="round"/>
+  <path d="M44 46H52" stroke="var(--navy)" stroke-width="2" stroke-linecap="round"/>
+  <!-- Motion breeze dashes -->
+  <path d="M8 44H2" stroke="var(--teal)" stroke-width="2" stroke-linecap="round"/>
+  <path d="M10 52H4" stroke="var(--teal)" stroke-width="2" stroke-linecap="round"/>
+</svg>
+{% endmacro %}
+
+{% macro icon_plate(size="w-24 h-24", color="text-[var(--status-good-text)]") %}
+<svg class="{{ size }} {{ color }} flex-shrink-0" viewBox="0 0 96 96" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+  <!-- Plate rim -->
+  <circle cx="48" cy="48" r="40" fill="#ffffff" stroke="var(--navy)" stroke-width="2.5"/>
+  <circle cx="48" cy="48" r="32" fill="#e4f2e7" stroke="var(--status-good-text)" stroke-width="1.5" stroke-dasharray="3 3"/>
+  <!-- Leafy greens / pechay / kangkong -->
+  <path d="M32 46C30 38 36 32 42 34C48 36 46 44 40 48C36 50 32 48 32 46Z" fill="#2f7d4a" stroke="var(--navy)" stroke-width="1.5"/>
+  <path d="M40 38L34 46" stroke="#ffffff" stroke-width="1.5" stroke-linecap="round"/>
+  <!-- Healthy grilled fish / protein -->
+  <path d="M50 36C58 34 68 40 66 48C64 54 54 58 48 54L44 50C46 44 48 38 50 36Z" fill="#fbeed0" stroke="var(--marigold)" stroke-width="1.5"/>
+  <!-- Small rice portion bowl -->
+  <circle cx="44" cy="62" r="10" fill="#ffffff" stroke="var(--navy)" stroke-width="2"/>
+  <circle cx="44" cy="62" r="7" fill="#fbf6ec"/>
+</svg>
+{% endmacro %}
+
+{% macro icon_doctor(size="w-24 h-24", color="text-[var(--teal)]") %}
+<svg class="{{ size }} {{ color }} flex-shrink-0" viewBox="0 0 96 96" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+  <!-- Head & Hair -->
+  <circle cx="48" cy="30" r="14" fill="#fbeed0" stroke="var(--navy)" stroke-width="2"/>
+  <path d="M34 26C34 18 42 16 48 16C54 16 62 18 62 26C56 22 40 22 34 26Z" fill="var(--navy)"/>
+  <!-- Friendly smiling eyes and mouth -->
+  <circle cx="43" cy="29" r="1.5" fill="var(--navy)"/>
+  <circle cx="53" cy="29" r="1.5" fill="var(--navy)"/>
+  <path d="M44 35C46 37 50 37 52 35" stroke="var(--navy)" stroke-width="1.5" stroke-linecap="round"/>
+  <!-- Shoulders & Coat -->
+  <path d="M22 80V68C22 56 32 50 48 50C64 50 74 56 74 68V80" fill="#e6f4f5" stroke="var(--navy)" stroke-width="2.5" stroke-linejoin="round"/>
+  <!-- Stethoscope -->
+  <path d="M38 50V62C38 68 44 72 48 72C52 72 58 68 58 62V50" stroke="var(--teal)" stroke-width="2.5" stroke-linecap="round"/>
+  <circle cx="48" cy="74" r="4" fill="var(--marigold)" stroke="var(--navy)" stroke-width="1.5"/>
+</svg>
+{% endmacro %}
+
+{% macro icon_companion(size="w-24 h-24", color="text-[var(--marigold)]") %}
+<svg class="{{ size }} {{ color }} flex-shrink-0" viewBox="0 0 96 96" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+  <!-- Friendly smiling rounded body -->
+  <rect x="22" y="24" width="52" height="52" rx="26" fill="#fbeed0" stroke="var(--navy)" stroke-width="2.5"/>
+  <!-- Eyes -->
+  <circle cx="38" cy="44" r="3" fill="var(--navy)"/>
+  <circle cx="58" cy="44" r="3" fill="var(--navy)"/>
+  <!-- Rosy cheeks -->
+  <circle cx="32" cy="50" r="3" fill="var(--coral)" opacity="0.6"/>
+  <circle cx="64" cy="50" r="3" fill="var(--coral)" opacity="0.6"/>
+  <!-- Warm happy smile -->
+  <path d="M42 54C44 58 52 58 54 54" stroke="var(--navy)" stroke-width="2" stroke-linecap="round"/>
+  <!-- Waving arm -->
+  <path d="M74 48C80 44 86 36 84 30C82 26 78 28 76 34" stroke="var(--navy)" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
+  <!-- Little feet -->
+  <path d="M36 76V84" stroke="var(--navy)" stroke-width="2.5" stroke-linecap="round"/>
+  <path d="M60 76V84" stroke="var(--navy)" stroke-width="2.5" stroke-linecap="round"/>
+  <!-- Sparkles -->
+  <path d="M20 20L22 16L24 20L28 22L24 24L22 28L20 24L16 22L20 20Z" fill="var(--marigold)"/>
+</svg>
+{% endmacro %}
