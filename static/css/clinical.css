@@ -456,8 +456,12 @@ dialog {
   max-width: 90vw;
 }
 
+dialog[open] {
+  display: block;
+}
+
 dialog::backdrop {
-  background-color: rgba(31, 42, 51, 0.45);
+  background-color: rgba(6, 49, 84, 0.6);
 }
 
 /* Reduced Motion Override */

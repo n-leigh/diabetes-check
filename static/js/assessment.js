@@ -192,18 +192,28 @@ document.addEventListener('DOMContentLoaded', () => {
     const targetBmiInput = document.getElementById('BMI');
     const onPageCat = document.getElementById('onPageBmiCategory');
 
+    const heightLabel = document.getElementById('bmiHeightLabel');
+
     function updateHeightInputs() {
       if (!heightUnit) return;
       const usesFtIn = heightUnit.value === 'ftin';
       if (cmHeightGroup) cmHeightGroup.classList.toggle('hidden', usesFtIn);
       if (feetInchesGroup) feetInchesGroup.classList.toggle('hidden', !usesFtIn);
+      if (heightLabel) heightLabel.setAttribute('for', usesFtIn ? 'bmiHeightFt' : 'bmiHeightCm');
       updateCalculation();
       if (usesFtIn && heightFt) heightFt.focus();
       else if (heightCm) heightCm.focus();
     }
 
+    function updateWeightUnit() {
+      if (weightUnit && weight) {
+        weight.placeholder = weightUnit.value === 'lbs' ? 'e.g. 154' : 'e.g. 70';
+      }
+      updateCalculation();
+    }
+
     if (heightUnit) heightUnit.addEventListener('change', updateHeightInputs);
-    if (weightUnit) weightUnit.addEventListener('change', updateCalculation);
+    if (weightUnit) weightUnit.addEventListener('change', updateWeightUnit);
 
     function calculateBmi() {
       if (!heightUnit || !weightUnit || !weight) return null;
