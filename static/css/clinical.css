@@ -146,6 +146,26 @@ textarea {
   transition: border-color 150ms ease-out, box-shadow 150ms ease-out;
 }
 
+select {
+  appearance: none;
+  -webkit-appearance: none;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 24 24' stroke='%23063154' stroke-width='2.5'%3E%3Cpath stroke-linecap='round' stroke-linejoin='round' d='M19 9l-7 7-7-7'%3E%3C/path%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 14px center;
+  background-size: 18px 18px;
+  padding-right: 44px;
+  cursor: pointer;
+}
+
+input[type="range"] {
+  min-height: auto;
+  padding: 0;
+  border: none;
+  background-color: #e5dcce;
+  border-radius: 9999px;
+  height: 8px;
+}
+
 input[type="text"]:focus,
 input[type="number"]:focus,
 input[type="email"]:focus,
@@ -377,19 +397,52 @@ details.technical-details .technical-content {
   border-radius: 12px;
   padding: 16px;
   display: flex;
-  align-items: flex-start;
+  align-items: center;
   gap: 14px;
-  transition: border-color 150ms ease-out, background-color 150ms ease-out;
-  min-height: 80px;
+  transition: border-color 150ms ease-out, background-color 150ms ease-out, box-shadow 150ms ease-out;
+  min-height: 84px;
 }
 
 .choice-tile:hover {
   border-color: #c7bcab;
+  background-color: #fdfbf7;
+}
+
+.choice-tile:focus-within {
+  outline: 2px solid var(--teal) !important;
+  outline-offset: 2px !important;
 }
 
 .choice-tile.is-selected {
   border-color: var(--teal);
   background-color: var(--teal-light);
+}
+
+.choice-tile.is-selected .check-indicator {
+  background-color: var(--teal) !important;
+  border-color: var(--teal) !important;
+}
+
+.choice-tile.is-selected .check-indicator svg.check-icon,
+.choice-tile.is-selected .check-indicator .check-icon {
+  color: #ffffff !important;
+  stroke: #ffffff !important;
+}
+
+/* Category Badge when not empty */
+#onPageBmiCategory:empty {
+  display: none;
+}
+
+#onPageBmiCategory:not(:empty) {
+  display: inline-flex;
+  align-items: center;
+  padding: 4px 12px;
+  border-radius: 9999px;
+  font-size: 15px;
+  font-weight: 700;
+  background-color: var(--teal-light);
+  border: 1px solid #bce0c6;
 }
 
 /* Dialog & Modal */

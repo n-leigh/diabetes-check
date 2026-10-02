@@ -2,6 +2,7 @@
 {% from "macros/illustrations.html" import icon_heart, icon_kidneys, icon_foot, icon_eye, icon_doctor, icon_companion %}
 
 {% block title %}DiaBeates - Check Your Health Risks in 3 Minutes{% endblock %}
+{% set active_page = 'home' %}
 
 {% block content %}
 <div class="flex flex-col">
@@ -11,9 +12,29 @@
     <div class="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8">
       <div class="grid grid-cols-1 md:grid-cols-12 gap-10 md:gap-12 items-center">
         
-        <!-- Mobile-first Image (shown first on mobile, right on desktop) -->
-        <div class="md:col-span-5 md:order-2">
-          <div class="relative">
+        <!-- Headline & CTA (Top on mobile, left on desktop) -->
+        <div class="md:col-span-7 space-y-6 text-center md:text-left">
+          <h1 class="font-heading text-4xl sm:text-5xl md:text-6xl font-bold text-[#063154] tracking-tight leading-[1.1]">
+            Check your health risks in 3 minutes.
+          </h1>
+          <p class="text-[20px] text-[#4f5b66] leading-relaxed max-w-lg mx-auto md:mx-0">
+            Free health screening aid. No name or email needed.
+          </p>
+          <div class="pt-2 flex justify-center md:justify-start">
+            <a href="/assessment" class="btn-primary text-[20px] px-8 py-4 shadow-card w-full sm:w-auto" aria-label="Start Risk Assessment">
+              Start check
+              <span class="sr-only">Start Risk Assessment</span>
+              <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" aria-hidden="true">
+                <line x1="5" y1="12" x2="19" y2="12"></line>
+                <polyline points="12 5 19 12 12 19"></polyline>
+              </svg>
+            </a>
+          </div>
+        </div>
+
+        <!-- Family Hero Image (Below CTA on mobile, right on desktop) -->
+        <div class="md:col-span-5">
+          <div class="relative max-w-md mx-auto md:max-w-none">
             <img 
               src="{{ url_for('static', filename='img/filipino_family_hero.webp') }}" 
               alt="Warm Filipino family smiling together at home" 
@@ -25,32 +46,12 @@
           </div>
         </div>
 
-        <!-- Headline & CTA -->
-        <div class="md:col-span-7 md:order-1 space-y-6">
-          <h1 class="font-heading text-4xl sm:text-5xl md:text-6xl font-bold text-[#063154] tracking-tight leading-[1.1]">
-            Check your health risks in 3 minutes.
-          </h1>
-          <p class="text-[20px] text-[#4f5b66] leading-relaxed max-w-lg">
-            Free health screening aid. No name or email needed.
-          </p>
-          <div class="pt-2">
-            <a href="/assessment" class="btn-primary text-[20px] px-8 py-4 shadow-card" aria-label="Start Risk Assessment">
-              Start check
-              <span class="sr-only">Start Risk Assessment</span>
-              <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" aria-hidden="true">
-                <line x1="5" y1="12" x2="19" y2="12"></line>
-                <polyline points="12 5 19 12 12 19"></polyline>
-              </svg>
-            </a>
-          </div>
-        </div>
-
       </div>
     </div>
   </section>
 
   <!-- 2. How It Works (Sand background band) -->
-  <section class="py-14 sm:py-18 bg-[#f3e9d6] border-y border-[#e5dcce]">
+  <section class="py-12 sm:py-16 bg-[#f3e9d6] border-y border-[#e5dcce]">
     <div class="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8">
       <div class="text-center max-w-2xl mx-auto mb-10">
         <h2 class="font-heading text-3xl sm:text-4xl font-bold text-[#063154]">
@@ -62,7 +63,7 @@
         <!-- Step 1 -->
         <div class="health-card p-6 flex flex-col items-center text-center">
           <div class="mb-4">
-            {{ icon_companion("w-20 h-20") }}
+            {{ icon_companion("w-16 h-16 sm:w-20 sm:h-20") }}
           </div>
           <span class="inline-block px-3 py-1 bg-[#fbeed0] text-[#a86a0a] text-[15px] font-bold rounded-full mb-3">Step 1</span>
           <h3 class="font-heading text-xl font-bold text-[#063154] mb-2">Answer 15 easy questions</h3>
@@ -74,7 +75,7 @@
         <!-- Step 2 -->
         <div class="health-card p-6 flex flex-col items-center text-center">
           <div class="mb-4">
-            {{ icon_heart("w-20 h-20") }}
+            {{ icon_heart("w-16 h-16 sm:w-20 sm:h-20") }}
           </div>
           <span class="inline-block px-3 py-1 bg-[#fbeed0] text-[#a86a0a] text-[15px] font-bold rounded-full mb-3">Step 2</span>
           <h3 class="font-heading text-xl font-bold text-[#063154] mb-2">See your results</h3>
@@ -86,7 +87,7 @@
         <!-- Step 3 -->
         <div class="health-card p-6 flex flex-col items-center text-center">
           <div class="mb-4">
-            {{ icon_doctor("w-20 h-20") }}
+            {{ icon_doctor("w-16 h-16 sm:w-20 sm:h-20") }}
           </div>
           <span class="inline-block px-3 py-1 bg-[#fbeed0] text-[#a86a0a] text-[15px] font-bold rounded-full mb-3">Step 3</span>
           <h3 class="font-heading text-xl font-bold text-[#063154] mb-2">Know what to ask your doctor</h3>
@@ -99,7 +100,7 @@
   </section>
 
   <!-- 3. What We Check (Cream background band) -->
-  <section class="py-14 sm:py-18 bg-[#fbf6ec]">
+  <section class="py-12 sm:py-16 bg-[#fbf6ec]">
     <div class="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8">
       <div class="text-center max-w-2xl mx-auto mb-10">
         <h2 class="font-heading text-3xl sm:text-4xl font-bold text-[#063154]">
@@ -112,46 +113,46 @@
 
       <div class="grid grid-cols-1 sm:grid-cols-2 gap-6">
         <!-- Tile 1: Heart -->
-        <div class="health-card p-6 sm:p-8 flex items-center gap-6">
+        <div class="health-card p-6 sm:p-7 flex items-center gap-5">
           <div class="flex-shrink-0">
-            {{ icon_heart("w-24 h-24") }}
+            {{ icon_heart("w-16 h-16 sm:w-20 sm:h-20") }}
           </div>
-          <div>
+          <div class="min-w-0 flex-1">
             <h3 class="font-heading text-2xl font-bold text-[#063154] mb-1">Heart</h3>
-            <p class="text-[18px] text-[#4f5b66] leading-snug">Can high sugar harm your heart? We check.</p>
+            <p class="text-[17px] sm:text-[18px] text-[#4f5b66] leading-snug">Can high sugar harm your heart? We check.</p>
           </div>
         </div>
 
         <!-- Tile 2: Kidneys -->
-        <div class="health-card p-6 sm:p-8 flex items-center gap-6">
+        <div class="health-card p-6 sm:p-7 flex items-center gap-5">
           <div class="flex-shrink-0">
-            {{ icon_kidneys("w-24 h-24") }}
+            {{ icon_kidneys("w-16 h-16 sm:w-20 sm:h-20") }}
           </div>
-          <div>
+          <div class="min-w-0 flex-1">
             <h3 class="font-heading text-2xl font-bold text-[#063154] mb-1">Kidneys</h3>
-            <p class="text-[18px] text-[#4f5b66] leading-snug">How well are your kidneys filtering? We check.</p>
+            <p class="text-[17px] sm:text-[18px] text-[#4f5b66] leading-snug">How well are your kidneys filtering? We check.</p>
           </div>
         </div>
 
         <!-- Tile 3: Nerves and feet -->
-        <div class="health-card p-6 sm:p-8 flex items-center gap-6">
+        <div class="health-card p-6 sm:p-7 flex items-center gap-5">
           <div class="flex-shrink-0">
-            {{ icon_foot("w-24 h-24") }}
+            {{ icon_foot("w-16 h-16 sm:w-20 sm:h-20") }}
           </div>
-          <div>
+          <div class="min-w-0 flex-1">
             <h3 class="font-heading text-2xl font-bold text-[#063154] mb-1">Nerves and feet</h3>
-            <p class="text-[18px] text-[#4f5b66] leading-snug">Is numbness or foot pain slowing you down? We check.</p>
+            <p class="text-[17px] sm:text-[18px] text-[#4f5b66] leading-snug">Is numbness or foot pain slowing you down? We check.</p>
           </div>
         </div>
 
         <!-- Tile 4: Eyes -->
-        <div class="health-card p-6 sm:p-8 flex items-center gap-6">
+        <div class="health-card p-6 sm:p-7 flex items-center gap-5">
           <div class="flex-shrink-0">
-            {{ icon_eye("w-24 h-24") }}
+            {{ icon_eye("w-16 h-16 sm:w-20 sm:h-20") }}
           </div>
-          <div>
+          <div class="min-w-0 flex-1">
             <h3 class="font-heading text-2xl font-bold text-[#063154] mb-1">Eyes</h3>
-            <p class="text-[18px] text-[#4f5b66] leading-snug">Is your vision staying clear? We check.</p>
+            <p class="text-[17px] sm:text-[18px] text-[#4f5b66] leading-snug">Is your vision staying clear? We check.</p>
           </div>
         </div>
       </div>
@@ -159,7 +160,7 @@
   </section>
 
   <!-- 4. Video & Reassurance Band (Sand background band) -->
-  <section class="py-14 sm:py-18 bg-[#f3e9d6] border-t border-[#e5dcce]">
+  <section class="py-12 sm:py-16 bg-[#f3e9d6] border-t border-[#e5dcce]">
     <div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
       
       <!-- Privacy Reassurance Message -->

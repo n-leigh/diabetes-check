@@ -126,15 +126,15 @@
             </div>
 
             <!-- BMI Input Field with On-Page Category Indicator -->
-            <div class="flex flex-wrap items-center gap-3 mt-4">
-              <div class="w-full sm:w-56">
+            <div class="flex flex-col sm:flex-row sm:items-center gap-3 mt-4">
+              <div class="relative flex items-center w-full sm:w-64">
                 <input type="number" step="0.1" min="10" max="80" name="BMI" id="BMI"
                        value="{{ form_data.get('BMI', '') if form_data else '' }}"
                        placeholder="e.g. 24.5"
-                       class="w-full font-mono text-xl font-bold" required>
+                       class="w-full font-mono text-xl font-bold pr-16" required>
+                <span class="absolute right-3.5 text-[15px] font-mono font-semibold text-[#4f5b66] pointer-events-none">kg/m²</span>
               </div>
-              <span class="text-[17px] font-mono text-[#4f5b66]">kg/m²</span>
-              <span id="onPageBmiCategory" class="text-[16px] font-bold text-[#0b7a85]"></span>
+              <span id="onPageBmiCategory"></span>
             </div>
             <p class="text-[14px] text-[#4f5b66] mt-2">
               If you know your BMI, type it above. Otherwise, tap <strong>"Don't know your BMI?"</strong> to calculate it from your height and weight.
@@ -461,6 +461,20 @@
             </div>
           </div>
 
+        <!-- History Storage Option -->
+        <div class="mt-6 p-4 rounded-xl bg-[#fbf6ec] border border-[#e5dcce]">
+          <label class="flex items-start gap-3 cursor-pointer">
+            <input type="checkbox" id="save_history" name="save_history" value="1"
+                   class="mt-1 w-5 h-5 rounded accent-[#0b7a85] shrink-0 cursor-pointer">
+            <div class="min-w-0 flex-1">
+              <span class="block text-[17px] font-bold text-[#063154]">
+                Save check to history
+              </span>
+              <p class="text-[14px] text-[#4f5b66] mt-0.5 leading-snug">
+                Saves this check in this browser so you can view it on the History page. If unchecked, your answers are processed without creating database records.
+              </p>
+            </div>
+          </label>
         </div>
 
         <!-- Step 3 Navigation Buttons (Back & Submit) -->
@@ -481,7 +495,7 @@
   </form>
 
   <!-- Interactive BMI Calculator Modal -->
-  <dialog id="bmiModal" aria-labelledby="bmiModalTitle" aria-modal="true" class="rounded-2xl p-0 border border-[#e5dcce] shadow-2xl bg-[#ffffff] max-w-md w-[calc(100%-2rem)] fixed inset-0 m-auto backdrop:bg-[#063154]/60 z-50">
+  <dialog id="bmiModal" aria-labelledby="bmiModalTitle" aria-modal="true" class="rounded-2xl p-0 border border-[#e5dcce] shadow-2xl bg-[#ffffff] max-w-md w-[calc(100%-2rem)] max-h-[90vh] overflow-y-auto fixed inset-0 m-auto backdrop:bg-[#063154]/60 z-50">
     <div class="p-6 sm:p-7">
       <div class="flex items-center justify-between pb-3 border-b border-[#e5dcce] mb-4">
         <div class="flex items-center gap-2.5">

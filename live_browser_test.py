@@ -61,7 +61,8 @@ def run_live_browser_test():
         "BlurryVision": "1",
         "LabHbA1c": "7.6",     # 7.6% (suboptimal)
         "LabSystolicBP": "138",# 138 mmHg (elevated)
-        "LabLDL": "120"        # 120 mg/dL (borderline)
+        "LabLDL": "120",       # 120 mg/dL (borderline)
+        "save_history": "1"
     }
 
     data_encoded = urllib.parse.urlencode(patient_payload).encode("utf-8")
