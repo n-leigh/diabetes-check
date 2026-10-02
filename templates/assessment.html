@@ -505,59 +505,46 @@
         Enter your height and weight. We will calculate your Body Mass Index (BMI).
       </p>
 
-      <!-- Unit switch tabs -->
-      <div class="flex p-1 bg-[#f3e9d6] rounded-xl mb-4" role="tablist" aria-label="Measurement units">
-        <button type="button" role="tab" id="tabMetric" aria-selected="true" aria-controls="panelMetric"
-                class="flex-1 py-2 px-3 rounded-lg text-[15px] font-bold transition-all bg-[#ffffff] text-[#0b7a85] shadow-sm cursor-pointer">
-          Metric (cm / kg)
-        </button>
-        <button type="button" role="tab" id="tabImperial" aria-selected="false" aria-controls="panelImperial"
-                class="flex-1 py-2 px-3 rounded-lg text-[15px] font-bold transition-all text-[#4f5b66] hover:text-[#063154] cursor-pointer">
-          Imperial (ft, in / lbs)
-        </button>
-      </div>
-
-      <!-- Metric Panel -->
-      <div id="panelMetric" role="tabpanel" aria-labelledby="tabMetric" class="space-y-4">
+      <!-- Independent unit options -->
+      <div class="space-y-4">
         <div>
-          <label for="bmiMetricHeight" class="block text-[15px] font-bold text-[#063154] mb-1">Height (cm)</label>
-          <input type="number" id="bmiMetricHeight" min="50" max="250" step="0.5" placeholder="e.g. 165"
-                 class="w-full font-mono text-[17px]">
+          <label for="bmiHeightUnit" class="block text-[15px] font-bold text-[#063154] mb-1">Height unit</label>
+          <select id="bmiHeightUnit" class="w-full">
+            <option value="cm">Centimeters (cm)</option>
+            <option value="ftin">Feet and inches (ft / in)</option>
+          </select>
         </div>
-        <div>
-          <label for="bmiMetricWeight" class="block text-[15px] font-bold text-[#063154] mb-1">Weight (kg)</label>
-          <input type="number" id="bmiMetricWeight" min="20" max="300" step="0.5" placeholder="e.g. 65"
-                 class="w-full font-mono text-[17px]">
-        </div>
-      </div>
 
-      <!-- Imperial Panel -->
-      <div id="panelImperial" role="tabpanel" aria-labelledby="tabImperial" class="space-y-4 hidden">
-        <div>
-          <label class="block text-[15px] font-bold text-[#063154] mb-1">Height</label>
+        <div id="bmiCmHeightGroup">
+          <label for="bmiHeightCm" class="block text-[15px] font-bold text-[#063154] mb-1">Height (cm)</label>
+          <input type="number" id="bmiHeightCm" min="50" max="250" step="0.1" placeholder="e.g. 175" class="w-full font-mono">
+        </div>
+
+        <div id="bmiFeetInchesGroup" class="hidden">
+          <span class="block text-[15px] font-bold text-[#063154] mb-1">Height</span>
           <div class="grid grid-cols-2 gap-2">
             <div>
-              <label for="bmiImpFt" class="sr-only">Feet</label>
-              <div class="flex items-center gap-1">
-                <input type="number" id="bmiImpFt" min="1" max="8" step="1" placeholder="5"
-                       class="w-full font-mono text-[17px]">
-                <span class="text-[14px] text-[#4f5b66]">ft</span>
-              </div>
+              <label for="bmiHeightFt" class="sr-only">Height feet</label>
+              <input type="number" id="bmiHeightFt" min="1" max="8" placeholder="feet" class="w-full font-mono">
             </div>
             <div>
-              <label for="bmiImpIn" class="sr-only">Inches</label>
-              <div class="flex items-center gap-1">
-                <input type="number" id="bmiImpIn" min="0" max="11" step="0.5" placeholder="6"
-                       class="w-full font-mono text-[17px]">
-                <span class="text-[14px] text-[#4f5b66]">in</span>
-              </div>
+              <label for="bmiHeightIn" class="sr-only">Height inches</label>
+              <input type="number" id="bmiHeightIn" min="0" max="11" step="0.5" placeholder="inches" class="w-full font-mono">
             </div>
           </div>
         </div>
+
         <div>
-          <label for="bmiImpLbs" class="block text-[15px] font-bold text-[#063154] mb-1">Weight (lbs)</label>
-          <input type="number" id="bmiImpLbs" min="40" max="600" step="0.5" placeholder="e.g. 145"
-                 class="w-full font-mono text-[17px]">
+          <label for="bmiWeightUnit" class="block text-[15px] font-bold text-[#063154] mb-1">Weight unit</label>
+          <select id="bmiWeightUnit" class="w-full">
+            <option value="kg">Kilograms (kg)</option>
+            <option value="lbs">Pounds (lbs)</option>
+          </select>
+        </div>
+
+        <div>
+          <label for="bmiWeight" class="block text-[15px] font-bold text-[#063154] mb-1">Weight</label>
+          <input type="number" id="bmiWeight" min="20" max="400" step="0.1" placeholder="e.g. 70" class="w-full font-mono">
         </div>
       </div>
 

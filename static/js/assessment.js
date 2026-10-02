@@ -175,16 +175,14 @@ document.addEventListener('DOMContentLoaded', () => {
     const cancelBtn = document.getElementById('cancelBmiBtn');
     const applyBtn = document.getElementById('applyBmiBtn');
 
-    const tabMetric = document.getElementById('tabMetric');
-    const tabImperial = document.getElementById('tabImperial');
-    const panelMetric = document.getElementById('panelMetric');
-    const panelImperial = document.getElementById('panelImperial');
-
-    const metricHeight = document.getElementById('bmiMetricHeight');
-    const metricWeight = document.getElementById('bmiMetricWeight');
-    const impFt = document.getElementById('bmiImpFt');
-    const impIn = document.getElementById('bmiImpIn');
-    const impLbs = document.getElementById('bmiImpLbs');
+    const heightUnit = document.getElementById('bmiHeightUnit');
+    const weightUnit = document.getElementById('bmiWeightUnit');
+    const cmHeightGroup = document.getElementById('bmiCmHeightGroup');
+    const feetInchesGroup = document.getElementById('bmiFeetInchesGroup');
+    const heightCm = document.getElementById('bmiHeightCm');
+    const heightFt = document.getElementById('bmiHeightFt');
+    const heightIn = document.getElementById('bmiHeightIn');
+    const weight = document.getElementById('bmiWeight');
 
     const previewBox = document.getElementById('bmiPreviewBox');
     const previewNum = document.getElementById('bmiPreviewNum');
@@ -194,51 +192,38 @@ document.addEventListener('DOMContentLoaded', () => {
     const targetBmiInput = document.getElementById('BMI');
     const onPageCat = document.getElementById('onPageBmiCategory');
 
-    let currentUnit = 'metric';
-
-    function setTab(unit) {
-      currentUnit = unit;
-      if (!tabMetric || !tabImperial || !panelMetric || !panelImperial) return;
-      if (unit === 'metric') {
-        tabMetric.setAttribute('aria-selected', 'true');
-        tabMetric.className = 'flex-1 py-2 px-3 rounded-lg text-[15px] font-bold transition-all bg-[#ffffff] text-[#0b7a85] shadow-sm cursor-pointer';
-        tabImperial.setAttribute('aria-selected', 'false');
-        tabImperial.className = 'flex-1 py-2 px-3 rounded-lg text-[15px] font-bold transition-all text-[#4f5b66] hover:text-[#063154] cursor-pointer';
-        panelMetric.classList.remove('hidden');
-        panelImperial.classList.add('hidden');
-        if (metricHeight) metricHeight.focus();
-      } else {
-        tabImperial.setAttribute('aria-selected', 'true');
-        tabImperial.className = 'flex-1 py-2 px-3 rounded-lg text-[15px] font-bold transition-all bg-[#ffffff] text-[#0b7a85] shadow-sm cursor-pointer';
-        tabMetric.setAttribute('aria-selected', 'false');
-        tabMetric.className = 'flex-1 py-2 px-3 rounded-lg text-[15px] font-bold transition-all text-[#4f5b66] hover:text-[#063154] cursor-pointer';
-        panelImperial.classList.remove('hidden');
-        panelMetric.classList.add('hidden');
-        if (impFt) impFt.focus();
-      }
+    function updateHeightInputs() {
+      if (!heightUnit) return;
+      const usesFtIn = heightUnit.value === 'ftin';
+      if (cmHeightGroup) cmHeightGroup.classList.toggle('hidden', usesFtIn);
+      if (feetInchesGroup) feetInchesGroup.classList.toggle('hidden', !usesFtIn);
       updateCalculation();
+      if (usesFtIn && heightFt) heightFt.focus();
+      else if (heightCm) heightCm.focus();
     }
 
-    if (tabMetric) tabMetric.addEventListener('click', () => setTab('metric'));
-    if (tabImperial) tabImperial.addEventListener('click', () => setTab('imperial'));
+    if (heightUnit) heightUnit.addEventListener('change', updateHeightInputs);
+    if (weightUnit) weightUnit.addEventListener('change', updateCalculation);
 
     function calculateBmi() {
-      if (currentUnit === 'metric') {
-        const h = parseFloat(metricHeight ? metricHeight.value : 0);
-        const w = parseFloat(metricWeight ? metricWeight.value : 0);
-        if (!h || h <= 0 || !w || w <= 0) return null;
-        const hm = h / 100;
-        return w / (hm * hm);
+      if (!heightUnit || !weightUnit || !weight) return null;
+      let heightMeters;
+      if (heightUnit.value === 'cm') {
+        const cm = parseFloat(heightCm ? heightCm.value : 0);
+        if (!cm || cm <= 0) return null;
+        heightMeters = cm / 100;
       } else {
-        const ft = parseFloat(impFt ? impFt.value : 0) || 0;
-        const inches = parseFloat(impIn ? impIn.value : 0) || 0;
+        const ft = parseFloat(heightFt ? heightFt.value : 0) || 0;
+        const inches = parseFloat(heightIn ? heightIn.value : 0) || 0;
         const totalIn = ft * 12 + inches;
-        const lbs = parseFloat(impLbs ? impLbs.value : 0);
-        if (totalIn <= 0 || !lbs || lbs <= 0) return null;
-        const hm = totalIn * 0.0254;
-        const wkg = lbs * 0.45359237;
-        return wkg / (hm * hm);
+        if (totalIn <= 0) return null;
+        heightMeters = totalIn * 0.0254;
       }
+
+      const rawWeight = parseFloat(weight.value);
+      if (!rawWeight || rawWeight <= 0) return null;
+      const weightKg = weightUnit.value === 'lbs' ? rawWeight * 0.45359237 : rawWeight;
+      return weightKg / (heightMeters * heightMeters);
     }
 
     function getBmiCategory(bmi) {
@@ -267,7 +252,7 @@ document.addEventListener('DOMContentLoaded', () => {
       }
     }
 
-    [metricHeight, metricWeight, impFt, impIn, impLbs].forEach(input => {
+    [heightCm, heightFt, heightIn, weight].forEach(input => {
       if (input) {
         input.addEventListener('input', updateCalculation);
       }
@@ -281,10 +266,10 @@ document.addEventListener('DOMContentLoaded', () => {
         modal.setAttribute('open', '');
       }
       updateCalculation();
-      if (currentUnit === 'metric' && metricHeight) {
-        metricHeight.focus();
-      } else if (impFt) {
-        impFt.focus();
+      if (heightUnit && heightUnit.value === 'cm' && heightCm) {
+        heightCm.focus();
+      } else if (heightFt) {
+        heightFt.focus();
       }
     }
 
