@@ -30,6 +30,20 @@
     {% endif %}
   </div>
 
+  {% if not assessment_id and not viewing_past %}
+  <div class="bg-[#fbf6ec] border border-[#e5dcce] rounded-card p-4 mb-6 flex items-start gap-3">
+    <div class="w-8 h-8 rounded-lg bg-[#f3e9d6] text-[#0b7a85] flex items-center justify-center shrink-0 mt-0.5">
+      <svg width="20" height="20" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+        <path stroke-linecap="round" stroke-linejoin="round" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+      </svg>
+    </div>
+    <div class="text-[15px] text-[#4f5b66] leading-relaxed">
+      <strong class="block text-[16px] text-[#063154] mb-0.5">Unsaved In-Memory Assessment</strong>
+      This assessment was processed by your local Flask application without creating database records. You can print these results or save them as PDF for your records.
+    </div>
+  </div>
+  {% endif %}
+
   <!-- 1. Top Plain-Language Summary Banner -->
   {% set good_count = namespace(value=0) %}
   {% set check_count = namespace(value=0) %}
