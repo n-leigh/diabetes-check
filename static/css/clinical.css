@@ -445,6 +445,38 @@ details.technical-details .technical-content {
   border: 1px solid #bce0c6;
 }
 
+/* Input with inline unit suffix (e.g. ft, in inside input field) */
+.input-unit-wrapper {
+  position: relative;
+  display: flex;
+  align-items: center;
+  width: 100%;
+}
+
+.input-unit-wrapper input[type="number"] {
+  padding-right: 36px !important;
+  -moz-appearance: textfield;
+}
+
+.input-unit-wrapper input[type="number"]::-webkit-inner-spin-button,
+.input-unit-wrapper input[type="number"]::-webkit-outer-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
+}
+
+.input-unit-suffix {
+  position: absolute;
+  right: 12px;
+  top: 50%;
+  transform: translateY(-50%);
+  font-size: 14px;
+  font-weight: 700;
+  color: var(--ink-muted);
+  pointer-events: none;
+  user-select: none;
+  line-height: 1;
+}
+
 /* Dialog & Modal */
 dialog {
   border: 1px solid var(--border-cream);
