@@ -54,6 +54,22 @@ document.addEventListener('DOMContentLoaded', () => {
     }
   }
 
+  function clearResolvedBmiServerError() {
+    const bmi = document.getElementById('BMI');
+    const bmiError = document.getElementById('serverBmiError');
+    const serverAlert = document.getElementById('serverValidationAlert');
+    const serverErrors = document.getElementById('serverValidationErrors');
+    if (!bmi || !bmiError || !serverAlert || !serverErrors) return;
+
+    const value = parseFloat(bmi.value);
+    if (!Number.isFinite(value) || value < 10 || value > 80) return;
+
+    bmiError.remove();
+    if (!serverErrors.querySelector('li')) {
+      serverAlert.remove();
+    }
+  }
+
   function nextStep(fromStep) {
     const alertBox = document.getElementById('stepAlert');
     if (alertBox) {
@@ -87,6 +103,7 @@ document.addEventListener('DOMContentLoaded', () => {
         if (genHlth) genHlth.focus();
         return;
       }
+      clearResolvedBmiServerError();
       goToStep(2);
     }
   }
@@ -351,6 +368,8 @@ document.addEventListener('DOMContentLoaded', () => {
     if (targetBmiInput) {
       targetBmiInput.addEventListener('input', updateOnPageCategory);
       targetBmiInput.addEventListener('change', updateOnPageCategory);
+      targetBmiInput.addEventListener('input', clearResolvedBmiServerError);
+      targetBmiInput.addEventListener('change', clearResolvedBmiServerError);
       updateOnPageCategory();
     }
 

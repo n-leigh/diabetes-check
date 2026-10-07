@@ -34,11 +34,11 @@
 
   <!-- Error Alert Summary -->
   {% if errors %}
-  <div role="alert" aria-live="assertive" class="mb-8 bg-[#f9e1dc] border-2 border-[#f1b8af] rounded-card p-5 text-[18px] text-[#b03a2e]">
+  <div id="serverValidationAlert" role="alert" aria-live="assertive" class="mb-8 bg-[#f9e1dc] border-2 border-[#f1b8af] rounded-card p-5 text-[18px] text-[#b03a2e]">
     <div class="font-bold mb-1">Please check these items before proceeding:</div>
-    <ul class="list-disc list-inside space-y-1 text-[16px]">
+    <ul id="serverValidationErrors" class="list-disc list-inside space-y-1 text-[16px]">
       {% for e in errors %}
-      <li>{{ e }}</li>
+      <li{% if e.startswith('Please enter your BMI') %} id="serverBmiError"{% endif %}>{{ e }}</li>
       {% endfor %}
     </ul>
   </div>
