@@ -1,0 +1,56 @@
+{% extends "base.html" %}
+{% from "macros/illustrations.html" import icon_heart, icon_kidneys, icon_foot, icon_eye, icon_companion %}
+{% block title %}DiaBeates - Progress{% endblock %}
+{% set active_page = 'history' %}
+{% block content %}
+<section class="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-10 sm:py-14">
+  <div class="flex flex-col sm:flex-row sm:items-end sm:justify-between gap-4 mb-8">
+    <div>
+      <p class="text-[15px] font-bold uppercase tracking-wide text-[#0b7a85]">Your history</p>
+      <h1 class="font-heading text-3xl sm:text-4xl md:text-5xl font-bold text-[#014c5e]">Progress over time</h1>
+      <p class="text-[18px] text-[#4f5b66] mt-2">See how your check results change.</p>
+    </div>
+    <a href="/history" class="btn-secondary text-[17px]">Back to history</a>
+  </div>
+
+  {% if check_count < 2 %}
+  <div class="health-card p-8 sm:p-12 text-center max-w-2xl mx-auto">
+    <div class="flex justify-center mb-4">{{ icon_companion("w-24 h-24") }}</div>
+    <h2 class="font-heading text-2xl sm:text-3xl font-bold text-[#014c5e]">Keep checking to see progress</h2>
+    <p class="text-[18px] text-[#4f5b66] mt-3">You need at least two saved checks.</p>
+    <a href="/assessment" class="btn-primary inline-flex mt-6 text-[18px]">Do a new check</a>
+  </div>
+  {% else %}
+  <div class="space-y-6">
+    {% for item in progress %}
+    <article class="health-card p-5 sm:p-7">
+      <div class="flex items-center gap-4 border-b border-[#b8dce5] pb-4 mb-5">
+        {% if item.category == 'cardiovascular' %}{{ icon_heart("w-14 h-14") }}
+        {% elif item.category == 'general_burden' %}{{ icon_kidneys("w-14 h-14") }}
+        {% elif item.category == 'neuropathy_mobility' %}{{ icon_foot("w-14 h-14") }}
+        {% else %}{{ icon_eye("w-14 h-14") }}{% endif %}
+        <h2 class="font-heading text-2xl font-bold text-[#014c5e]">{{ item.title }}</h2>
+      </div>
+      {% if item.sentence %}<p class="text-[18px] text-[#1f2a33] mb-5">{{ item.sentence }}</p>{% endif %}
+      {% if item.entries %}
+      <ol class="flex items-start gap-2 overflow-x-auto pb-2" aria-label="{{ item.title }} results over time">
+        {% for entry in item.entries %}
+        <li class="min-w-[110px] flex-1">
+          {% if not loop.first %}<div class="h-0.5 bg-[#b8dce5] relative top-5 -ml-2 -mr-2" aria-hidden="true"></div>{% endif %}
+          <div class="relative">
+            <div class="w-10 h-10 rounded-full border-2 {{ entry.status.background_class }} {{ entry.status.border_class }} {{ entry.status.text_class }} flex items-center justify-center font-bold mx-auto" aria-label="{{ entry.status.label }}">{{ entry.status.icon }}</div>
+            <p class="text-center text-[15px] font-bold {{ entry.status.text_class }} mt-2">{{ entry.status.label }}</p>
+            <p class="text-center text-[14px] text-[#4f5b66]">{{ entry.date|display_time }}</p>
+          </div>
+        </li>
+        {% endfor %}
+      </ol>
+      {% else %}
+      <p class="text-[17px] text-[#4f5b66]">No result recorded yet.</p>
+      {% endif %}
+    </article>
+    {% endfor %}
+  </div>
+  {% endif %}
+</section>
+{% endblock %}

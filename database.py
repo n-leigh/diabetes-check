@@ -23,6 +23,7 @@ Migrations are additive and preserve existing assessment data.
 """
 
 import json
+import hashlib
 import os
 import ctypes
 import getpass
@@ -35,6 +36,7 @@ from datetime import datetime, timedelta, timezone
 from ctypes import wintypes
 
 import sqlcipher3
+from werkzeug.security import generate_password_hash
 
 from rule_matrix import compute_lab_assessment
 
@@ -42,7 +44,7 @@ DB_PATH = os.path.join(os.path.dirname(os.path.abspath(__file__)), "diabetes_sys
 KEY_PATH = os.path.join(os.path.dirname(os.path.abspath(__file__)), ".db.key")
 PROTECTED_KEY_PATH = os.path.join(os.path.dirname(os.path.abspath(__file__)), ".db.key.dpapi")
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
-SCHEMA_VERSION = 4
+SCHEMA_VERSION = 5
 _KEY_ENVIRONMENT_VARIABLE = "DIABEATES_DB_KEY"
 
 
@@ -290,6 +292,7 @@ def init_db():
         CREATE TABLE IF NOT EXISTS assessments (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
             session_id TEXT NOT NULL,
+            user_id INTEGER REFERENCES users(id) ON DELETE CASCADE,
             created_at TEXT NOT NULL,
             rule_matrix_version TEXT NOT NULL,
             archived INTEGER NOT NULL DEFAULT 0,
@@ -303,6 +306,8 @@ def init_db():
 
     # Safe schema migration for existing sqlite database
     existing_cols = [r[1] for r in conn.execute("PRAGMA table_info(assessments)").fetchall()]
+    if "user_id" not in existing_cols:
+        conn.execute("ALTER TABLE assessments ADD COLUMN user_id INTEGER REFERENCES users(id) ON DELETE CASCADE")
     if "diabetes_duration" not in existing_cols:
         conn.execute("ALTER TABLE assessments ADD COLUMN diabetes_duration INTEGER DEFAULT 0")
     if "blurry_vision" not in existing_cols:
@@ -324,32 +329,82 @@ def init_db():
             label TEXT, percentage INTEGER
         )
     """)
+    conn.execute("""
+        CREATE TABLE IF NOT EXISTS feedback (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            assessment_id INTEGER NOT NULL REFERENCES assessments(id),
+            helpful INTEGER NOT NULL,
+            comment TEXT,
+            created_at TEXT NOT NULL
+        )
+    """)
+    conn.execute("""
+        CREATE TABLE IF NOT EXISTS users (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            email TEXT UNIQUE NOT NULL,
+            password_hash TEXT NOT NULL,
+            display_name TEXT NOT NULL,
+            role TEXT NOT NULL DEFAULT 'user' CHECK (role IN ('user', 'admin')),
+            is_active INTEGER NOT NULL DEFAULT 1,
+            created_at TEXT NOT NULL,
+            last_login_at TEXT,
+            failed_attempts INTEGER NOT NULL DEFAULT 0,
+            locked_until TEXT,
+            consent_at TEXT NOT NULL,
+            consent_version TEXT NOT NULL
+        )
+    """)
+    conn.execute("""
+        CREATE TABLE IF NOT EXISTS password_reset_tokens (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            user_id INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+            token_hash TEXT NOT NULL,
+            expires_at TEXT NOT NULL,
+            used_at TEXT
+        )
+    """)
+    conn.execute("""
+        CREATE TABLE IF NOT EXISTS audit_log (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            actor_user_id INTEGER REFERENCES users(id) ON DELETE SET NULL,
+            action TEXT NOT NULL,
+            target TEXT,
+            ip TEXT,
+            created_at TEXT NOT NULL
+        )
+    """)
     conn.execute("CREATE INDEX IF NOT EXISTS idx_assessments_session_archived_id ON assessments(session_id, archived, id)")
     conn.execute("CREATE INDEX IF NOT EXISTS idx_assessments_created_at ON assessments(created_at)")
     conn.execute("CREATE INDEX IF NOT EXISTS idx_risk_results_assessment_id ON risk_results(assessment_id)")
     conn.execute("CREATE INDEX IF NOT EXISTS idx_lab_assessments_assessment_id ON lab_assessments(assessment_id)")
+    conn.execute("CREATE INDEX IF NOT EXISTS idx_users_email ON users(email)")
+    conn.execute("CREATE INDEX IF NOT EXISTS idx_assessments_user_archived_id ON assessments(user_id, archived, id)")
+    conn.execute("CREATE INDEX IF NOT EXISTS idx_password_reset_tokens_hash ON password_reset_tokens(token_hash)")
+    conn.execute("CREATE INDEX IF NOT EXISTS idx_audit_log_created_at ON audit_log(created_at)")
     conn.execute(f"PRAGMA user_version = {SCHEMA_VERSION}")
     conn.commit()
     conn.close()
+    prune_audit_logs()
     restrict_database_permissions()
 
 
 def save_assessment(session_id: str, patient: dict, rule_results: dict,
                      model_results: dict, lab_assessment: dict = None,
                      model_confidences: dict = None, model_names: dict = None,
-                     rule_version: str = "1.0") -> int:
+                     rule_version: str = "1.0", user_id: int = None) -> int:
     model_confidences = model_confidences or {}
     model_names = model_names or {}
     conn = get_connection()
     try:
         cur = conn.execute(
             """INSERT INTO assessments
-           (session_id, created_at, rule_matrix_version, bmi, age_band, gen_hlth, sex,
+         (session_id, user_id, created_at, rule_matrix_version, bmi, age_band, gen_hlth, sex,
             phys_hlth, ment_hlth, high_bp, high_chol, smoker, heart_disease, stroke,
             diff_walk, no_doc_cost, diabetes_duration, blurry_vision)
-           VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)""",
+         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)""",
             (
                 session_id,
+             user_id,
                 datetime.now(timezone.utc).isoformat(timespec="seconds"),
                 rule_version,
                 patient.get("BMI"), patient.get("Age"), patient.get("GenHlth"), patient.get("Sex"),
@@ -454,23 +509,30 @@ def _reconstruct(conn, row) -> dict:
     }
 
 
-def get_all_assessments(session_id: str, limit: int = 200, archived: bool = False, sort_order: str = "desc"):
+def get_all_assessments(session_id: str, limit: int = 200, archived: bool = False,
+                        sort_order: str = "desc", user_id: int = None):
     """archived=False (default) returns active records; archived=True
     returns only archived ones. The two views are always mutually
     exclusive so nothing is silently duplicated or hidden between them.
     sort_order can be 'asc' (oldest first) or 'desc' (newest first)."""
     conn = get_connection()
     direction = "ASC" if str(sort_order).strip().lower() == "asc" else "DESC"
+    if user_id is None:
+        ownership_sql = "session_id = ? AND user_id IS NULL"
+        ownership_params = (session_id,)
+    else:
+        ownership_sql = "user_id = ?"
+        ownership_params = (user_id,)
     rows = conn.execute(
-        f"SELECT * FROM assessments WHERE session_id = ? AND archived = ? ORDER BY id {direction} LIMIT ?",
-        (session_id, int(archived), limit),
+        f"SELECT * FROM assessments WHERE {ownership_sql} AND archived = ? ORDER BY id {direction} LIMIT ?",
+        (*ownership_params, int(archived), limit),
     ).fetchall()
     result = [_reconstruct(conn, r) for r in rows]
     conn.close()
     return result
 
 
-def get_assessment(assessment_id: int, session_id: str = None):
+def get_assessment(assessment_id: int, session_id: str = None, user_id: int = None):
     """If session_id is given, only returns the record when it belongs to
     that session — callers use this to prevent one visitor from viewing
     or printing another visitor's assessment by guessing/incrementing IDs."""
@@ -479,7 +541,13 @@ def get_assessment(assessment_id: int, session_id: str = None):
     if not row:
         conn.close()
         return None
-    if session_id is not None and row["session_id"] != session_id:
+    owns_record = (
+        user_id is not None and row["user_id"] == user_id
+    ) or (
+        user_id is None and session_id is not None
+        and row["session_id"] == session_id and row["user_id"] is None
+    ) or (user_id is None and session_id is None)
+    if not owns_record:
         conn.close()
         return None
     result = _reconstruct(conn, row)
@@ -487,11 +555,16 @@ def get_assessment(assessment_id: int, session_id: str = None):
     return result
 
 
-def set_archived(assessment_id: int, session_id: str, archived: bool) -> bool:
+def set_archived(assessment_id: int, session_id: str, archived: bool, user_id: int = None) -> bool:
     """Returns True if a record belonging to this session was updated."""
     conn = get_connection()
-    row = conn.execute("SELECT session_id FROM assessments WHERE id = ?", (assessment_id,)).fetchone()
-    if not row or row["session_id"] != session_id:
+    row = conn.execute("SELECT session_id, user_id FROM assessments WHERE id = ?", (assessment_id,)).fetchone()
+    owns_record = (
+        user_id is not None and row and row["user_id"] == user_id
+    ) or (
+        user_id is None and row and row["session_id"] == session_id and row["user_id"] is None
+    )
+    if not owns_record:
         conn.close()
         return False
     conn.execute("UPDATE assessments SET archived = ? WHERE id = ?", (int(archived), assessment_id))
@@ -500,20 +573,271 @@ def set_archived(assessment_id: int, session_id: str, archived: bool) -> bool:
     return True
 
 
+def create_user(email: str, password: str, display_name: str,
+                consent_at: str = None, consent_version: str = "1.0",
+                role: str = "user") -> int:
+    """Create an account and return its id."""
+    normalized_email = email.strip().lower()
+    consent_at = consent_at or datetime.now(timezone.utc).isoformat(timespec="seconds")
+    conn = get_connection()
+    try:
+        cur = conn.execute(
+            """INSERT INTO users
+               (email, password_hash, display_name, role, created_at, consent_at, consent_version)
+               VALUES (?, ?, ?, ?, ?, ?, ?)""",
+            (
+                normalized_email,
+                generate_password_hash(password, method="scrypt"),
+                display_name,
+                role,
+                datetime.now(timezone.utc).isoformat(timespec="seconds"),
+                consent_at,
+                consent_version,
+            ),
+        )
+        conn.commit()
+        return cur.lastrowid
+    except Exception:
+        conn.rollback()
+        raise
+    finally:
+        conn.close()
+
+
+def get_user_by_email(email: str):
+    conn = get_connection()
+    try:
+        row = conn.execute("SELECT * FROM users WHERE email = ?", (email.strip().lower(),)).fetchone()
+        return dict(row) if row else None
+    finally:
+        conn.close()
+
+
+def get_user_by_id(user_id: int):
+    conn = get_connection()
+    try:
+        row = conn.execute("SELECT * FROM users WHERE id = ?", (user_id,)).fetchone()
+        return dict(row) if row else None
+    finally:
+        conn.close()
+
+
+def create_password_reset_token(user_id: int, token_hash: str, expires_at: str) -> None:
+    conn = get_connection()
+    try:
+        conn.execute(
+            "UPDATE password_reset_tokens SET used_at = ? WHERE user_id = ? AND used_at IS NULL",
+            (datetime.now(timezone.utc).isoformat(timespec="seconds"), user_id),
+        )
+        conn.execute(
+            """INSERT INTO password_reset_tokens (user_id, token_hash, expires_at)
+               VALUES (?, ?, ?)""",
+            (user_id, token_hash, expires_at),
+        )
+        conn.commit()
+    except Exception:
+        conn.rollback()
+        raise
+    finally:
+        conn.close()
+
+
+def get_valid_password_reset_token(token_hash: str):
+    conn = get_connection()
+    try:
+        row = conn.execute(
+            """SELECT * FROM password_reset_tokens
+               WHERE token_hash = ? AND used_at IS NULL""",
+            (token_hash,),
+        ).fetchone()
+        if not row:
+            return None
+        expires_at = datetime.fromisoformat(row["expires_at"])
+        if expires_at <= datetime.now(timezone.utc):
+            return None
+        return dict(row)
+    finally:
+        conn.close()
+
+
+def complete_password_reset(token_id: int, user_id: int, password: str) -> None:
+    conn = get_connection()
+    try:
+        conn.execute(
+            "UPDATE users SET password_hash = ?, failed_attempts = 0, locked_until = NULL WHERE id = ?",
+            (generate_password_hash(password, method="scrypt"), user_id),
+        )
+        conn.execute(
+            "UPDATE password_reset_tokens SET used_at = ? WHERE id = ? AND used_at IS NULL",
+            (datetime.now(timezone.utc).isoformat(timespec="seconds"), token_id),
+        )
+        conn.commit()
+    except Exception:
+        conn.rollback()
+        raise
+    finally:
+        conn.close()
+
+
+def update_password(user_id: int, password: str) -> None:
+    conn = get_connection()
+    try:
+        conn.execute(
+            "UPDATE users SET password_hash = ?, failed_attempts = 0, locked_until = NULL WHERE id = ?",
+            (generate_password_hash(password, method="scrypt"), user_id),
+        )
+        conn.commit()
+    except Exception:
+        conn.rollback()
+        raise
+    finally:
+        conn.close()
+
+
+def record_login_success(user_id: int) -> None:
+    conn = get_connection()
+    try:
+        conn.execute(
+            "UPDATE users SET last_login_at = ?, failed_attempts = 0, locked_until = NULL WHERE id = ?",
+            (datetime.now(timezone.utc).isoformat(timespec="seconds"), user_id),
+        )
+        conn.commit()
+    except Exception:
+        conn.rollback()
+        raise
+    finally:
+        conn.close()
+
+
+def set_lock(user_id: int, failed_attempts: int, locked_until: str = None) -> None:
+    conn = get_connection()
+    try:
+        conn.execute(
+            "UPDATE users SET failed_attempts = ?, locked_until = ? WHERE id = ?",
+            (failed_attempts, locked_until, user_id),
+        )
+        conn.commit()
+    except Exception:
+        conn.rollback()
+        raise
+    finally:
+        conn.close()
+
+
+def log_audit(action: str, target: str = None, actor_user_id: int = None, ip: str = None) -> None:
+    conn = get_connection()
+    try:
+        conn.execute(
+            """INSERT INTO audit_log (actor_user_id, action, target, ip, created_at)
+               VALUES (?, ?, ?, ?, ?)""",
+            (actor_user_id, action, target, ip, datetime.now(timezone.utc).isoformat(timespec="seconds")),
+        )
+        conn.commit()
+    except Exception:
+        conn.rollback()
+        raise
+    finally:
+        conn.close()
+
+
+def prune_audit_logs(days: int = 90) -> int:
+    if days < 1:
+        raise ValueError("Audit retention period must be at least one day")
+    cutoff = (datetime.now(timezone.utc) - timedelta(days=days)).isoformat(timespec="seconds")
+    conn = get_connection()
+    try:
+        cur = conn.execute("DELETE FROM audit_log WHERE created_at < ?", (cutoff,))
+        conn.commit()
+        return cur.rowcount
+    finally:
+        conn.close()
+
+
+def _delete_assessments_with_connection(conn, where_clause: str, params) -> int:
+    assessment_ids = conn.execute(
+        f"SELECT id FROM assessments WHERE {where_clause}", params
+    ).fetchall()
+    if not assessment_ids:
+        return 0
+    conn.execute(f"DELETE FROM feedback WHERE assessment_id IN (SELECT id FROM assessments WHERE {where_clause})", params)
+    conn.execute(f"DELETE FROM lab_assessments WHERE assessment_id IN (SELECT id FROM assessments WHERE {where_clause})", params)
+    conn.execute(f"DELETE FROM risk_results WHERE assessment_id IN (SELECT id FROM assessments WHERE {where_clause})", params)
+    cur = conn.execute(f"DELETE FROM assessments WHERE {where_clause}", params)
+    return cur.rowcount
+
+
+def delete_assessments(where_clause: str, params=()) -> int:
+    """Atomically delete assessments and every child record selected by the clause."""
+    conn = get_connection()
+    try:
+        deleted_count = _delete_assessments_with_connection(conn, where_clause, params)
+        conn.commit()
+        return deleted_count
+    except Exception:
+        conn.rollback()
+        raise
+    finally:
+        conn.close()
+
+
+def delete_user_account(user_id: int) -> None:
+    conn = get_connection()
+    try:
+        _delete_assessments_with_connection(conn, "user_id = ?", (user_id,))
+        conn.execute("DELETE FROM password_reset_tokens WHERE user_id = ?", (user_id,))
+        conn.execute("DELETE FROM users WHERE id = ?", (user_id,))
+        conn.commit()
+    except Exception:
+        conn.rollback()
+        raise
+    finally:
+        conn.close()
+
+
 def delete_assessment(assessment_id: int, session_id: str) -> bool:
     """Permanently deletes an assessment and everything referencing it.
     Returns True if a record belonging to this session was deleted."""
     conn = get_connection()
-    row = conn.execute("SELECT session_id FROM assessments WHERE id = ?", (assessment_id,)).fetchone()
-    if not row or row["session_id"] != session_id:
+    row = conn.execute("SELECT session_id, user_id FROM assessments WHERE id = ?", (assessment_id,)).fetchone()
+    if not row or row["session_id"] != session_id or row["user_id"] is not None:
         conn.close()
         return False
-    conn.execute("DELETE FROM lab_assessments WHERE assessment_id = ?", (assessment_id,))
-    conn.execute("DELETE FROM risk_results WHERE assessment_id = ?", (assessment_id,))
-    conn.execute("DELETE FROM assessments WHERE id = ?", (assessment_id,))
-    conn.commit()
     conn.close()
-    return True
+    return delete_assessments("id = ? AND session_id = ?", (assessment_id, session_id)) > 0
+
+
+def delete_owned_assessment(assessment_id: int, user_id: int) -> bool:
+    return delete_assessments("id = ? AND user_id = ?", (assessment_id, user_id)) > 0
+
+
+def get_unclaimed_assessments(session_id: str, limit: int = 200):
+    conn = get_connection()
+    try:
+        rows = conn.execute(
+            """SELECT id, created_at FROM assessments
+               WHERE session_id = ? AND user_id IS NULL
+               ORDER BY created_at ASC LIMIT ?""",
+            (session_id, limit),
+        ).fetchall()
+        return [dict(row) for row in rows]
+    finally:
+        conn.close()
+
+
+def claim_assessments(session_id: str, user_id: int) -> int:
+    conn = get_connection()
+    try:
+        cur = conn.execute(
+            "UPDATE assessments SET user_id = ? WHERE session_id = ? AND user_id IS NULL",
+            (user_id, session_id),
+        )
+        conn.commit()
+        return cur.rowcount
+    except Exception:
+        conn.rollback()
+        raise
+    finally:
+        conn.close()
 
 
 def prune_expired_assessments(days: int = 90) -> int:
@@ -524,20 +848,14 @@ def prune_expired_assessments(days: int = 90) -> int:
         raise ValueError("Retention period must be at least one day")
     cutoff = (datetime.now(timezone.utc) - timedelta(days=days)).isoformat(timespec="seconds")
     conn = get_connection()
-    rows = conn.execute(
-        "SELECT id FROM assessments WHERE created_at < ?",
-        (cutoff,)
-    ).fetchall()
-    if not rows:
+    try:
+        deleted_count = _delete_assessments_with_connection(
+            conn, "user_id IS NULL AND created_at < ?", (cutoff,)
+        )
+        conn.commit()
+        return deleted_count
+    except Exception:
+        conn.rollback()
+        raise
+    finally:
         conn.close()
-        return 0
-    ids = [r["id"] for r in rows]
-    placeholders = ",".join("?" for _ in ids)
-    conn.execute(f"DELETE FROM lab_assessments WHERE assessment_id IN ({placeholders})", ids)
-    conn.execute(f"DELETE FROM risk_results WHERE assessment_id IN ({placeholders})", ids)
-    cur = conn.execute(f"DELETE FROM assessments WHERE id IN ({placeholders})", ids)
-    deleted_count = cur.rowcount
-    conn.commit()
-    conn.close()
-    return deleted_count
-

@@ -25,6 +25,13 @@
     </div>
   </div>
 
+  {% if not current_user.is_authenticated %}
+  <div class="mb-8 rounded-card border border-[#b8dce5] bg-[#e8f5f7] p-5 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+    <p class="text-[18px] text-[#014c5e]">Want to keep your checks?</p>
+    <a href="/register" class="btn-primary text-[17px] px-5 py-2.5">Create a free account</a>
+  </div>
+  {% endif %}
+
   <!-- Filter & Sort Controls -->
   <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-6 mb-8 border-b border-[#b8dce5]">
     <!-- View Tabs -->

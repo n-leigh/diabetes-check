@@ -1,0 +1,5 @@
+{% extends "base.html" %}
+{% block title %}DiaBeates - Admin system{% endblock %}
+{% block content %}
+<section class="max-w-5xl mx-auto px-4 py-10"><div class="flex justify-between mb-8"><h1 class="font-heading text-3xl font-bold text-[#014c5e]">System</h1><a href="/admin">Dashboard</a></div>{% if backup_message %}<p role="alert" class="mb-5 text-[18px] text-[#0b7a85]">{{ backup_message }}</p>{% endif %}<div class="health-card p-6 space-y-3 text-[18px]"><p>Health: <a href="/health">view health result</a></p><p>Database size: {{ database_size }} bytes</p><p>Guest retention: {{ retention_days }} days</p><p>Loaded models: {{ model_names.values()|join(', ') }}</p><form method="post" action="/admin/system/backup" class="pt-3"><input type="hidden" name="csrf_token" value="{{ csrf_token() }}"><button class="btn-primary" type="submit">Create backup</button></form></div><h2 class="font-heading text-2xl font-bold text-[#014c5e] mt-8 mb-3">Existing backups</h2><ul class="space-y-2 text-[17px]">{% for backup in backups %}<li>{{ backup }}</li>{% else %}<li>No backups yet.</li>{% endfor %}</ul></section>
+{% endblock %}

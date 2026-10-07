@@ -260,3 +260,227 @@ werkzeug.exceptions.NotFound: 404 Not Found: The requested URL was not found on 
 2026-09-05 02:32:31,414 - werkzeug - INFO - [31m[1mWARNING: This is a development server. Do not use it in a production deployment. Use a production WSGI server instead.[0m
  * Running on http://127.0.0.1:5000
 2026-09-05 02:32:31,414 - werkzeug - INFO - [33mPress CTRL+C to quit[0m
+2026-10-07 20:35:21,155 - DiaBeates - INFO - Database initialized successfully with non-destructive WAL mode.
+2026-10-07 20:35:21,365 - DiaBeates - INFO - Loaded clinical models summary: ['cardiovascular', 'general_burden', 'neuropathy_mobility', 'retinopathy']
+2026-10-07 20:35:21,646 - werkzeug - INFO - [31m[1mWARNING: This is a development server. Do not use it in a production deployment. Use a production WSGI server instead.[0m
+ * Running on http://127.0.0.1:5000
+2026-10-07 20:35:21,646 - werkzeug - INFO - [33mPress CTRL+C to quit[0m
+2026-10-07 20:35:26,227 - werkzeug - INFO - 127.0.0.1 - - [07/Oct/2026 20:35:26] "GET / HTTP/1.1" 200 -
+2026-10-07 20:35:26,300 - werkzeug - INFO - 127.0.0.1 - - [07/Oct/2026 20:35:26] "GET /static/css/clinical.css HTTP/1.1" 200 -
+2026-10-07 20:35:26,318 - werkzeug - INFO - 127.0.0.1 - - [07/Oct/2026 20:35:26] "GET /static/img/hero_sugar.jpg HTTP/1.1" 200 -
+2026-10-07 20:35:26,319 - werkzeug - INFO - 127.0.0.1 - - [07/Oct/2026 20:35:26] "GET /static/css/tailwind.min.css HTTP/1.1" 200 -
+2026-10-07 20:35:26,321 - werkzeug - INFO - 127.0.0.1 - - [07/Oct/2026 20:35:26] "GET /static/js/app.js HTTP/1.1" 200 -
+2026-10-07 20:35:26,324 - werkzeug - INFO - 127.0.0.1 - - [07/Oct/2026 20:35:26] "GET /static/logo.png HTTP/1.1" 200 -
+2026-10-07 20:35:26,366 - werkzeug - INFO - 127.0.0.1 - - [07/Oct/2026 20:35:26] "GET /static/fonts/fraunces-700.woff2 HTTP/1.1" 200 -
+2026-10-07 20:35:26,367 - werkzeug - INFO - 127.0.0.1 - - [07/Oct/2026 20:35:26] "GET /static/fonts/source-sans-3-500.woff2 HTTP/1.1" 200 -
+2026-10-07 20:35:26,368 - werkzeug - INFO - 127.0.0.1 - - [07/Oct/2026 20:35:26] "GET /static/fonts/source-sans-3-600.woff2 HTTP/1.1" 200 -
+2026-10-07 20:35:26,370 - werkzeug - INFO - 127.0.0.1 - - [07/Oct/2026 20:35:26] "GET /static/fonts/source-sans-3-400.woff2 HTTP/1.1" 200 -
+2026-10-07 20:35:31,744 - werkzeug - INFO - 127.0.0.1 - - [07/Oct/2026 20:35:31] "GET /assessment HTTP/1.1" 200 -
+2026-10-07 20:35:31,752 - werkzeug - INFO - 127.0.0.1 - - [07/Oct/2026 20:35:31] "[36mGET /static/css/tailwind.min.css HTTP/1.1[0m" 304 -
+2026-10-07 20:35:31,753 - werkzeug - INFO - 127.0.0.1 - - [07/Oct/2026 20:35:31] "[36mGET /static/css/clinical.css HTTP/1.1[0m" 304 -
+2026-10-07 20:35:31,755 - werkzeug - INFO - 127.0.0.1 - - [07/Oct/2026 20:35:31] "[36mGET /static/js/app.js HTTP/1.1[0m" 304 -
+2026-10-07 20:35:31,757 - werkzeug - INFO - 127.0.0.1 - - [07/Oct/2026 20:35:31] "GET /static/js/assessment.js HTTP/1.1" 200 -
+2026-10-07 20:35:31,759 - werkzeug - INFO - 127.0.0.1 - - [07/Oct/2026 20:35:31] "[36mGET /static/logo.png HTTP/1.1[0m" 304 -
+2026-10-07 20:35:31,767 - werkzeug - INFO - 127.0.0.1 - - [07/Oct/2026 20:35:31] "[36mGET /static/fonts/fraunces-700.woff2 HTTP/1.1[0m" 304 -
+2026-10-07 20:35:31,768 - werkzeug - INFO - 127.0.0.1 - - [07/Oct/2026 20:35:31] "[36mGET /static/fonts/source-sans-3-600.woff2 HTTP/1.1[0m" 304 -
+2026-10-07 20:35:31,768 - werkzeug - INFO - 127.0.0.1 - - [07/Oct/2026 20:35:31] "[36mGET /static/fonts/source-sans-3-500.woff2 HTTP/1.1[0m" 304 -
+2026-10-07 20:35:31,769 - werkzeug - INFO - 127.0.0.1 - - [07/Oct/2026 20:35:31] "[36mGET /static/fonts/source-sans-3-400.woff2 HTTP/1.1[0m" 304 -
+2026-10-07 20:35:31,786 - werkzeug - INFO - 127.0.0.1 - - [07/Oct/2026 20:35:31] "GET /static/fonts/ibm_plex_mono-600-normal.woff2 HTTP/1.1" 200 -
+2026-10-07 20:35:31,797 - werkzeug - INFO - 127.0.0.1 - - [07/Oct/2026 20:35:31] "[36mGET /static/css/tailwind.min.css HTTP/1.1[0m" 304 -
+2026-10-07 20:35:31,798 - werkzeug - INFO - 127.0.0.1 - - [07/Oct/2026 20:35:31] "[36mGET /static/css/clinical.css HTTP/1.1[0m" 304 -
+2026-10-07 20:35:33,909 - werkzeug - INFO - 127.0.0.1 - - [07/Oct/2026 20:35:33] "GET /history HTTP/1.1" 200 -
+2026-10-07 20:35:33,917 - werkzeug - INFO - 127.0.0.1 - - [07/Oct/2026 20:35:33] "[36mGET /static/css/tailwind.min.css HTTP/1.1[0m" 304 -
+2026-10-07 20:35:33,918 - werkzeug - INFO - 127.0.0.1 - - [07/Oct/2026 20:35:33] "[36mGET /static/css/clinical.css HTTP/1.1[0m" 304 -
+2026-10-07 20:35:33,919 - werkzeug - INFO - 127.0.0.1 - - [07/Oct/2026 20:35:33] "[36mGET /static/js/app.js HTTP/1.1[0m" 304 -
+2026-10-07 20:35:33,921 - werkzeug - INFO - 127.0.0.1 - - [07/Oct/2026 20:35:33] "GET /static/js/history.js HTTP/1.1" 200 -
+2026-10-07 20:35:33,921 - werkzeug - INFO - 127.0.0.1 - - [07/Oct/2026 20:35:33] "[36mGET /static/logo.png HTTP/1.1[0m" 304 -
+2026-10-07 20:35:33,933 - werkzeug - INFO - 127.0.0.1 - - [07/Oct/2026 20:35:33] "[36mGET /static/css/tailwind.min.css HTTP/1.1[0m" 304 -
+2026-10-07 20:35:33,934 - werkzeug - INFO - 127.0.0.1 - - [07/Oct/2026 20:35:33] "[36mGET /static/css/clinical.css HTTP/1.1[0m" 304 -
+2026-10-07 20:35:34,724 - werkzeug - INFO - 127.0.0.1 - - [07/Oct/2026 20:35:34] "GET / HTTP/1.1" 200 -
+2026-10-07 20:35:34,732 - werkzeug - INFO - 127.0.0.1 - - [07/Oct/2026 20:35:34] "[36mGET /static/css/tailwind.min.css HTTP/1.1[0m" 304 -
+2026-10-07 20:35:34,733 - werkzeug - INFO - 127.0.0.1 - - [07/Oct/2026 20:35:34] "[36mGET /static/css/clinical.css HTTP/1.1[0m" 304 -
+2026-10-07 20:35:34,735 - werkzeug - INFO - 127.0.0.1 - - [07/Oct/2026 20:35:34] "[36mGET /static/img/hero_sugar.jpg HTTP/1.1[0m" 304 -
+2026-10-07 20:35:34,736 - werkzeug - INFO - 127.0.0.1 - - [07/Oct/2026 20:35:34] "[36mGET /static/js/app.js HTTP/1.1[0m" 304 -
+2026-10-07 20:35:34,738 - werkzeug - INFO - 127.0.0.1 - - [07/Oct/2026 20:35:34] "[36mGET /static/logo.png HTTP/1.1[0m" 304 -
+2026-10-07 20:35:34,750 - werkzeug - INFO - 127.0.0.1 - - [07/Oct/2026 20:35:34] "[36mGET /static/css/tailwind.min.css HTTP/1.1[0m" 304 -
+2026-10-07 20:35:34,750 - werkzeug - INFO - 127.0.0.1 - - [07/Oct/2026 20:35:34] "[36mGET /static/css/clinical.css HTTP/1.1[0m" 304 -
+2026-10-07 21:02:09,260 - DiaBeates - INFO - Database initialized successfully with non-destructive WAL mode.
+2026-10-07 21:02:09,468 - DiaBeates - INFO - Loaded clinical models summary: ['cardiovascular', 'general_burden', 'neuropathy_mobility', 'retinopathy']
+2026-10-07 21:02:12,401 - flask_wtf.csrf - INFO - The CSRF token is missing.
+2026-10-07 21:02:12,401 - DiaBeates - WARNING - CSRF validation failed: The CSRF token is missing.
+2026-10-07 21:02:12,403 - DiaBeates - INFO - Rule matrix assessment completed
+2026-10-07 21:02:23,900 - werkzeug - INFO - 127.0.0.1 - - [07/Oct/2026 21:02:23] "GET /assessment HTTP/1.1" 200 -
+2026-10-07 21:02:23,902 - DiaBeates - INFO - Rule matrix assessment completed
+2026-10-07 21:02:23,967 - werkzeug - INFO - 127.0.0.1 - - [07/Oct/2026 21:02:23] "POST /predict HTTP/1.1" 200 -
+2026-10-07 21:02:23,970 - werkzeug - INFO - 127.0.0.1 - - [07/Oct/2026 21:02:23] "GET /assessment HTTP/1.1" 200 -
+2026-10-07 21:02:23,972 - DiaBeates - INFO - Rule matrix assessment completed
+2026-10-07 21:02:23,998 - werkzeug - INFO - 127.0.0.1 - - [07/Oct/2026 21:02:23] "POST /predict HTTP/1.1" 200 -
+2026-10-07 21:02:27,779 - werkzeug - INFO - 127.0.0.1 - - [07/Oct/2026 21:02:27] "GET / HTTP/1.1" 200 -
+2026-10-07 21:02:27,782 - werkzeug - INFO - 127.0.0.1 - - [07/Oct/2026 21:02:27] "GET /assessment HTTP/1.1" 200 -
+2026-10-07 21:02:27,784 - DiaBeates - INFO - Rule matrix assessment completed
+2026-10-07 21:02:28,022 - werkzeug - INFO - 127.0.0.1 - - [07/Oct/2026 21:02:28] "POST /predict HTTP/1.1" 200 -
+2026-10-07 21:02:28,242 - werkzeug - INFO - 127.0.0.1 - - [07/Oct/2026 21:02:28] "GET /history/5/print HTTP/1.1" 200 -
+2026-10-07 21:02:28,453 - werkzeug - INFO - 127.0.0.1 - - [07/Oct/2026 21:02:28] "GET /history HTTP/1.1" 200 -
+2026-10-07 21:12:41,539 - DiaBeates - INFO - Database initialized successfully with non-destructive WAL mode.
+2026-10-07 21:12:41,744 - DiaBeates - INFO - Loaded clinical models summary: ['cardiovascular', 'general_burden', 'neuropathy_mobility', 'retinopathy']
+2026-10-07 21:12:44,678 - flask_wtf.csrf - INFO - The CSRF token is missing.
+2026-10-07 21:12:44,678 - DiaBeates - WARNING - CSRF validation failed: The CSRF token is missing.
+2026-10-07 21:12:44,680 - DiaBeates - INFO - Rule matrix assessment completed
+2026-10-07 21:14:00,559 - DiaBeates - INFO - Database initialized successfully with non-destructive WAL mode.
+2026-10-07 21:14:00,766 - DiaBeates - INFO - Loaded clinical models summary: ['cardiovascular', 'general_burden', 'neuropathy_mobility', 'retinopathy']
+2026-10-07 21:14:00,921 - werkzeug - INFO - [31m[1mWARNING: This is a development server. Do not use it in a production deployment. Use a production WSGI server instead.[0m
+ * Running on http://127.0.0.1:5000
+2026-10-07 21:14:00,921 - werkzeug - INFO - [33mPress CTRL+C to quit[0m
+2026-10-07 21:14:55,682 - werkzeug - INFO - 127.0.0.1 - - [07/Oct/2026 21:14:55] "GET /assessment HTTP/1.1" 200 -
+2026-10-07 21:14:55,685 - DiaBeates - INFO - Rule matrix assessment completed
+2026-10-07 21:14:55,749 - werkzeug - INFO - 127.0.0.1 - - [07/Oct/2026 21:14:55] "POST /predict HTTP/1.1" 200 -
+2026-10-07 21:14:55,752 - werkzeug - INFO - 127.0.0.1 - - [07/Oct/2026 21:14:55] "GET /assessment HTTP/1.1" 200 -
+2026-10-07 21:14:55,754 - DiaBeates - INFO - Rule matrix assessment completed
+2026-10-07 21:14:55,779 - werkzeug - INFO - 127.0.0.1 - - [07/Oct/2026 21:14:55] "POST /predict HTTP/1.1" 200 -
+2026-10-07 21:14:55,875 - werkzeug - INFO - 127.0.0.1 - - [07/Oct/2026 21:14:55] "GET / HTTP/1.1" 200 -
+2026-10-07 21:14:55,878 - werkzeug - INFO - 127.0.0.1 - - [07/Oct/2026 21:14:55] "GET /assessment HTTP/1.1" 200 -
+2026-10-07 21:14:55,880 - DiaBeates - INFO - Rule matrix assessment completed
+2026-10-07 21:14:56,117 - werkzeug - INFO - 127.0.0.1 - - [07/Oct/2026 21:14:56] "POST /predict HTTP/1.1" 200 -
+2026-10-07 21:14:56,339 - werkzeug - INFO - 127.0.0.1 - - [07/Oct/2026 21:14:56] "GET /history/6/print HTTP/1.1" 200 -
+2026-10-07 21:14:56,570 - werkzeug - INFO - 127.0.0.1 - - [07/Oct/2026 21:14:56] "GET /history HTTP/1.1" 200 -
+2026-10-07 21:15:23,993 - DiaBeates - INFO - Database initialized successfully with non-destructive WAL mode.
+2026-10-07 21:15:24,198 - DiaBeates - INFO - Loaded clinical models summary: ['cardiovascular', 'general_burden', 'neuropathy_mobility', 'retinopathy']
+2026-10-07 21:18:43,687 - DiaBeates - INFO - Database initialized successfully with non-destructive WAL mode.
+2026-10-07 21:18:43,898 - DiaBeates - INFO - Loaded clinical models summary: ['cardiovascular', 'general_burden', 'neuropathy_mobility', 'retinopathy']
+2026-10-07 21:19:16,934 - DiaBeates - INFO - Database initialized successfully with non-destructive WAL mode.
+2026-10-07 21:19:17,145 - DiaBeates - INFO - Loaded clinical models summary: ['cardiovascular', 'general_burden', 'neuropathy_mobility', 'retinopathy']
+2026-10-07 21:19:17,311 - werkzeug - INFO - [31m[1mWARNING: This is a development server. Do not use it in a production deployment. Use a production WSGI server instead.[0m
+ * Running on http://127.0.0.1:5000
+2026-10-07 21:19:17,311 - werkzeug - INFO - [33mPress CTRL+C to quit[0m
+2026-10-07 21:19:34,333 - DiaBeates - INFO - Database initialized successfully with non-destructive WAL mode.
+2026-10-07 21:19:34,536 - DiaBeates - INFO - Loaded clinical models summary: ['cardiovascular', 'general_burden', 'neuropathy_mobility', 'retinopathy']
+2026-10-07 21:19:37,399 - werkzeug - INFO - 127.0.0.1 - - [07/Oct/2026 21:19:37] "GET /assessment HTTP/1.1" 200 -
+2026-10-07 21:19:37,403 - DiaBeates - INFO - Rule matrix assessment completed
+2026-10-07 21:19:37,465 - werkzeug - INFO - 127.0.0.1 - - [07/Oct/2026 21:19:37] "POST /predict HTTP/1.1" 200 -
+2026-10-07 21:19:37,468 - werkzeug - INFO - 127.0.0.1 - - [07/Oct/2026 21:19:37] "GET /assessment HTTP/1.1" 200 -
+2026-10-07 21:19:37,470 - DiaBeates - INFO - Rule matrix assessment completed
+2026-10-07 21:19:37,498 - werkzeug - INFO - 127.0.0.1 - - [07/Oct/2026 21:19:37] "POST /predict HTTP/1.1" 200 -
+2026-10-07 21:19:37,588 - werkzeug - INFO - 127.0.0.1 - - [07/Oct/2026 21:19:37] "GET / HTTP/1.1" 200 -
+2026-10-07 21:19:37,592 - werkzeug - INFO - 127.0.0.1 - - [07/Oct/2026 21:19:37] "GET /assessment HTTP/1.1" 200 -
+2026-10-07 21:19:37,594 - DiaBeates - INFO - Rule matrix assessment completed
+2026-10-07 21:19:37,833 - werkzeug - INFO - 127.0.0.1 - - [07/Oct/2026 21:19:37] "POST /predict HTTP/1.1" 200 -
+2026-10-07 21:19:38,055 - werkzeug - INFO - 127.0.0.1 - - [07/Oct/2026 21:19:38] "GET /history/9/print HTTP/1.1" 200 -
+2026-10-07 21:19:38,291 - werkzeug - INFO - 127.0.0.1 - - [07/Oct/2026 21:19:38] "GET /history HTTP/1.1" 200 -
+2026-10-07 21:19:53,169 - DiaBeates - INFO - Database initialized successfully with non-destructive WAL mode.
+2026-10-07 21:19:53,378 - DiaBeates - INFO - Loaded clinical models summary: ['cardiovascular', 'general_burden', 'neuropathy_mobility', 'retinopathy']
+2026-10-07 21:19:56,317 - flask_wtf.csrf - INFO - The CSRF token is missing.
+2026-10-07 21:19:56,317 - DiaBeates - WARNING - CSRF validation failed: The CSRF token is missing.
+2026-10-07 21:19:56,318 - DiaBeates - INFO - Rule matrix assessment completed
+2026-10-07 21:20:00,453 - werkzeug - INFO - 127.0.0.1 - - [07/Oct/2026 21:20:00] "GET /assessment HTTP/1.1" 200 -
+2026-10-07 21:20:00,456 - DiaBeates - INFO - Rule matrix assessment completed
+2026-10-07 21:20:00,481 - werkzeug - INFO - 127.0.0.1 - - [07/Oct/2026 21:20:00] "POST /predict HTTP/1.1" 200 -
+2026-10-07 21:20:00,485 - werkzeug - INFO - 127.0.0.1 - - [07/Oct/2026 21:20:00] "GET /assessment HTTP/1.1" 200 -
+2026-10-07 21:20:00,487 - DiaBeates - INFO - Rule matrix assessment completed
+2026-10-07 21:20:00,515 - werkzeug - INFO - 127.0.0.1 - - [07/Oct/2026 21:20:00] "POST /predict HTTP/1.1" 200 -
+2026-10-07 21:20:00,597 - werkzeug - INFO - 127.0.0.1 - - [07/Oct/2026 21:20:00] "GET / HTTP/1.1" 200 -
+2026-10-07 21:20:00,600 - werkzeug - INFO - 127.0.0.1 - - [07/Oct/2026 21:20:00] "GET /assessment HTTP/1.1" 200 -
+2026-10-07 21:20:00,602 - DiaBeates - INFO - Rule matrix assessment completed
+2026-10-07 21:20:00,841 - werkzeug - INFO - 127.0.0.1 - - [07/Oct/2026 21:20:00] "POST /predict HTTP/1.1" 200 -
+2026-10-07 21:20:01,053 - werkzeug - INFO - 127.0.0.1 - - [07/Oct/2026 21:20:01] "GET /history/10/print HTTP/1.1" 200 -
+2026-10-07 21:20:01,261 - werkzeug - INFO - 127.0.0.1 - - [07/Oct/2026 21:20:01] "GET /history HTTP/1.1" 200 -
+2026-10-07 21:24:31,161 - DiaBeates - INFO - Database initialized successfully with non-destructive WAL mode.
+2026-10-07 21:24:31,373 - DiaBeates - INFO - Loaded clinical models summary: ['cardiovascular', 'general_burden', 'neuropathy_mobility', 'retinopathy']
+2026-10-07 21:24:42,358 - DiaBeates - ERROR - Unexpected server error
+Traceback (most recent call last):
+  File "C:\Users\windows\AppData\Local\Programs\Python\Python314\Lib\site-packages\flask\app.py", line 917, in full_dispatch_request
+    rv = self.dispatch_request()
+  File "C:\Users\windows\AppData\Local\Programs\Python\Python314\Lib\site-packages\flask\app.py", line 902, in dispatch_request
+    return self.ensure_sync(self.view_functions[rule.endpoint])(**view_args)  # type: ignore[no-any-return]
+           ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^
+  File "C:\Users\windows\AppData\Local\Programs\Python\Python314\Lib\site-packages\flask_login\utils.py", line 290, in decorated_view
+    return current_app.ensure_sync(func)(*args, **kwargs)
+           ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^
+  File "C:\Users\windows\Documents\htdocs\GitHub\diabetes-check\app.py", line 521, in account_delete
+    database.log_audit("account_deleted", str(user_id), user_id, get_remote_address())
+    ~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\windows\Documents\htdocs\GitHub\diabetes-check\database.py", line 730, in log_audit
+    conn.execute(
+    ~~~~~~~~~~~~^
+        """INSERT INTO audit_log (actor_user_id, action, target, ip, created_at)
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+           VALUES (?, ?, ?, ?, ?)""",
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^
+        (actor_user_id, action, target, ip, datetime.now(timezone.utc).isoformat(timespec="seconds")),
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    )
+    ^
+sqlcipher3.dbapi2.IntegrityError: FOREIGN KEY constraint failed
+2026-10-07 21:24:57,230 - DiaBeates - INFO - Database initialized successfully with non-destructive WAL mode.
+2026-10-07 21:24:57,440 - DiaBeates - INFO - Loaded clinical models summary: ['cardiovascular', 'general_burden', 'neuropathy_mobility', 'retinopathy']
+2026-10-07 21:25:15,411 - DiaBeates - INFO - Database initialized successfully with non-destructive WAL mode.
+2026-10-07 21:25:15,622 - DiaBeates - INFO - Loaded clinical models summary: ['cardiovascular', 'general_burden', 'neuropathy_mobility', 'retinopathy']
+2026-10-07 21:25:15,771 - werkzeug - INFO - [31m[1mWARNING: This is a development server. Do not use it in a production deployment. Use a production WSGI server instead.[0m
+ * Running on http://127.0.0.1:5000
+2026-10-07 21:25:15,771 - werkzeug - INFO - [33mPress CTRL+C to quit[0m
+2026-10-07 21:25:33,228 - DiaBeates - INFO - Database initialized successfully with non-destructive WAL mode.
+2026-10-07 21:25:33,468 - DiaBeates - INFO - Loaded clinical models summary: ['cardiovascular', 'general_burden', 'neuropathy_mobility', 'retinopathy']
+2026-10-07 21:25:36,394 - flask_wtf.csrf - INFO - The CSRF token is missing.
+2026-10-07 21:25:36,394 - DiaBeates - WARNING - CSRF validation failed: The CSRF token is missing.
+2026-10-07 21:25:36,396 - DiaBeates - INFO - Rule matrix assessment completed
+2026-10-07 21:25:40,529 - werkzeug - INFO - 127.0.0.1 - - [07/Oct/2026 21:25:40] "GET /assessment HTTP/1.1" 200 -
+2026-10-07 21:25:40,532 - DiaBeates - INFO - Rule matrix assessment completed
+2026-10-07 21:25:40,593 - werkzeug - INFO - 127.0.0.1 - - [07/Oct/2026 21:25:40] "POST /predict HTTP/1.1" 200 -
+2026-10-07 21:25:40,596 - werkzeug - INFO - 127.0.0.1 - - [07/Oct/2026 21:25:40] "GET /assessment HTTP/1.1" 200 -
+2026-10-07 21:25:40,598 - DiaBeates - INFO - Rule matrix assessment completed
+2026-10-07 21:25:40,624 - werkzeug - INFO - 127.0.0.1 - - [07/Oct/2026 21:25:40] "POST /predict HTTP/1.1" 200 -
+2026-10-07 21:25:40,712 - werkzeug - INFO - 127.0.0.1 - - [07/Oct/2026 21:25:40] "GET / HTTP/1.1" 200 -
+2026-10-07 21:25:40,715 - werkzeug - INFO - 127.0.0.1 - - [07/Oct/2026 21:25:40] "GET /assessment HTTP/1.1" 200 -
+2026-10-07 21:25:40,717 - DiaBeates - INFO - Rule matrix assessment completed
+2026-10-07 21:25:40,951 - werkzeug - INFO - 127.0.0.1 - - [07/Oct/2026 21:25:40] "POST /predict HTTP/1.1" 200 -
+2026-10-07 21:25:41,174 - werkzeug - INFO - 127.0.0.1 - - [07/Oct/2026 21:25:41] "GET /history/11/print HTTP/1.1" 200 -
+2026-10-07 21:25:41,411 - werkzeug - INFO - 127.0.0.1 - - [07/Oct/2026 21:25:41] "GET /history HTTP/1.1" 200 -
+2026-10-07 21:28:33,928 - DiaBeates - INFO - Database initialized successfully with non-destructive WAL mode.
+2026-10-07 21:28:34,156 - DiaBeates - INFO - Loaded clinical models summary: ['cardiovascular', 'general_burden', 'neuropathy_mobility', 'retinopathy']
+2026-10-07 21:28:45,076 - DiaBeates - INFO - Database initialized successfully with non-destructive WAL mode.
+2026-10-07 21:28:45,289 - DiaBeates - INFO - Loaded clinical models summary: ['cardiovascular', 'general_burden', 'neuropathy_mobility', 'retinopathy']
+2026-10-07 21:28:54,090 - DiaBeates - INFO - Database initialized successfully with non-destructive WAL mode.
+2026-10-07 21:28:54,307 - DiaBeates - INFO - Loaded clinical models summary: ['cardiovascular', 'general_burden', 'neuropathy_mobility', 'retinopathy']
+2026-10-07 21:28:54,463 - werkzeug - INFO - [31m[1mWARNING: This is a development server. Do not use it in a production deployment. Use a production WSGI server instead.[0m
+ * Running on http://127.0.0.1:5000
+2026-10-07 21:28:54,463 - werkzeug - INFO - [33mPress CTRL+C to quit[0m
+2026-10-07 21:29:10,651 - DiaBeates - INFO - Database initialized successfully with non-destructive WAL mode.
+2026-10-07 21:29:10,857 - DiaBeates - INFO - Loaded clinical models summary: ['cardiovascular', 'general_burden', 'neuropathy_mobility', 'retinopathy']
+2026-10-07 21:29:13,808 - flask_wtf.csrf - INFO - The CSRF token is missing.
+2026-10-07 21:29:13,808 - DiaBeates - WARNING - CSRF validation failed: The CSRF token is missing.
+2026-10-07 21:29:13,810 - DiaBeates - INFO - Rule matrix assessment completed
+2026-10-07 21:29:17,927 - werkzeug - INFO - 127.0.0.1 - - [07/Oct/2026 21:29:17] "GET /assessment HTTP/1.1" 200 -
+2026-10-07 21:29:17,930 - DiaBeates - INFO - Rule matrix assessment completed
+2026-10-07 21:29:17,992 - werkzeug - INFO - 127.0.0.1 - - [07/Oct/2026 21:29:17] "POST /predict HTTP/1.1" 200 -
+2026-10-07 21:29:17,996 - werkzeug - INFO - 127.0.0.1 - - [07/Oct/2026 21:29:17] "GET /assessment HTTP/1.1" 200 -
+2026-10-07 21:29:17,998 - DiaBeates - INFO - Rule matrix assessment completed
+2026-10-07 21:29:18,024 - werkzeug - INFO - 127.0.0.1 - - [07/Oct/2026 21:29:18] "POST /predict HTTP/1.1" 200 -
+2026-10-07 21:29:18,110 - werkzeug - INFO - 127.0.0.1 - - [07/Oct/2026 21:29:18] "GET / HTTP/1.1" 200 -
+2026-10-07 21:29:18,113 - werkzeug - INFO - 127.0.0.1 - - [07/Oct/2026 21:29:18] "GET /assessment HTTP/1.1" 200 -
+2026-10-07 21:29:18,114 - DiaBeates - INFO - Rule matrix assessment completed
+2026-10-07 21:29:18,352 - werkzeug - INFO - 127.0.0.1 - - [07/Oct/2026 21:29:18] "POST /predict HTTP/1.1" 200 -
+2026-10-07 21:29:18,571 - werkzeug - INFO - 127.0.0.1 - - [07/Oct/2026 21:29:18] "GET /history/15/print HTTP/1.1" 200 -
+2026-10-07 21:29:18,806 - werkzeug - INFO - 127.0.0.1 - - [07/Oct/2026 21:29:18] "GET /history HTTP/1.1" 200 -
+2026-10-07 21:31:57,882 - DiaBeates - INFO - Database initialized successfully with non-destructive WAL mode.
+2026-10-07 21:31:58,097 - DiaBeates - INFO - Loaded clinical models summary: ['cardiovascular', 'general_burden', 'neuropathy_mobility', 'retinopathy']
+2026-10-07 21:32:16,325 - DiaBeates - INFO - Database initialized successfully with non-destructive WAL mode.
+2026-10-07 21:32:16,535 - DiaBeates - INFO - Loaded clinical models summary: ['cardiovascular', 'general_burden', 'neuropathy_mobility', 'retinopathy']
+2026-10-07 21:32:16,698 - werkzeug - INFO - [31m[1mWARNING: This is a development server. Do not use it in a production deployment. Use a production WSGI server instead.[0m
+ * Running on http://127.0.0.1:5000
+2026-10-07 21:32:16,698 - werkzeug - INFO - [33mPress CTRL+C to quit[0m
+2026-10-07 21:32:33,366 - DiaBeates - INFO - Database initialized successfully with non-destructive WAL mode.
+2026-10-07 21:32:33,579 - DiaBeates - INFO - Loaded clinical models summary: ['cardiovascular', 'general_burden', 'neuropathy_mobility', 'retinopathy']
+2026-10-07 21:32:36,539 - flask_wtf.csrf - INFO - The CSRF token is missing.
+2026-10-07 21:32:36,539 - DiaBeates - WARNING - CSRF validation failed: The CSRF token is missing.
+2026-10-07 21:32:36,540 - DiaBeates - INFO - Rule matrix assessment completed
+2026-10-07 21:32:40,668 - werkzeug - INFO - 127.0.0.1 - - [07/Oct/2026 21:32:40] "GET /assessment HTTP/1.1" 200 -
+2026-10-07 21:32:40,671 - DiaBeates - INFO - Rule matrix assessment completed
+2026-10-07 21:32:40,736 - werkzeug - INFO - 127.0.0.1 - - [07/Oct/2026 21:32:40] "POST /predict HTTP/1.1" 200 -
+2026-10-07 21:32:40,739 - werkzeug - INFO - 127.0.0.1 - - [07/Oct/2026 21:32:40] "GET /assessment HTTP/1.1" 200 -
+2026-10-07 21:32:40,741 - DiaBeates - INFO - Rule matrix assessment completed
+2026-10-07 21:32:40,769 - werkzeug - INFO - 127.0.0.1 - - [07/Oct/2026 21:32:40] "POST /predict HTTP/1.1" 200 -
+2026-10-07 21:32:40,856 - werkzeug - INFO - 127.0.0.1 - - [07/Oct/2026 21:32:40] "GET / HTTP/1.1" 200 -
+2026-10-07 21:32:40,859 - werkzeug - INFO - 127.0.0.1 - - [07/Oct/2026 21:32:40] "GET /assessment HTTP/1.1" 200 -
+2026-10-07 21:32:40,861 - DiaBeates - INFO - Rule matrix assessment completed
+2026-10-07 21:32:41,096 - werkzeug - INFO - 127.0.0.1 - - [07/Oct/2026 21:32:41] "POST /predict HTTP/1.1" 200 -
+2026-10-07 21:32:41,319 - werkzeug - INFO - 127.0.0.1 - - [07/Oct/2026 21:32:41] "GET /history/16/print HTTP/1.1" 200 -
+2026-10-07 21:32:41,547 - werkzeug - INFO - 127.0.0.1 - - [07/Oct/2026 21:32:41] "GET /history HTTP/1.1" 200 -

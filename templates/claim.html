@@ -1,0 +1,28 @@
+{% extends "base.html" %}
+{% block title %}DiaBeates - Save your checks{% endblock %}
+{% block content %}
+<section class="max-w-2xl mx-auto px-4 py-10 sm:py-16">
+  <div class="health-card p-6 sm:p-10">
+    <h1 class="font-heading text-3xl sm:text-4xl font-bold text-[#014c5e]">Save your checks?</h1>
+    <p class="text-[18px] text-[#4f5b66] mt-3">We found {{ checks|length }} check(s) from this browser.</p>
+    <p class="text-[18px] text-[#1f2a33] mt-2">Save them to your account?</p>
+    <ul class="mt-6 space-y-2 text-[17px] list-disc pl-6">
+      {% for check in checks %}
+      <li>{{ check.created_at|display_time }} PHT</li>
+      {% endfor %}
+    </ul>
+    <div class="mt-8 flex flex-col sm:flex-row gap-3">
+      <form method="post" class="flex-1">
+        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+        <input type="hidden" name="action" value="confirm">
+        <button type="submit" class="btn-primary w-full text-[18px]">Yes, save them</button>
+      </form>
+      <form method="post" class="flex-1">
+        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+        <input type="hidden" name="action" value="decline">
+        <button type="submit" class="btn-secondary w-full text-[18px]">No, leave them</button>
+      </form>
+    </div>
+  </div>
+</section>
+{% endblock %}

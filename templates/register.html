@@ -1,0 +1,36 @@
+{% extends "base.html" %}
+{% block title %}DiaBeates - Save your checks{% endblock %}
+{% block content %}
+<section class="max-w-xl mx-auto px-4 py-10 sm:py-16">
+  <div class="health-card p-6 sm:p-10">
+    <h1 class="font-heading text-3xl sm:text-4xl font-bold text-[#014c5e]">Save your checks</h1>
+    <p class="text-[18px] text-[#4f5b66] mt-2">Free. We only ask for your email.</p>
+    {% if errors %}
+    <div role="alert" aria-live="polite" class="mt-6 rounded-lg border border-[#f1b8af] bg-[#f9e1dc] p-4 text-[#b03a2e]">
+      <ul class="list-disc pl-5">{% for error in errors %}<li>{{ error }}</li>{% endfor %}</ul>
+    </div>
+    {% endif %}
+    <form method="post" class="mt-8 space-y-5">
+      <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+      <label class="block text-[18px] font-semibold">Nickname
+        <input name="nickname" maxlength="40" required value="{{ form_data.get('nickname', '') }}" class="mt-2 w-full input-field">
+      </label>
+      <label class="block text-[18px] font-semibold">Email
+        <input type="email" name="email" required value="{{ form_data.get('email', '') }}" class="mt-2 w-full input-field">
+      </label>
+      <label class="block text-[18px] font-semibold">Password (at least 8 characters)
+        <input type="password" name="password" minlength="8" maxlength="128" required class="mt-2 w-full input-field">
+      </label>
+      <label class="block text-[18px] font-semibold">Confirm password
+        <input type="password" name="confirm_password" minlength="8" maxlength="128" required class="mt-2 w-full input-field">
+      </label>
+      <label class="flex gap-3 items-start text-[17px] leading-relaxed">
+        <input type="checkbox" name="consent" value="1" required class="mt-1.5">
+        <span>I agree to the <a class="underline text-[#0b7a85]" href="/privacy">Privacy Notice</a>. I understand my results are saved to my account.</span>
+      </label>
+      <button type="submit" class="btn-primary w-full text-[19px]">Create account</button>
+    </form>
+    <p class="mt-6 text-[17px] text-[#4f5b66]">Already have an account? <a class="underline text-[#0b7a85]" href="/login">Sign in.</a></p>
+  </div>
+</section>
+{% endblock %}

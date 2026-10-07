@@ -1,0 +1,5 @@
+{% extends "base.html" %}
+{% block title %}DiaBeates - Admin feedback{% endblock %}
+{% block content %}
+<section class="max-w-5xl mx-auto px-4 py-10"><div class="flex justify-between mb-8"><h1 class="font-heading text-3xl font-bold text-[#014c5e]">Feedback</h1><a href="/admin">Dashboard</a></div><div class="health-card overflow-x-auto"><table class="w-full text-left text-[17px]"><thead><tr class="border-b"><th class="p-4">Helpful</th><th class="p-4">Comment</th><th class="p-4">Date</th></tr></thead><tbody>{% for item in feedback %}<tr class="border-b"><td class="p-4">{{ 'Yes' if item.helpful else 'No' }}</td><td class="p-4">{{ item.comment or '' }}</td><td class="p-4">{{ item.created_at|display_time }}</td></tr>{% endfor %}</tbody></table></div></section>
+{% endblock %}

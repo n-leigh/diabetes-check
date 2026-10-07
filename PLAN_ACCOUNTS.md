@@ -267,9 +267,15 @@ P8 Tests and wrap-up: write test_auth.py covering all authentication, ownership,
 - CSRF enforced on every new POST
 
 PLAN_STATUS
-P1 [ ] P2 [ ] P3 [ ] P4 [ ] P5 [ ] P6 [ ] P7 [ ] P8 [ ]
+P1 [x] P2 [x] P3 [x] P4 [x] P5 [x] P6 [x] P7 [ ] P8 [ ]
 
 CHANGELOG
+- 2026-10-07: Completed P6 admin tools. Added role-checked admin decorator, aggregate dashboard with under-five suppression, privacy-safe users/feedback/audit/system views, protected user actions with last-admin safeguards, one-time reset links, encrypted database backups, aggregate CSV export, admin navigation, and flask create-admin CLI. Admin smoke checks and all required regression suites passed.
+- 2026-10-07: Completed P5 progress view. Added the shared Low/Moderate/High to Good/Check/See a doctor presentation helper, authenticated /history/progress route, newest-right timeline cards for all four domains, plain progress sentences, and a friendly two-check empty state. P4 audit remained clean, P5 smoke checks and all required regression suites passed.
+- 2026-10-07: Completed P4 account management. Added account profile, password change, owner-only JSON export, password deletion with atomic data cleanup, 60-minute single-use reset tokens, SMTP delivery, debug-link logging, and production fallback contact text. P4 smoke checks and all required regression suites passed.
+- 2026-10-07: Re-audited P1 and P2, then completed P3 history linkage and claim flow. Authenticated saves now record user ownership, history/detail/print/archive/delete enforce owner-or-guest-session access with 404 responses, guest history remains session-scoped, and registration/login offer an explicit date-only claim prompt with Yes/No confirmation. Required regression suites and claim/cross-user smoke checks passed.
+- 2026-10-07: Completed P2 auth core. Added Flask-Login with basic session protection, optional secure/remember cookies, registration consent and password validation, generic login failures with five-attempt lockout, IP rate limits, CSRF-protected login/logout forms, privacy notice, admin idle timeout, audit logging, and signed-in navigation. Required clinical, flow, and live browser suites passed; registration/login smoke checks passed.
+- 2026-10-07: Completed P1 database foundation. Added idempotent schema version 5 migration with users, password reset tokens, audit log, feedback, assessment ownership, indexes, password/account helpers, audit pruning, and centralized atomic assessment/account deletion. Guest-only retention pruning preserves account-owned assessments. Required clinical, flow, and live browser suites passed.
 - 2026-10-01 (PLAN OVERRIDE):
   1. Routes (Section 4): Enumerated exact app.py routes (/history, /history/<id>, /history/<id>/print, /history/<id>/archive, /history/<id>/delete, /feedback/<id>) and mandated 404 ownership checks across all of them.
   2. Deletion (Section 3 & 5.9): Replaced SQLite CASCADE assumptions on v4 child tables with centralized delete_assessments helper and delete_user_account running inside atomic transactions. Added orphan-row verification.

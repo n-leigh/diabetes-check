@@ -1,0 +1,19 @@
+{% extends "base.html" %}
+{% block title %}DiaBeates - Admin dashboard{% endblock %}
+{% block content %}
+<section class="max-w-6xl mx-auto px-4 py-10">
+  <div class="flex flex-wrap items-end justify-between gap-4 mb-8">
+    <div><p class="text-[15px] font-bold uppercase tracking-wide text-[#0b7a85]">Admin</p><h1 class="font-heading text-3xl sm:text-4xl font-bold text-[#014c5e]">Dashboard</h1></div>
+    <nav class="flex flex-wrap gap-3 text-[17px]"><a href="/admin/users">Users</a><a href="/admin/feedback">Feedback</a><a href="/admin/audit">Audit</a><a href="/admin/system">System</a><a href="/admin/export.csv">CSV export</a></nav>
+  </div>
+  <div class="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-8">
+    <div class="health-card p-5"><p class="text-[#4f5b66]">Total users</p><strong class="font-mono text-3xl text-[#014c5e]">{{ dashboard.users_total }}</strong></div>
+    <div class="health-card p-5"><p class="text-[#4f5b66]">New users, 7 days</p><strong class="font-mono text-3xl text-[#014c5e]">{{ dashboard.new_users }}</strong></div>
+    <div class="health-card p-5"><p class="text-[#4f5b66]">Total checks</p><strong class="font-mono text-3xl text-[#014c5e]">{{ dashboard.assessments_total }}</strong></div>
+  </div>
+  <div class="grid lg:grid-cols-2 gap-6">
+    <article class="health-card p-6"><h2 class="font-heading text-2xl font-bold text-[#014c5e]">Status totals</h2><div class="mt-4 space-y-4">{% for title, counts in dashboard.status_counts.items() %}<div><h3 class="font-bold text-[18px]">{{ title }}</h3><div class="flex flex-wrap gap-3 text-[16px] mt-1">{% for status, value in counts.items() %}<span>{{ status }}: {{ value }}</span>{% endfor %}</div></div>{% endfor %}</div><p class="mt-5 text-[17px]">Helpful feedback: {{ dashboard.feedback_helpful }}</p></article>
+    <article class="health-card p-6"><h2 class="font-heading text-2xl font-bold text-[#014c5e]">Checks per day</h2><div class="mt-4 space-y-2">{% for day in dashboard.days %}<div class="flex items-center gap-2 text-[13px]"><span class="w-24">{{ day.date }}</span><div class="h-5 bg-[#0b7a85] rounded" style="width: {{ [day.count * 12, 100]|min }}%"></div><span>{{ day.count }}</span></div>{% endfor %}</div></article>
+  </div>
+</section>
+{% endblock %}
