@@ -54,53 +54,39 @@
         </tr>
       </thead>
       <tbody>
-        <!-- 1. Heart -->
-        {% set cv = rule_results.get('Cardiovascular', {}) %}
-        {% set cv_lbl = cv.get('label', 'Low') %}
+        {% for cat in categories %}
+        {% set result = rule_results.get(cat, {}) %}
+        {% set label = result.get('label', 'Low') %}
         <tr>
-          <td class="font-semibold">Heart (Cardiovascular / ASCVD)</td>
-          <td class="{% if cv_lbl == 'Low' %}tag-low{% elif cv_lbl == 'Moderate' %}tag-mod{% else %}tag-high{% endif %}">
-            {{ cv_lbl }}
+          <td class="font-semibold">
+            {% if cat == 'cardiovascular' %}
+              Heart
+            {% elif cat == 'general_burden' %}
+              Kidneys
+            {% elif cat == 'neuropathy_mobility' %}
+              Nerves and feet
+            {% else %}
+              Eyes
+              <span class="sr-only">Diabetic Retinopathy (ADA)</span>
+            {% endif %}
           </td>
-          <td class="font-mono">{{ cv.get('percentage', 0) }}% ({{ cv.get('score', 0) }} pts)</td>
-          <td class="text-muted">Blood pressure checks, heart health, exercise habits.</td>
-        </tr>
-
-        <!-- 2. Kidneys -->
-        {% set neph = rule_results.get('Nephropathy', {}) %}
-        {% set neph_lbl = neph.get('label', 'Low') %}
-        <tr>
-          <td class="font-semibold">Kidneys (Nephropathy / CKD)</td>
-          <td class="{% if neph_lbl == 'Low' %}tag-low{% elif neph_lbl == 'Moderate' %}tag-mod{% else %}tag-high{% endif %}">
-            {{ neph_lbl }}
+          <td class="{% if label == 'Low' %}tag-low{% elif label == 'Moderate' %}tag-mod{% else %}tag-high{% endif %}">
+            {{ label }}
           </td>
-          <td class="font-mono">{{ neph.get('percentage', 0) }}% ({{ neph.get('score', 0) }} pts)</td>
-          <td class="text-muted">Urine protein test (uACR) and kidney blood filtration (eGFR).</td>
-        </tr>
-
-        <!-- 3. Nerves and feet -->
-        {% set neuro = rule_results.get('Neuropathy_Mobility', {}) %}
-        {% set neuro_lbl = neuro.get('label', 'Low') %}
-        <tr>
-          <td class="font-semibold">Nerves &amp; feet (Neuropathy &amp; Mobility)</td>
-          <td class="{% if neuro_lbl == 'Low' %}tag-low{% elif neuro_lbl == 'Moderate' %}tag-mod{% else %}tag-high{% endif %}">
-            {{ neuro_lbl }}
+          <td class="font-mono">{{ result.get('percentage', 0) }}% ({{ result.get('score', 0) }} pts)</td>
+          <td class="text-muted">
+            {% if cat == 'cardiovascular' %}
+              Blood pressure checks, heart health, and exercise habits.
+            {% elif cat == 'general_burden' %}
+              Urine protein test (uACR) and kidney blood filtration (eGFR).
+            {% elif cat == 'neuropathy_mobility' %}
+              Foot sensory exam, numbness checks, and proper footwear.
+            {% else %}
+              Dilated eye exam by an optometrist or ophthalmologist.
+            {% endif %}
           </td>
-          <td class="font-mono">{{ neuro.get('percentage', 0) }}% ({{ neuro.get('score', 0) }} pts)</td>
-          <td class="text-muted">Foot sensory exam, checking for numbness, proper footwear.</td>
         </tr>
-
-        <!-- 4. Eyes -->
-        {% set ret = rule_results.get('Retinopathy', {}) %}
-        {% set ret_lbl = ret.get('label', 'Low') %}
-        <tr>
-          <td class="font-semibold">Eyes (Diabetic Retinopathy (ADA))</td>
-          <td class="{% if ret_lbl == 'Low' %}tag-low{% elif ret_lbl == 'Moderate' %}tag-mod{% else %}tag-high{% endif %}">
-            {{ ret_lbl }}
-          </td>
-          <td class="font-mono">{{ ret.get('percentage', 0) }}% ({{ ret.get('score', 0) }} pts)</td>
-          <td class="text-muted">Dilated eye exam by an optometrist or ophthalmologist.</td>
-        </tr>
+        {% endfor %}
       </tbody>
     </table>
   </section>
@@ -167,15 +153,14 @@
   </section>
   {% endif %}
 
-  <!-- Section 4: Recommended Questions for Clinic Visit -->
+  <!-- Section 4: Next Steps -->
   <section>
-    <h2 class="section-title">Questions to Ask Your Doctor</h2>
+    <h2 class="section-title">Your Next Steps</h2>
+    <p class="text-muted">{{ recommendations.headline }}</p>
     <ol class="space-y-2 text-[14px] text-[#1f2a33] pl-5 list-decimal">
-      <li><strong>Heart:</strong> "Should I check my blood pressure more often at home or at the barangay health center?"</li>
-      <li><strong>Kidneys:</strong> "Is it time for a simple urine test (uACR) and blood test to check my kidney filtration?"</li>
-      <li><strong>Feet:</strong> "Can you check the feeling in my feet today with a monofilament test?"</li>
-      <li><strong>Eyes:</strong> "Do I need a referral for a dilated eye exam to check the back of my eyes?"</li>
-      <li><strong>Sugar targets:</strong> "What is my personal target for my 3-month sugar test (HbA1c)?"</li>
+      {% for step in recommendations.steps %}
+      <li><strong>{{ step.title }}:</strong> {{ step.description }}</li>
+      {% endfor %}
     </ol>
   </section>
 
