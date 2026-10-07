@@ -270,6 +270,7 @@ PLAN_STATUS
 P1 [x] P2 [x] P3 [x] P4 [x] P5 [x] P6 [x] P7 [x] P8 [x]
 
 CHANGELOG
+- 2026-10-07: Fixed account form controls appearing without borders by applying the shared input styling to nickname and password fields; corrected registration helper copy to match the fields shown.
 - 2026-10-07: Completed P8 authentication and security verification. Added focused coverage for registration, generic login failures, lockout state, open-redirect rejection, guest claim decisions, ownership 404s including feedback, owner-only export and progress, single-use hashed password reset tokens, admin authorization, last-admin protection, and shared status mapping. All required clinical, flow, live browser, syntax, diagnostics, and whitespace checks passed. Final audit found no unapplied P1-P8 requirements.
 - 2026-10-07: Completed P7 copy and documentation. Updated home reassurance, About privacy and retention text, README account/setup/admin guidance, route documentation, and environment-variable instructions. All required regression suites passed.
 - 2026-10-07: Completed P6 admin tools. Added role-checked admin decorator, aggregate dashboard with under-five suppression, privacy-safe users/feedback/audit/system views, protected user actions with last-admin safeguards, one-time reset links, encrypted database backups, aggregate CSV export, admin navigation, and flask create-admin CLI. Admin smoke checks and all required regression suites passed.

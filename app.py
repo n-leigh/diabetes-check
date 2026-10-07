@@ -1291,7 +1291,7 @@ def predict():
             rule_version=RULE_VERSION,
         )
 
-    recommendations = build_recommendations(rule_results, lab_assessment)
+    recommendations = build_recommendations(rule_results, lab_assessment, patient)
     patient_drivers = explain_patient_risk(patient)
 
     report_payload = {
@@ -1383,7 +1383,9 @@ def print_current(print_id):
         model_names=record.get("model_names") or MODEL_NAMES,
         categories=CATEGORIES,
         lab_assessment=record.get("lab_assessment"),
-        recommendations=build_recommendations(record["rule_results"], record.get("lab_assessment")),
+        recommendations=build_recommendations(
+            record["rule_results"], record.get("lab_assessment"), record["patient"]
+        ),
         patient_drivers=patient_drivers,
         model_metadata=print_model_metadata,
     )
@@ -1465,7 +1467,9 @@ def history_detail(assessment_id):
                 "calibration_quality": getattr(hmodel, "calibration_quality", "fair"),
                 "uncertainty_level": getattr(hmodel, "uncertainty_level", "moderate"),
             }
-    recommendations = build_recommendations(record["rule_results"], record.get("lab_assessment"))
+    recommendations = build_recommendations(
+        record["rule_results"], record.get("lab_assessment"), record["patient"]
+    )
     report_payload = {
         "v": 1,
         "created_at": record["created_at"],
@@ -1531,7 +1535,9 @@ def print_result(assessment_id):
         model_names=record.get("model_names") or MODEL_NAMES,
         categories=CATEGORIES,
         lab_assessment=record.get("lab_assessment"),
-        recommendations=build_recommendations(record["rule_results"], record.get("lab_assessment")),
+        recommendations=build_recommendations(
+            record["rule_results"], record.get("lab_assessment"), record["patient"]
+        ),
         patient_drivers=patient_drivers,
         model_metadata=print_model_metadata,
     )

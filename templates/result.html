@@ -333,41 +333,48 @@
   </div>
   {% endif %}
 
-  <!-- 5. Your Next Steps (Picture-led, Local Philippine Examples) -->
-  <section class="bg-[#ffffff] border border-[#b8dce5] rounded-card p-6 sm:p-8 shadow-card mb-10">
-    <h2 class="font-heading text-2xl sm:text-3xl font-bold text-[#014c5e] mb-2">
-      Your next steps
-    </h2>
-    <p class="text-[18px] text-[#4f5b66] mb-6">
-      {{ recommendations.headline }}
-    </p>
-
-    <div class="space-y-4">
-      {% for step in recommendations.steps %}
-      <div class="flex items-start gap-4 p-4 rounded-lg bg-[#f1fafb] border border-[#b8dce5]">
-        <div class="flex-shrink-0">
-          {% if step.icon == 'plate' %}
-            {{ icon_plate("w-14 h-14") }}
-          {% elif step.icon == 'shoe' %}
-            {{ icon_shoe("w-14 h-14") }}
-          {% elif step.icon == 'companion' %}
-            {{ icon_companion("w-14 h-14") }}
-          {% elif step.icon == 'water' %}
-            {{ icon_water("w-14 h-14") }}
-          {% else %}
-            {{ icon_doctor("w-14 h-14") }}
-          {% endif %}
-        </div>
-        <div>
-          <span class="inline-block px-2.5 py-0.5 rounded bg-[#f1fafb] text-[#014c5e] text-[14px] font-bold mb-1">{{ loop.index }}. {{ step.title }}</span>
-          <p class="text-[18px] text-[#014c5e] font-medium leading-snug">
-            {{ step.description }}
-          </p>
-        </div>
+  <!-- 5. Recommendations based on screening risk -->
+  {% if recommendations %}
+  {% set overall_tier = recommendations.overall_tier %}
+  {% if overall_tier == 'Low' %}
+    {% set tier_badge_class = 'bg-[#e4f2e7] text-[#2f7d4a]' %}
+    {% set tier_icon_color = '#2f7d4a' %}
+  {% elif overall_tier == 'Moderate' %}
+    {% set tier_badge_class = 'bg-[#fbeed0] text-[#a86a0a]' %}
+    {% set tier_icon_color = '#a86a0a' %}
+  {% else %}
+    {% set tier_badge_class = 'bg-[#f9e1dc] text-[#b03a2e]' %}
+    {% set tier_icon_color = '#b03a2e' %}
+  {% endif %}
+  <section class="bg-white border border-[#b8dce5] rounded-card p-6 sm:p-8 shadow-card mb-10">
+    <div class="flex items-start gap-3 mb-5">
+      <div class="w-10 h-10 rounded-xl flex items-center justify-center shrink-0 {{ tier_badge_class }}" aria-hidden="true">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="{{ tier_icon_color }}" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M12 3l8 4v5c0 5-3.5 8-8 9-4.5-1-8-4-8-9V7l8-4z"></path>
+          <path d="M8.5 12l2.3 2.3 4.7-4.8"></path>
+        </svg>
       </div>
+      <div>
+        <h2 class="font-heading text-xl sm:text-2xl font-bold text-[#014c5e]">
+          What you can do
+        </h2>
+        <p class="text-[17px] text-[#4f5b66] mt-1">{{ recommendations.headline }}</p>
+        <span class="sr-only">Overall screening result: {{ overall_tier }}</span>
+      </div>
+    </div>
+    <div class="space-y-3">
+      {% for step in recommendations.steps %}
+      <article class="bg-[#f1fafb] rounded-lg p-4 border border-[#b8dce5]">
+        <h3 class="text-[16px] font-bold text-[#014c5e] mb-1">{{ step.title }}</h3>
+        <p class="text-[16px] text-[#4f5b66] leading-relaxed">{{ step.description }}</p>
+      </article>
       {% endfor %}
     </div>
+    <p class="text-[14px] text-[#4f5b66] mt-4 pt-4 border-t border-[#b8dce5]">
+      These are general wellness suggestions, not medical advice. Only a licensed healthcare provider can advise on diagnosis or treatment.
+    </p>
   </section>
+  {% endif %}
 
   <!-- 6. Bottom Navigation (One Primary Button Only) -->
   <div class="flex flex-col sm:flex-row items-center justify-between gap-4 pt-4 border-t border-[#b8dce5]">

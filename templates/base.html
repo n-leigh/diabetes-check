@@ -50,8 +50,9 @@
             About
           </a>
           {% if current_user.is_authenticated %}
-          <a href="/history/progress" class="text-[19px] font-semibold text-[#4f5b66] hover:text-[#014c5e]">Progress</a>
-          <a href="/account" class="text-[19px] font-semibold text-[#4f5b66] hover:text-[#014c5e]">{{ current_user.display_name }}</a>
+          <a href="/account" class="account-avatar-link" aria-label="Account for {{ current_user.display_name }}" title="{{ current_user.display_name }}">
+            <span class="account-avatar" aria-hidden="true">{{ current_user.display_name[:1]|upper }}</span>
+          </a>
           {% if current_user.role == 'admin' %}<a href="/admin" class="text-[19px] font-semibold text-[#0b7a85]">Admin</a>{% endif %}
           {% else %}
           <a href="/login" class="text-[19px] font-semibold text-[#0b7a85] hover:text-[#08616a]">Sign in</a>
@@ -75,7 +76,6 @@
         <a href="/history" class="block px-4 py-3 text-[19px] font-semibold rounded-lg {{ 'bg-[#e8f5f7] text-[#014c5e]' if active_page == 'history' else 'text-[#4f5b66] hover:bg-[#d9eff3]' }}">History</a>
         <a href="/about" class="block px-4 py-3 text-[19px] font-semibold rounded-lg {{ 'bg-[#e8f5f7] text-[#014c5e]' if active_page == 'about' else 'text-[#4f5b66] hover:bg-[#d9eff3]' }}">About</a>
         {% if current_user.is_authenticated %}
-        <a href="/history/progress" class="block px-4 py-3 text-[19px] font-semibold rounded-lg text-[#0b7a85]">Progress</a>
         <a href="/account" class="block px-4 py-3 text-[19px] font-semibold rounded-lg text-[#0b7a85]">Account</a>
         {% if current_user.role == 'admin' %}<a href="/admin" class="block px-4 py-3 text-[19px] font-semibold rounded-lg text-[#0b7a85]">Admin</a>{% endif %}
         <form action="/logout" method="post" class="px-4">

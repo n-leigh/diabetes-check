@@ -17,7 +17,12 @@
         Checks saved on this phone or computer.
       </p>
     </div>
-    <div>
+    <div class="flex flex-wrap items-center gap-3">
+      {% if current_user.is_authenticated %}
+      <a href="/history/progress" class="btn-secondary text-[18px] px-6 py-3">
+        Check Progress
+      </a>
+      {% endif %}
       <a href="/assessment" class="btn-primary text-[18px] px-6 py-3 shadow-card" aria-label="Start Risk Assessment">
         Do a new check
         <span class="sr-only">Start Risk Assessment</span>

@@ -5,16 +5,16 @@
 
 {% block content %}
 <div class="about-page">
-  <section class="about-hero bg-[#014c5e] text-white">
-    <div class="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-16 sm:py-20 text-center">
+  <section class="about-hero text-white">
+    <div class="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-12 sm:py-16 md:py-20">
       <span class="inline-flex items-center rounded-full bg-[#2e7283] px-4 py-1.5 text-xs font-bold uppercase tracking-wide text-white">
         Health screening tool
       </span>
       <h1 class="mt-6 font-heading text-4xl sm:text-5xl md:text-6xl font-bold text-white">
-        Understand your risk<br>
+        Understand your risk
         <span class="text-[#97d8e4]">before complications advance</span>
       </h1>
-      <p class="mx-auto mt-5 max-w-2xl text-[17px] sm:text-[18px] leading-relaxed text-[#e8f5f7]">
+      <p class="mt-5 max-w-2xl text-[18px] leading-relaxed text-[#e8f5f7]">
         DiaBeates is a web-based diabetes risk screening aid that helps individuals estimate
         their likelihood of developing diabetes-related complications based on their health indicators.
       </p>
@@ -23,10 +23,12 @@
 
   <section class="bg-[#f1fafb] py-12 sm:py-16">
     <div class="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8">
+      <h2 class="text-center font-heading text-3xl sm:text-4xl font-bold">
+        What DiaBeates does
+      </h2>
       <div class="grid gap-8 lg:grid-cols-2 lg:items-start">
         <div>
-          <h2 class="font-heading text-3xl font-bold text-[#014c5e]">What DiaBeates does</h2>
-          <div class="mt-4 space-y-4 text-[17px] leading-relaxed text-[#4f5b66]">
+          <div class="mt-4 space-y-4 text-[17px] leading-relaxed">
             <p>
               Diabetes can progress quietly, and many complications become more difficult to manage
               when they are identified too late. DiaBeates is designed to make that first step easier
@@ -47,7 +49,7 @@
         </div>
 
         <div class="space-y-4">
-          <article class="about-info-card border-[#9edfe0] bg-[#effbfa]">
+          <article class="about-info-card health-card p-6">
             <span class="about-label text-[#2e7283]">Transparent Rule Logic</span>
             <h3>Structured clinical rules</h3>
             <p>
@@ -56,7 +58,7 @@
               NHANES threshold research. Every score is explainable, with no black box.
             </p>
           </article>
-          <article class="about-info-card border-[#abd9e8] bg-[#eff8fb]">
+          <article class="about-info-card health-card p-6">
             <span class="about-label text-[#2e7283]">Predictive Modeling</span>
             <h3>Statistical classification</h3>
             <p>
@@ -70,24 +72,24 @@
     </div>
   </section>
 
-  <section class="border-y border-[#b8dce5] bg-white py-12 sm:py-16">
+  <section class="bg-[#d9eff3] border-y border-[#b8dce5] py-12 sm:py-16">
     <div class="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8">
-      <h2 class="text-center font-heading text-3xl font-bold text-[#014c5e]">
+      <h2 class="text-center font-heading text-3xl font-bold">
         Built for clarity, transparency, and action
       </h2>
       <div class="mt-8 grid gap-5 md:grid-cols-3">
-        <article class="about-step-card">
-          <span class="about-step-number bg-[#dff7f3] text-[#2e8d82]">01</span>
+        <article class="about-step-card health-card p-6 text-center">
+          <span class="about-step-number">01</span>
           <h3>Complete-data validation</h3>
           <p>Every assessment is checked for required inputs and valid values before analysis so the screening estimate stays complete, consistent, and clinically meaningful.</p>
         </article>
-        <article class="about-step-card">
-          <span class="about-step-number bg-[#e5f4fb] text-[#2e7283]">02</span>
+        <article class="about-step-card health-card p-6 text-center">
+          <span class="about-step-number">02</span>
           <h3>Personalized guidance</h3>
           <p>Results are paired with practical health guidance designed to help users understand what their risk level may mean and which habits or follow-up steps deserve attention.</p>
         </article>
-        <article class="about-step-card">
-          <span class="about-step-number bg-[#fff4d8] text-[#a86a0a]">03</span>
+        <article class="about-step-card health-card p-6 text-center">
+          <span class="about-step-number">03</span>
           <h3>Referral advisories</h3>
           <p>For higher-risk cases, the system can suggest when a physician review may be appropriate, helping users act sooner when elevated risk warrants medical attention.</p>
         </article>
@@ -97,11 +99,11 @@
 
   <section class="bg-[#f1fafb] py-12 sm:py-16">
     <div class="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8">
-      <h2 class="text-center font-heading text-3xl font-bold text-[#014c5e]">
+      <h2 class="text-center font-heading text-3xl font-bold">
         Ethics, Limitations, and Disclaimer
       </h2>
       <div class="mt-8 space-y-4">
-        <article class="about-disclaimer">
+        <article class="about-disclaimer health-card p-6">
           <h3>⚠ Not a diagnostic tool</h3>
           <p>
             DiaBeates is a health screening aid built to demonstrate classification modeling on a healthcare
@@ -110,7 +112,7 @@
             provider, and no treatment decision should be made from this tool's output alone.
           </p>
         </article>
-        <article class="about-technical-card">
+        <article class="about-technical-card health-card p-6">
           <h3>Empirical Ground Truth from CDC Clinical Registries</h3>
           <p>
             In DiaBeates (Version 2.0-clinical), machine learning models are trained directly on authentic
@@ -121,7 +123,7 @@
             ensuring completely non-circular, empirical risk estimation.
           </p>
         </article>
-        <article class="about-technical-card">
+        <article class="about-technical-card health-card p-6">
           <h3>Dataset Scope &amp; Clinical Targets</h3>
           <p>
             Training data is curated from CDC NHANES (2017–2021, 2022–2023, 2007–2008) and CDC BRFSS
@@ -131,7 +133,7 @@
             optimal for diabetes).
           </p>
         </article>
-        <article class="about-technical-card">
+        <article class="about-technical-card health-card p-6">
           <h3>Data handling</h3>
           <h3 class="mt-3">Data Processing &amp; Local Storage</h3>
           <p>

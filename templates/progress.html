@@ -10,7 +10,10 @@
       <h1 class="font-heading text-3xl sm:text-4xl md:text-5xl font-bold text-[#014c5e]">Progress over time</h1>
       <p class="text-[18px] text-[#4f5b66] mt-2">See how your check results change.</p>
     </div>
-    <a href="/history" class="btn-secondary text-[17px]">Back to history</a>
+    <a href="/history" class="btn-secondary progress-history-link" aria-label="Back to History">
+      <span aria-hidden="true">←</span>
+      Back to History
+    </a>
   </div>
 
   {% if check_count < 2 %}

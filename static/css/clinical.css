@@ -133,6 +133,8 @@ a:focus-visible, button:focus-visible, input:focus-visible, select:focus-visible
 input[type="text"],
 input[type="number"],
 input[type="email"],
+input[type="password"],
+.input-field,
 select,
 textarea {
   min-height: 48px;
@@ -169,6 +171,8 @@ input[type="range"] {
 input[type="text"]:focus,
 input[type="number"]:focus,
 input[type="email"]:focus,
+input[type="password"]:focus,
+.input-field:focus,
 select:focus,
 textarea:focus {
   border-color: var(--teal);
@@ -254,6 +258,43 @@ textarea:focus {
   border-color: #76adbb;
 }
 
+.progress-history-link {
+  min-height: 48px;
+  padding: 8px 12px;
+  font-size: 16px;
+  gap: 6px;
+}
+
+.account-avatar-link {
+  display: inline-flex;
+  min-width: 48px;
+  min-height: 48px;
+  align-items: center;
+  justify-content: center;
+  border-radius: 9999px;
+  text-decoration: none;
+}
+
+.account-avatar {
+  display: inline-flex;
+  width: 40px;
+  height: 40px;
+  align-items: center;
+  justify-content: center;
+  border: 1px solid var(--border-cream);
+  border-radius: 9999px;
+  background-color: var(--teal-light);
+  color: var(--navy);
+  font-size: 18px;
+  font-weight: 700;
+  line-height: 1;
+}
+
+.account-avatar-link:hover .account-avatar {
+  background-color: #d9eff3;
+  border-color: #76adbb;
+}
+
 /* Cards & Surfaces */
 .health-card {
   background-color: var(--white);
@@ -270,8 +311,27 @@ textarea:focus {
 }
 
 /* About page information blocks */
+.about-page {
+  background-color: #eaf6f8;
+  color: var(--ink);
+}
+
+.about-page > section {
+  border-color: #c6e1e7;
+}
+
+.about-page h2 {
+  color: var(--navy);
+}
+
 .about-hero {
+  background: linear-gradient(135deg, #087f91 0%, #075a78 48%, #063154 100%);
   border-bottom: 1px solid #2e7283;
+}
+
+.about-hero h1 {
+  color: #ffffff;
+  overflow-wrap: anywhere;
 }
 
 .about-info-card,
@@ -279,8 +339,10 @@ textarea:focus {
 .about-disclaimer,
 .about-technical-card {
   border: 1px solid var(--border-cream);
-  border-radius: 10px;
-  padding: 20px;
+  border-radius: 12px;
+  padding: 24px;
+  background-color: var(--white);
+  box-shadow: var(--card-shadow);
 }
 
 .about-info-card h3,
@@ -288,8 +350,8 @@ textarea:focus {
 .about-technical-card h3 {
   margin: 8px 0 6px;
   color: var(--navy);
-  font-family: var(--font-body);
-  font-size: 17px;
+  font-family: var(--font-heading);
+  font-size: 20px;
   font-weight: 700;
   line-height: 1.3;
 }
@@ -305,10 +367,12 @@ textarea:focus {
 }
 
 .about-label {
-  display: inline-flex;
-  border: 1px solid currentColor;
-  border-radius: 9999px;
-  padding: 2px 8px;
+  display: inline-block;
+  border: 0;
+  border-bottom: 1px solid currentColor;
+  border-radius: 0;
+  padding: 2px 0;
+  color: var(--teal);
   font-size: 11px;
   font-weight: 700;
 }
@@ -317,29 +381,27 @@ textarea:focus {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  width: 34px;
-  height: 34px;
+  margin-bottom: 12px;
+  padding: 4px 12px;
   border-radius: 9999px;
+  background-color: #fbeed0;
+  color: #a86a0a;
   font-family: var(--font-mono);
-  font-size: 13px;
+  font-size: 15px;
   font-weight: 600;
 }
 
 .about-disclaimer {
-  border-color: #f4d99f;
-  background: #fffbed;
+  border-color: #e7bc6c;
+  background-color: #fffbed;
 }
 
 .about-disclaimer h3 {
-  color: #a86a0a;
-  font-family: var(--font-body);
-  font-size: 16px;
+  color: #87540a;
+  font-family: var(--font-heading);
+  font-size: 20px;
   font-weight: 700;
   margin: 0 0 6px;
-}
-
-.about-technical-card {
-  background: var(--white);
 }
 
 /* Complication Status Badges */
