@@ -13,7 +13,7 @@
       <svg width="16" height="16" class="flex-shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
       <span>Your answers stay private. There are no wrong answers.</span>
     </div>
-    <h1 class="font-heading text-3xl sm:text-4xl md:text-5xl font-bold text-[#063154]">
+    <h1 class="font-heading text-3xl sm:text-4xl md:text-5xl font-bold text-[#014c5e]">
       Health Risk Check
     </h1>
     <p class="text-[19px] text-[#4f5b66] mt-2">
@@ -22,13 +22,13 @@
   </div>
 
   <!-- Step Progress Indicator -->
-  <div class="mb-8 bg-[#ffffff] border border-[#e5dcce] rounded-card p-4 shadow-card">
-    <div class="flex items-center justify-between text-[16px] font-bold text-[#063154] mb-2">
+  <div class="mb-8 bg-[#ffffff] border border-[#b8dce5] rounded-card p-4 shadow-card">
+    <div class="flex items-center justify-between text-[16px] font-bold text-[#014c5e] mb-2">
       <span id="stepProgressLabel">Step 1 of 3: About you</span>
       <span id="stepPercentLabel" class="text-[15px] font-mono text-[#4f5b66]">33%</span>
     </div>
-    <div class="w-full bg-[#f3e9d6] h-3 rounded-full overflow-hidden">
-      <div id="stepProgressBar" class="bg-[#0b7a85] h-full rounded-full transition-all duration-300 w-1/3"></div>
+    <div class="w-full bg-[#f1fafb] h-3 rounded-full overflow-hidden">
+      <div id="stepProgressBar" class="bg-[#2e7283] h-full rounded-full transition-all duration-300 w-1/3"></div>
     </div>
   </div>
 
@@ -56,7 +56,7 @@
     <!-- ========================================== -->
     <div id="step1Container" class="space-y-8">
       <div class="health-card p-6 sm:p-8">
-        <h2 class="font-heading text-2xl sm:text-3xl font-bold text-[#063154] mb-2">
+        <h2 class="font-heading text-2xl sm:text-3xl font-bold text-[#014c5e] mb-2">
           1. About you
         </h2>
         <p class="text-[17px] text-[#4f5b66] mb-6">
@@ -67,54 +67,54 @@
           
           <!-- Age Group -->
           <div>
-            <label for="Age" class="block text-[18px] font-bold text-[#063154] mb-2">
+            <label for="Age" class="block text-[18px] font-bold text-[#014c5e] mb-2">
               How old are you? <span class="text-[#b03a2e]">*</span>
             </label>
             <select name="Age" id="Age" class="w-full" required>
               <option value="" disabled {{ 'selected' if not (form_data and form_data.get('Age')) }}>Select your age range</option>
-              <option value="1" {{ 'selected' if form_data and form_data.get('Age') == '1' }}>18 to 24</option>
-              <option value="2" {{ 'selected' if form_data and form_data.get('Age') == '2' }}>25 to 29</option>
-              <option value="3" {{ 'selected' if form_data and form_data.get('Age') == '3' }}>30 to 34</option>
-              <option value="4" {{ 'selected' if form_data and form_data.get('Age') == '4' }}>35 to 39</option>
-              <option value="5" {{ 'selected' if form_data and form_data.get('Age') == '5' }}>40 to 44</option>
-              <option value="6" {{ 'selected' if form_data and form_data.get('Age') == '6' }}>45 to 49</option>
-              <option value="7" {{ 'selected' if form_data and form_data.get('Age') == '7' }}>50 to 54</option>
-              <option value="8" {{ 'selected' if form_data and form_data.get('Age') == '8' }}>55 to 59</option>
-              <option value="9" {{ 'selected' if form_data and form_data.get('Age') == '9' }}>60 to 64</option>
-              <option value="10" {{ 'selected' if form_data and form_data.get('Age') == '10' }}>65 to 69</option>
-              <option value="11" {{ 'selected' if form_data and form_data.get('Age') == '11' }}>70 to 74</option>
-              <option value="12" {{ 'selected' if form_data and form_data.get('Age') == '12' }}>75 to 79</option>
-              <option value="13" {{ 'selected' if form_data and form_data.get('Age') == '13' }}>80 or older</option>
+              <option value="1" title="Young adult age range." {{ 'selected' if form_data and form_data.get('Age') == '1' }}>18 to 24</option>
+              <option value="2" title="Early adult age range." {{ 'selected' if form_data and form_data.get('Age') == '2' }}>25 to 29</option>
+              <option value="3" title="Adult age range." {{ 'selected' if form_data and form_data.get('Age') == '3' }}>30 to 34</option>
+              <option value="4" title="Adult age range." {{ 'selected' if form_data and form_data.get('Age') == '4' }}>35 to 39</option>
+              <option value="5" title="Adult age range." {{ 'selected' if form_data and form_data.get('Age') == '5' }}>40 to 44</option>
+              <option value="6" title="Adult age range." {{ 'selected' if form_data and form_data.get('Age') == '6' }}>45 to 49</option>
+              <option value="7" title="Adult age range." {{ 'selected' if form_data and form_data.get('Age') == '7' }}>50 to 54</option>
+              <option value="8" title="Adult age range." {{ 'selected' if form_data and form_data.get('Age') == '8' }}>55 to 59</option>
+              <option value="9" title="Older adult age range." {{ 'selected' if form_data and form_data.get('Age') == '9' }}>60 to 64</option>
+              <option value="10" title="Older adult age range." {{ 'selected' if form_data and form_data.get('Age') == '10' }}>65 to 69</option>
+              <option value="11" title="Older adult age range." {{ 'selected' if form_data and form_data.get('Age') == '11' }}>70 to 74</option>
+              <option value="12" title="Older adult age range." {{ 'selected' if form_data and form_data.get('Age') == '12' }}>75 to 79</option>
+              <option value="13" title="Older adult age range." {{ 'selected' if form_data and form_data.get('Age') == '13' }}>80 or older</option>
             </select>
           </div>
 
           <!-- Sex assigned at birth -->
           <div>
-            <label for="Sex" class="block text-[18px] font-bold text-[#063154] mb-2">
+            <label for="Sex" class="block text-[18px] font-bold text-[#014c5e] mb-2">
               Sex assigned at birth <span class="text-[#b03a2e]">*</span>
             </label>
             <select name="Sex" id="Sex" class="w-full" required>
               <option value="" disabled {{ 'selected' if not (form_data and form_data.get('Sex') is not none) }}>Select sex</option>
-              <option value="0" {{ 'selected' if form_data and form_data.get('Sex') == '0' }}>Female</option>
-              <option value="1" {{ 'selected' if form_data and form_data.get('Sex') == '1' }}>Male</option>
+              <option value="0" title="Select female if this is the sex recorded at birth." {{ 'selected' if form_data and form_data.get('Sex') == '0' }}>Female</option>
+              <option value="1" title="Select male if this is the sex recorded at birth." {{ 'selected' if form_data and form_data.get('Sex') == '1' }}>Male</option>
             </select>
           </div>
 
           <!-- Body Mass Index (BMI) & Calculator Trigger -->
-          <div class="bg-[#fbf6ec] border border-[#e5dcce] rounded-card p-5">
+          <div class="bg-[#f1fafb] border border-[#b8dce5] rounded-card p-5">
             <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
               <div>
-                <label for="BMI" class="block text-[18px] font-bold text-[#063154]">
+                <label for="BMI" class="block text-[18px] font-bold text-[#014c5e]">
                   Body Mass Index (BMI) <span class="text-[#b03a2e]">*</span>
                 </label>
                 <p class="text-[15px] text-[#4f5b66] mt-0.5">
-                  Healthy adult BMI is typically between 18.5 and 24.9.
+                  Asia-Pacific adult BMI criteria: healthy 18.5–22.9, overweight 23–24.9, obese Class 1 from 25, and obese Class 2 from 30.
                 </p>
               </div>
 
               <!-- High-visibility BMI Calculator Button -->
               <button type="button" id="openBmiCalcBtn" aria-haspopup="dialog" aria-controls="bmiModal"
-                      class="inline-flex items-center justify-center gap-2 text-[16px] sm:text-[17px] font-bold text-[#0b7a85] bg-[#e6f4f5] hover:bg-[#d5eeef] border-2 border-[#0b7a85] px-4 py-2.5 rounded-lg transition-all shadow-sm hover:shadow cursor-pointer min-h-[48px] self-start sm:self-auto shrink-0">
+                      class="inline-flex items-center justify-center gap-2 text-[16px] sm:text-[17px] font-bold text-[#2e7283] bg-[#e8f5f7] hover:bg-[#d5eeef] border-2 border-[#2e7283] px-4 py-2.5 rounded-lg transition-all shadow-sm hover:shadow cursor-pointer min-h-[48px] self-start sm:self-auto shrink-0">
                 <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" aria-hidden="true">
                   <rect x="4" y="2" width="16" height="20" rx="2"></rect>
                   <line x1="8" y1="6" x2="16" y2="6"></line>
@@ -143,36 +143,36 @@
 
           <!-- General Health -->
           <div>
-            <label for="GenHlth" class="block text-[18px] font-bold text-[#063154] mb-2">
+            <label for="GenHlth" class="block text-[18px] font-bold text-[#014c5e] mb-2">
               In general, how would you rate your health? <span class="text-[#b03a2e]">*</span>
             </label>
             <select name="GenHlth" id="GenHlth" class="w-full" required>
               <option value="" disabled {{ 'selected' if not (form_data and form_data.get('GenHlth')) }}>Select health rating</option>
-              <option value="1" {{ 'selected' if form_data and form_data.get('GenHlth') == '1' }}>Excellent</option>
-              <option value="2" {{ 'selected' if form_data and form_data.get('GenHlth') == '2' }}>Very good</option>
-              <option value="3" {{ 'selected' if form_data and form_data.get('GenHlth') == '3' }}>Good</option>
-              <option value="4" {{ 'selected' if form_data and form_data.get('GenHlth') == '4' }}>Fair</option>
-              <option value="5" {{ 'selected' if form_data and form_data.get('GenHlth') == '5' }}>Poor</option>
+              <option value="1" title="You feel healthy with no major health concerns." {{ 'selected' if form_data and form_data.get('GenHlth') == '1' }}>Excellent</option>
+              <option value="2" title="You feel very healthy, with only minor concerns." {{ 'selected' if form_data and form_data.get('GenHlth') == '2' }}>Very good</option>
+              <option value="3" title="You feel generally well, with some health concerns." {{ 'selected' if form_data and form_data.get('GenHlth') == '3' }}>Good</option>
+              <option value="4" title="You have some health problems that affect you." {{ 'selected' if form_data and form_data.get('GenHlth') == '4' }}>Fair</option>
+              <option value="5" title="You have serious or frequent health problems." {{ 'selected' if form_data and form_data.get('GenHlth') == '5' }}>Poor</option>
             </select>
           </div>
 
           <!-- Diabetes Duration -->
           <div>
-            <label for="DiabetesDuration" class="block text-[18px] font-bold text-[#063154] mb-2">
+            <label for="DiabetesDuration" class="block text-[18px] font-bold text-[#014c5e] mb-2">
               How long have you had diabetes? <span class="text-[#b03a2e]">*</span>
             </label>
             <select name="DiabetesDuration" id="DiabetesDuration" class="w-full" required>
-              <option value="0" {{ 'selected' if not form_data or form_data.get('DiabetesDuration') == '0' }}>Less than 1 year or borderline</option>
-              <option value="1" {{ 'selected' if form_data and form_data.get('DiabetesDuration') == '1' }}>1 to 4 years</option>
-              <option value="2" {{ 'selected' if form_data and form_data.get('DiabetesDuration') == '2' }}>5 to 9 years</option>
-              <option value="3" {{ 'selected' if form_data and form_data.get('DiabetesDuration') == '3' }}>10 years or longer</option>
+              <option value="0" title="Diabetes is new, or you have borderline blood sugar." {{ 'selected' if not form_data or form_data.get('DiabetesDuration') == '0' }}>Less than 1 year or borderline</option>
+              <option value="1" title="You have had diabetes for one to four years." {{ 'selected' if form_data and form_data.get('DiabetesDuration') == '1' }}>1 to 4 years</option>
+              <option value="2" title="You have had diabetes for five to nine years." {{ 'selected' if form_data and form_data.get('DiabetesDuration') == '2' }}>5 to 9 years</option>
+              <option value="3" title="You have had diabetes for ten years or longer." {{ 'selected' if form_data and form_data.get('DiabetesDuration') == '3' }}>10 years or longer</option>
             </select>
           </div>
 
         </div>
 
         <!-- Step 1 Button (Next) -->
-        <div class="mt-8 pt-6 border-t border-[#e5dcce] flex justify-end">
+        <div class="mt-8 pt-6 border-t border-[#b8dce5] flex justify-end">
           <button type="button" id="step1NextBtn" class="btn-primary text-[20px] px-8 py-3.5 w-full sm:w-auto">
             Next: Your health
             <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><line x1="5" y1="12" x2="19" y2="12"></line><polyline points="12 5 19 12 12 19"></polyline></svg>
@@ -186,7 +186,7 @@
     <!-- ========================================== -->
     <div id="step2Container" class="hidden space-y-8">
       <div class="health-card p-6 sm:p-8">
-        <h2 class="font-heading text-2xl sm:text-3xl font-bold text-[#063154] mb-2">
+        <h2 class="font-heading text-2xl sm:text-3xl font-bold text-[#014c5e] mb-2">
           2. Your health
         </h2>
         <p class="text-[17px] text-[#4f5b66] mb-6">
@@ -205,11 +205,11 @@
               {{ icon_heart("w-10 h-10") }}
             </div>
             <div class="flex-1">
-              <span class="block text-[18px] font-bold text-[#063154]">High blood pressure?</span>
+              <span class="block text-[18px] font-bold text-[#014c5e]">High blood pressure?</span>
               <p class="text-[15px] text-[#4f5b66] mt-0.5 leading-snug">Doctor diagnosed or taking BP pills.</p>
             </div>
-            <div class="check-indicator w-6 h-6 rounded-md border-2 border-[#e5dcce] flex items-center justify-center text-white bg-white">
-              <svg class="check-icon hidden w-4 h-4 text-[#0b7a85]" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round"><polyline points="20 6 9 17 4 12"></polyline></svg>
+            <div class="check-indicator w-6 h-6 rounded-md border-2 border-[#b8dce5] flex items-center justify-center text-white bg-white">
+              <svg class="check-icon hidden w-4 h-4 text-[#2e7283]" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round"><polyline points="20 6 9 17 4 12"></polyline></svg>
             </div>
           </label>
 
@@ -222,11 +222,11 @@
               {{ icon_kidneys("w-10 h-10") }}
             </div>
             <div class="flex-1">
-              <span class="block text-[18px] font-bold text-[#063154]">High cholesterol?</span>
+              <span class="block text-[18px] font-bold text-[#014c5e]">High cholesterol?</span>
               <p class="text-[15px] text-[#4f5b66] mt-0.5 leading-snug">Told your blood fats are high.</p>
             </div>
-            <div class="check-indicator w-6 h-6 rounded-md border-2 border-[#e5dcce] flex items-center justify-center text-white bg-white">
-              <svg class="check-icon hidden w-4 h-4 text-[#0b7a85]" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round"><polyline points="20 6 9 17 4 12"></polyline></svg>
+            <div class="check-indicator w-6 h-6 rounded-md border-2 border-[#b8dce5] flex items-center justify-center text-white bg-white">
+              <svg class="check-icon hidden w-4 h-4 text-[#2e7283]" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round"><polyline points="20 6 9 17 4 12"></polyline></svg>
             </div>
           </label>
 
@@ -239,11 +239,11 @@
               <svg class="w-10 h-10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><line x1="18" y1="12" x2="22" y2="12"></line><line x1="2" y1="12" x2="14" y2="12"></line><line x1="18" y1="9" x2="18" y2="15"></line></svg>
             </div>
             <div class="flex-1">
-              <span class="block text-[18px] font-bold text-[#063154]">Do you smoke?</span>
+              <span class="block text-[18px] font-bold text-[#014c5e]">Do you smoke?</span>
               <p class="text-[15px] text-[#4f5b66] mt-0.5 leading-snug">Smoked 100+ cigarettes in lifetime.</p>
             </div>
-            <div class="check-indicator w-6 h-6 rounded-md border-2 border-[#e5dcce] flex items-center justify-center text-white bg-white">
-              <svg class="check-icon hidden w-4 h-4 text-[#0b7a85]" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round"><polyline points="20 6 9 17 4 12"></polyline></svg>
+            <div class="check-indicator w-6 h-6 rounded-md border-2 border-[#b8dce5] flex items-center justify-center text-white bg-white">
+              <svg class="check-icon hidden w-4 h-4 text-[#2e7283]" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round"><polyline points="20 6 9 17 4 12"></polyline></svg>
             </div>
           </label>
 
@@ -256,11 +256,11 @@
               {{ icon_heart("w-10 h-10") }}
             </div>
             <div class="flex-1">
-              <span class="block text-[18px] font-bold text-[#063154]">Past heart trouble?</span>
+              <span class="block text-[18px] font-bold text-[#014c5e]">Past heart trouble?</span>
               <p class="text-[15px] text-[#4f5b66] mt-0.5 leading-snug">Heart attack, chest pain, or stent.</p>
             </div>
-            <div class="check-indicator w-6 h-6 rounded-md border-2 border-[#e5dcce] flex items-center justify-center text-white bg-white">
-              <svg class="check-icon hidden w-4 h-4 text-[#0b7a85]" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round"><polyline points="20 6 9 17 4 12"></polyline></svg>
+            <div class="check-indicator w-6 h-6 rounded-md border-2 border-[#b8dce5] flex items-center justify-center text-white bg-white">
+              <svg class="check-icon hidden w-4 h-4 text-[#2e7283]" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round"><polyline points="20 6 9 17 4 12"></polyline></svg>
             </div>
           </label>
 
@@ -269,15 +269,15 @@
             <input type="checkbox" name="Stroke" id="Stroke" value="1"
                    {{ 'checked' if form_data and form_data.get('Stroke') in ['1', 1, 'on'] }}
                    class="sr-only">
-            <div class="flex-shrink-0 mt-0.5 text-[#063154]">
+            <div class="flex-shrink-0 mt-0.5 text-[#014c5e]">
               <svg class="w-10 h-10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="9"></circle><path d="M12 7v5l3 3"></path></svg>
             </div>
             <div class="flex-1">
-              <span class="block text-[18px] font-bold text-[#063154]">Past stroke?</span>
+              <span class="block text-[18px] font-bold text-[#014c5e]">Past stroke?</span>
               <p class="text-[15px] text-[#4f5b66] mt-0.5 leading-snug">Told you had a stroke or mini-stroke.</p>
             </div>
-            <div class="check-indicator w-6 h-6 rounded-md border-2 border-[#e5dcce] flex items-center justify-center text-white bg-white">
-              <svg class="check-icon hidden w-4 h-4 text-[#0b7a85]" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round"><polyline points="20 6 9 17 4 12"></polyline></svg>
+            <div class="check-indicator w-6 h-6 rounded-md border-2 border-[#b8dce5] flex items-center justify-center text-white bg-white">
+              <svg class="check-icon hidden w-4 h-4 text-[#2e7283]" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round"><polyline points="20 6 9 17 4 12"></polyline></svg>
             </div>
           </label>
 
@@ -290,11 +290,11 @@
               {{ icon_shoe("w-10 h-10") }}
             </div>
             <div class="flex-1">
-              <span class="block text-[18px] font-bold text-[#063154]">Is walking hard?</span>
+              <span class="block text-[18px] font-bold text-[#014c5e]">Is walking hard?</span>
               <p class="text-[15px] text-[#4f5b66] mt-0.5 leading-snug">Hard to walk or climb stairs.</p>
             </div>
-            <div class="check-indicator w-6 h-6 rounded-md border-2 border-[#e5dcce] flex items-center justify-center text-white bg-white">
-              <svg class="check-icon hidden w-4 h-4 text-[#0b7a85]" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round"><polyline points="20 6 9 17 4 12"></polyline></svg>
+            <div class="check-indicator w-6 h-6 rounded-md border-2 border-[#b8dce5] flex items-center justify-center text-white bg-white">
+              <svg class="check-icon hidden w-4 h-4 text-[#2e7283]" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round"><polyline points="20 6 9 17 4 12"></polyline></svg>
             </div>
           </label>
 
@@ -307,11 +307,11 @@
               {{ icon_eye("w-10 h-10") }}
             </div>
             <div class="flex-1">
-              <span class="block text-[18px] font-bold text-[#063154]">Is vision blurry?</span>
+              <span class="block text-[18px] font-bold text-[#014c5e]">Is vision blurry?</span>
               <p class="text-[15px] text-[#4f5b66] mt-0.5 leading-snug">Frequent blur or spots in eyes.</p>
             </div>
-            <div class="check-indicator w-6 h-6 rounded-md border-2 border-[#e5dcce] flex items-center justify-center text-white bg-white">
-              <svg class="check-icon hidden w-4 h-4 text-[#0b7a85]" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round"><polyline points="20 6 9 17 4 12"></polyline></svg>
+            <div class="check-indicator w-6 h-6 rounded-md border-2 border-[#b8dce5] flex items-center justify-center text-white bg-white">
+              <svg class="check-icon hidden w-4 h-4 text-[#2e7283]" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round"><polyline points="20 6 9 17 4 12"></polyline></svg>
             </div>
           </label>
 
@@ -320,39 +320,39 @@
             <input type="checkbox" name="NoDocbcCost" id="NoDocbcCost" value="1"
                    {{ 'checked' if form_data and form_data.get('NoDocbcCost') in ['1', 1, 'on'] }}
                    class="sr-only">
-            <div class="flex-shrink-0 mt-0.5 text-[#0b7a85]">
+            <div class="flex-shrink-0 mt-0.5 text-[#2e7283]">
               {{ icon_doctor("w-10 h-10") }}
             </div>
             <div class="flex-1">
-              <span class="block text-[18px] font-bold text-[#063154]">Cost stopped doctor visit?</span>
+              <span class="block text-[18px] font-bold text-[#014c5e]">Cost stopped doctor visit?</span>
               <p class="text-[15px] text-[#4f5b66] mt-0.5 leading-snug">Needed care in past year but money was tight.</p>
             </div>
-            <div class="check-indicator w-6 h-6 rounded-md border-2 border-[#e5dcce] flex items-center justify-center text-white bg-white">
-              <svg class="check-icon hidden w-4 h-4 text-[#0b7a85]" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round"><polyline points="20 6 9 17 4 12"></polyline></svg>
+            <div class="check-indicator w-6 h-6 rounded-md border-2 border-[#b8dce5] flex items-center justify-center text-white bg-white">
+              <svg class="check-icon hidden w-4 h-4 text-[#2e7283]" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round"><polyline points="20 6 9 17 4 12"></polyline></svg>
             </div>
           </label>
 
         </div>
 
         <!-- Unwell Days Slider/Stepper in Last 30 Days -->
-        <div class="bg-[#f3e9d6] border border-[#e5dcce] rounded-card p-5 space-y-5">
-          <h3 class="font-heading text-xl font-bold text-[#063154]">
+        <div class="bg-[#f1fafb] border border-[#b8dce5] rounded-card p-5 space-y-5">
+          <h3 class="font-heading text-xl font-bold text-[#014c5e]">
             In the last 30 days, how many days did you feel unwell?
           </h3>
           
           <!-- Physical health days -->
           <div>
             <div class="flex justify-between items-baseline mb-1">
-              <label for="PhysHlth" class="text-[17px] font-bold text-[#063154]">
+              <label for="PhysHlth" class="text-[17px] font-bold text-[#014c5e]">
                 Days physical health was not good:
               </label>
-              <span id="physHlthValDisplay" class="font-mono text-xl font-bold text-[#063154]">
+              <span id="physHlthValDisplay" class="font-mono text-xl font-bold text-[#014c5e]">
                 {{ form_data.get('PhysHlth', '0') if form_data else '0' }} days
               </span>
             </div>
             <input type="range" min="0" max="30" name="PhysHlth" id="PhysHlth"
                    value="{{ form_data.get('PhysHlth', '0') if form_data else '0' }}"
-                   class="w-full accent-[#0b7a85] cursor-pointer h-2 bg-[#ffffff] rounded-lg">
+                   class="w-full accent-[#2e7283] cursor-pointer h-2 bg-[#ffffff] rounded-lg">
             <div id="physhlth-warning" class="hidden mt-2 p-2 bg-[#fbeed0] text-[#a86a0a] text-sm rounded flex justify-between items-center">
               <span>Value exceeds 30-day limit.</span>
               <button type="button" id="capPhysHlthBtn" class="underline font-bold">Set to 30</button>
@@ -362,16 +362,16 @@
           <!-- Mental health days -->
           <div>
             <div class="flex justify-between items-baseline mb-1">
-              <label for="MentHlth" class="text-[17px] font-bold text-[#063154]">
+              <label for="MentHlth" class="text-[17px] font-bold text-[#014c5e]">
                 Days stress or emotional health was hard:
               </label>
-              <span id="mentHlthValDisplay" class="font-mono text-xl font-bold text-[#063154]">
+              <span id="mentHlthValDisplay" class="font-mono text-xl font-bold text-[#014c5e]">
                 {{ form_data.get('MentHlth', '0') if form_data else '0' }} days
               </span>
             </div>
             <input type="range" min="0" max="30" name="MentHlth" id="MentHlth"
                    value="{{ form_data.get('MentHlth', '0') if form_data else '0' }}"
-                   class="w-full accent-[#0b7a85] cursor-pointer h-2 bg-[#ffffff] rounded-lg">
+                   class="w-full accent-[#2e7283] cursor-pointer h-2 bg-[#ffffff] rounded-lg">
             <div id="menthlth-warning" class="hidden mt-2 p-2 bg-[#fbeed0] text-[#a86a0a] text-sm rounded flex justify-between items-center">
               <span>Value exceeds 30-day limit.</span>
               <button type="button" id="capMentHlthBtn" class="underline font-bold">Set to 30</button>
@@ -380,7 +380,7 @@
         </div>
 
         <!-- Step 2 Navigation Buttons (Back & Next) -->
-        <div class="mt-8 pt-6 border-t border-[#e5dcce] flex flex-col-reverse sm:flex-row justify-between gap-3">
+        <div class="mt-8 pt-6 border-t border-[#b8dce5] flex flex-col-reverse sm:flex-row justify-between gap-3">
           <button type="button" id="step2BackBtn" class="btn-secondary text-[19px] px-6 py-3.5">
             <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><line x1="19" y1="12" x2="5" y2="12"></line><polyline points="12 19 5 12 12 5"></polyline></svg>
             Back: About you
@@ -398,7 +398,7 @@
     <!-- ========================================== -->
     <div id="step3Container" class="hidden space-y-8">
       <div class="health-card p-6 sm:p-8">
-        <h2 class="font-heading text-2xl sm:text-3xl font-bold text-[#063154] mb-2">
+        <h2 class="font-heading text-2xl sm:text-3xl font-bold text-[#014c5e] mb-2">
           3. Lab results (optional)
         </h2>
         <p class="text-[17px] text-[#4f5b66] mb-6">
@@ -406,10 +406,10 @@
         </p>
 
         <!-- Collapsible Toggle -->
-        <div class="bg-[#fbf6ec] border border-[#e5dcce] rounded-card p-5 mb-6">
+        <div class="bg-[#f1fafb] border border-[#b8dce5] rounded-card p-5 mb-6">
           <label class="flex items-center gap-3 cursor-pointer">
-            <input type="checkbox" id="hasLabsToggle" class="w-6 h-6 accent-[#0b7a85]">
-            <span class="text-[18px] font-bold text-[#063154]">I have recent lab results</span>
+            <input type="checkbox" id="hasLabsToggle" class="w-6 h-6 accent-[#2e7283]">
+            <span class="text-[18px] font-bold text-[#014c5e]">I have recent lab results</span>
           </label>
           <p class="text-[16px] text-[#4f5b66] mt-2 ml-9">
             Skip this if you do not have them. You will still get full complication risk estimates without labs.
@@ -417,11 +417,11 @@
         </div>
 
         <!-- Optional Lab Inputs Panel -->
-        <div id="labsInputsPanel" class="hidden space-y-6 pt-2 pb-6 border-b border-[#e5dcce]">
+        <div id="labsInputsPanel" class="hidden space-y-6 pt-2 pb-6 border-b border-[#b8dce5]">
           
           <!-- 3-Month Sugar Test (HbA1c) -->
           <div>
-            <label for="LabHbA1c" class="block text-[18px] font-bold text-[#063154] mb-1">
+            <label for="LabHbA1c" class="block text-[18px] font-bold text-[#014c5e] mb-1">
               3-month sugar test (HbA1c)
             </label>
             <p class="text-[15px] text-[#4f5b66] mb-2">Target for most adults is under 7.0%.</p>
@@ -435,7 +435,7 @@
 
           <!-- Top Blood Pressure Number -->
           <div>
-            <label for="LabSystolicBP" class="block text-[18px] font-bold text-[#063154] mb-1">
+            <label for="LabSystolicBP" class="block text-[18px] font-bold text-[#014c5e] mb-1">
               Top blood pressure number
             </label>
             <p class="text-[15px] text-[#4f5b66] mb-2">The higher number (systolic). Target is under 130.</p>
@@ -449,7 +449,7 @@
 
           <!-- Bad Cholesterol (LDL) -->
           <div>
-            <label for="LabLDL" class="block text-[18px] font-bold text-[#063154] mb-1">
+            <label for="LabLDL" class="block text-[18px] font-bold text-[#014c5e] mb-1">
               Bad cholesterol (LDL)
             </label>
             <p class="text-[15px] text-[#4f5b66] mb-2">Target for adults with diabetes is under 100 mg/dL.</p>
@@ -464,12 +464,12 @@
         </div>
 
         <!-- History Storage Option -->
-        <div class="mt-6 p-4 rounded-xl bg-[#fbf6ec] border border-[#e5dcce]">
+        <div class="mt-6 p-4 rounded-xl bg-[#f1fafb] border border-[#b8dce5]">
           <label class="flex items-start gap-3 cursor-pointer">
             <input type="checkbox" id="save_history" name="save_history" value="1"
-                   class="mt-1 w-5 h-5 rounded accent-[#0b7a85] shrink-0 cursor-pointer">
+                   class="mt-1 w-5 h-5 rounded accent-[#2e7283] shrink-0 cursor-pointer">
             <div class="min-w-0 flex-1">
-              <span class="block text-[17px] font-bold text-[#063154]">
+              <span class="block text-[17px] font-bold text-[#014c5e]">
                 Save check to history
               </span>
               <p class="text-[14px] text-[#4f5b66] mt-0.5 leading-snug">
@@ -497,20 +497,20 @@
   </form>
 
   <!-- Interactive BMI Calculator Modal -->
-  <dialog id="bmiModal" aria-labelledby="bmiModalTitle" aria-modal="true" class="rounded-2xl p-0 border border-[#e5dcce] shadow-2xl bg-[#ffffff] max-w-md w-[calc(100%-2rem)] max-h-[90vh] overflow-y-auto fixed inset-0 m-auto backdrop:bg-[#063154]/60 z-50">
+  <dialog id="bmiModal" aria-labelledby="bmiModalTitle" aria-modal="true" class="rounded-2xl p-0 border border-[#b8dce5] shadow-2xl bg-[#ffffff] max-w-md w-[calc(100%-2rem)] max-h-[90vh] overflow-y-auto fixed inset-0 m-auto backdrop:bg-[#014c5e]/60 z-50">
     <div class="p-6 sm:p-7">
-      <div class="flex items-center justify-between pb-3 border-b border-[#e5dcce] mb-4">
+      <div class="flex items-center justify-between pb-3 border-b border-[#b8dce5] mb-4">
         <div class="flex items-center gap-2.5">
-          <div class="w-9 h-9 rounded-lg bg-[#e6f4f5] text-[#0b7a85] flex items-center justify-center shrink-0">
+          <div class="w-9 h-9 rounded-lg bg-[#e8f5f7] text-[#2e7283] flex items-center justify-center shrink-0">
             <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" aria-hidden="true">
               <path stroke-linecap="round" stroke-linejoin="round" d="M9 7h6m0 10v-3m-3 3h.01M9 17h.01M9 14h.01M12 14h.01M15 11h.01M12 11h.01M9 11h.01M7 21h10a2 2 0 002-2V5a2 2 0 00-2-2H7a2 2 0 00-2 2v14a2 2 0 002 2z" />
             </svg>
           </div>
           <div>
-            <h2 id="bmiModalTitle" class="font-heading text-xl font-bold text-[#063154]">BMI Calculator</h2>
+            <h2 id="bmiModalTitle" class="font-heading text-xl font-bold text-[#014c5e]">BMI Calculator</h2>
           </div>
         </div>
-        <button type="button" id="closeBmiModalBtn" aria-label="Close BMI Calculator" class="text-[#4f5b66] hover:text-[#063154] p-2 rounded-lg hover:bg-[#f3e9d6] transition-colors cursor-pointer">
+        <button type="button" id="closeBmiModalBtn" aria-label="Close BMI Calculator" class="text-[#4f5b66] hover:text-[#014c5e] p-2 rounded-lg hover:bg-[#d9eff3] transition-colors cursor-pointer">
           <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5" aria-hidden="true">
             <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" />
           </svg>
@@ -525,7 +525,7 @@
       <div class="space-y-4">
         <!-- Height Group -->
         <div>
-          <label for="bmiHeightCm" id="bmiHeightLabel" class="block text-[15px] font-bold text-[#063154] mb-1">Height</label>
+          <label for="bmiHeightCm" id="bmiHeightLabel" class="block text-[15px] font-bold text-[#014c5e] mb-1">Height</label>
           <div class="flex items-center gap-2">
             <!-- CM Input Group -->
             <div id="bmiCmHeightGroup" class="relative flex-1">
@@ -559,7 +559,7 @@
 
         <!-- Weight Group -->
         <div>
-          <label for="bmiWeight" class="block text-[15px] font-bold text-[#063154] mb-1">Weight</label>
+          <label for="bmiWeight" class="block text-[15px] font-bold text-[#014c5e] mb-1">Weight</label>
           <div class="flex items-center gap-2">
             <div class="relative flex-1">
               <input type="number" id="bmiWeight" min="20" max="400" step="0.1" placeholder="e.g. 70" class="w-full font-mono text-[17px]">
@@ -578,16 +578,16 @@
       </div>
 
       <!-- Live BMI Preview -->
-      <div id="bmiPreviewBox" class="mt-4 p-3 bg-[#e6f4f5] border border-[#bce0c6] rounded-xl text-center hidden">
+      <div id="bmiPreviewBox" class="mt-4 p-3 bg-[#e8f5f7] border border-[#bce0c6] rounded-xl text-center hidden">
         <p class="text-[13px] text-[#4f5b66] font-semibold uppercase tracking-wider">Calculated BMI</p>
-        <p id="bmiPreviewNum" class="font-mono text-3xl font-extrabold text-[#0b7a85] my-1">--</p>
-        <p id="bmiPreviewCategory" class="text-[15px] font-bold text-[#0b7a85]">--</p>
+        <p id="bmiPreviewNum" class="font-mono text-3xl font-extrabold text-[#2e7283] my-1">--</p>
+        <p id="bmiPreviewCategory" class="text-[15px] font-bold text-[#2e7283]">--</p>
       </div>
 
       <p id="bmiModalError" class="mt-2 text-[15px] font-bold text-[#b03a2e] hidden" role="alert"></p>
 
       <!-- Modal Actions -->
-      <div class="mt-6 flex items-center justify-end gap-3 pt-3 border-t border-[#e5dcce]">
+      <div class="mt-6 flex items-center justify-end gap-3 pt-3 border-t border-[#b8dce5]">
         <button type="button" id="cancelBmiBtn" class="btn-secondary text-[16px] px-4 py-2">
           Cancel
         </button>

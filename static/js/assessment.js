@@ -238,9 +238,10 @@ document.addEventListener('DOMContentLoaded', () => {
 
     function getBmiCategory(bmi) {
       if (bmi < 18.5) return { label: 'Underweight (< 18.5)', color: 'text-[#a86a0a]' };
-      if (bmi < 25.0) return { label: 'Normal weight (18.5 – 24.9)', color: 'text-[#2f7d4a]' };
-      if (bmi < 30.0) return { label: 'Overweight (25.0 – 29.9)', color: 'text-[#a86a0a]' };
-      return { label: 'Above ideal weight (≥ 30.0)', color: 'text-[#b03a2e]' };
+      if (bmi < 23.0) return { label: 'Healthy range (18.5 – 22.9)', color: 'text-[#2f7d4a]' };
+      if (bmi < 25.0) return { label: 'Overweight (23.0 – 24.9)', color: 'text-[#a86a0a]' };
+      if (bmi < 30.0) return { label: 'Obese Class 1 (25.0 – 29.9)', color: 'text-[#b03a2e]' };
+      return { label: 'Obese Class 2 (≥ 30.0)', color: 'text-[#b03a2e]' };
     }
 
     function updateCalculation() {

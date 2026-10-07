@@ -8,13 +8,13 @@
 <div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8 sm:py-12">
 
   <!-- Assessment ID & Print Link Header -->
-  <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-6 border-b border-[#e5dcce] mb-8">
+  <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-6 border-b border-[#b8dce5] mb-8">
     <div>
-      <div class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-[#f3e9d6] text-[#063154] text-[15px] font-bold mb-2">
+      <div class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-[#f1fafb] text-[#014c5e] text-[15px] font-bold mb-2">
         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
         <span>{% if viewing_past %}Saved Check ({{ created_at|display_time }} PHT){% else %}Your Check Results{% endif %}</span>
       </div>
-      <h1 class="font-heading text-3xl sm:text-4xl md:text-5xl font-bold text-[#063154]">
+      <h1 class="font-heading text-3xl sm:text-4xl md:text-5xl font-bold text-[#014c5e]">
         Here is what we found
       </h1>
       <span class="sr-only">Complication Risk Results</span>
@@ -31,14 +31,14 @@
   </div>
 
   {% if not assessment_id and not viewing_past %}
-  <div class="bg-[#fbf6ec] border border-[#e5dcce] rounded-card p-4 mb-6 flex items-start gap-3">
-    <div class="w-8 h-8 rounded-lg bg-[#f3e9d6] text-[#0b7a85] flex items-center justify-center shrink-0 mt-0.5">
+  <div class="bg-[#f1fafb] border border-[#b8dce5] rounded-card p-4 mb-6 flex items-start gap-3">
+    <div class="w-8 h-8 rounded-lg bg-[#f1fafb] text-[#2e7283] flex items-center justify-center shrink-0 mt-0.5">
       <svg width="20" height="20" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
         <path stroke-linecap="round" stroke-linejoin="round" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
       </svg>
     </div>
     <div class="text-[15px] text-[#4f5b66] leading-relaxed">
-      <strong class="block text-[16px] text-[#063154] mb-0.5">Unsaved In-Memory Assessment</strong>
+      <strong class="block text-[16px] text-[#014c5e] mb-0.5">Unsaved In-Memory Assessment</strong>
       This assessment was processed by your local Flask application without creating database records. You can print these results or save them as PDF for your records.
     </div>
   </div>
@@ -58,12 +58,12 @@
     {% endif %}
   {% endfor %}
 
-  <div class="bg-[#ffffff] border border-[#e5dcce] rounded-card p-6 sm:p-8 shadow-card mb-10 flex flex-col sm:flex-row items-center gap-6">
+  <div class="bg-[#ffffff] border border-[#b8dce5] rounded-card p-6 sm:p-8 shadow-card mb-10 flex flex-col sm:flex-row items-center gap-6">
     <div class="flex-shrink-0">
       {{ icon_companion("w-20 h-20") }}
     </div>
     <div class="flex-1 text-center sm:text-left min-w-0">
-      <h2 class="font-heading text-xl sm:text-2xl md:text-3xl font-bold text-[#063154] mb-2 leading-tight">
+      <h2 class="font-heading text-xl sm:text-2xl md:text-3xl font-bold text-[#014c5e] mb-2 leading-tight">
         {% if check_count.value == 0 %}
           Good news: All 4 areas look fine!
         {% elif good_count.value == 0 %}
@@ -112,7 +112,7 @@
 
           <div class="min-w-0 flex-1">
             <!-- Complication Friendly Name -->
-            <h3 class="font-heading text-2xl sm:text-3xl font-bold text-[#063154] mb-1">
+            <h3 class="font-heading text-2xl sm:text-3xl font-bold text-[#014c5e] mb-1">
               {% if cat == 'cardiovascular' %}
                 Heart
               {% elif cat == 'general_burden' %}
@@ -177,7 +177,7 @@
       </div>
 
       <!-- 3-Segment Result Bar (Good, Check, Doctor) -->
-      <div class="mt-6 pt-6 border-t border-[#e5dcce]">
+      <div class="mt-6 pt-6 border-t border-[#b8dce5]">
         <div class="flex justify-between text-[14px] font-bold text-[#4f5b66] mb-1.5">
           <span>Good</span>
           <span>Worth a check</span>
@@ -198,7 +198,7 @@
       <details class="technical-details">
         <summary>For your doctor: technical details</summary>
         <div class="technical-content space-y-2">
-          <div class="font-bold text-[#063154]">
+          <div class="font-bold text-[#014c5e]">
             {% if cat == 'cardiovascular' %}
               Cardiovascular (ACC/AHA) — ASCVD Risk Scoring
             {% elif cat == 'general_burden' %}
@@ -224,9 +224,9 @@
 
   <!-- 3. What Affects This (Friendly Chips) -->
   {% if patient_drivers %}
-  <section class="bg-[#ffffff] border border-[#e5dcce] rounded-card p-6 sm:p-8 shadow-card mb-10">
+  <section class="bg-[#ffffff] border border-[#b8dce5] rounded-card p-6 sm:p-8 shadow-card mb-10">
     <div class="mb-6">
-      <h2 class="font-heading text-2xl sm:text-3xl font-bold text-[#063154]">
+      <h2 class="font-heading text-2xl sm:text-3xl font-bold text-[#014c5e]">
         What affects this
       </h2>
       <span class="sr-only">Patient-Specific Risk Drivers</span>
@@ -237,8 +237,8 @@
 
     <div class="grid grid-cols-1 sm:grid-cols-2 gap-6">
       {% for cat in categories %}
-      <div class="bg-[#fbf6ec] border border-[#e5dcce] rounded-lg p-5">
-        <h3 class="font-heading text-xl font-bold text-[#063154] mb-3 pb-2 border-b border-[#e5dcce]">
+      <div class="bg-[#f1fafb] border border-[#b8dce5] rounded-lg p-5">
+        <h3 class="font-heading text-xl font-bold text-[#014c5e] mb-3 pb-2 border-b border-[#b8dce5]">
           {% if cat == 'cardiovascular' %}
             Heart factors
             <span class="sr-only">Cardiovascular (ACC/AHA)</span>
@@ -258,7 +258,7 @@
           {% for d in patient_drivers.get(cat, []) %}
           <li class="flex items-start justify-between gap-3 text-[16px]">
             <div>
-              <span class="font-bold text-[#063154] block">{{ d.factor }}</span>
+              <span class="font-bold text-[#014c5e] block">{{ d.factor }}</span>
               <span class="text-[14px] text-[#4f5b66] leading-snug">{{ d.detail }}</span>
             </div>
             <span class="shrink-0 text-xs font-bold px-2 py-1 rounded 
@@ -278,10 +278,10 @@
 
   <!-- 4. Lab-Based Clinical Assessment (if labs entered) -->
   {% if lab_assessment %}
-  <section class="bg-[#ffffff] border border-[#e5dcce] rounded-card p-6 sm:p-8 shadow-card mb-10">
-    <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6 pb-4 border-b border-[#e5dcce]">
+  <section class="bg-[#ffffff] border border-[#b8dce5] rounded-card p-6 sm:p-8 shadow-card mb-10">
+    <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6 pb-4 border-b border-[#b8dce5]">
       <div>
-        <h2 class="font-heading text-2xl sm:text-3xl font-bold text-[#063154]">
+        <h2 class="font-heading text-2xl sm:text-3xl font-bold text-[#014c5e]">
           Lab-Based Clinical Assessment
         </h2>
         <p class="text-[17px] text-[#4f5b66]">
@@ -296,25 +296,25 @@
 
     <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
       {% if lab_assessment.details.hba1c %}
-      <div class="bg-[#fbf6ec] border border-[#e5dcce] rounded-lg p-4">
+      <div class="bg-[#f1fafb] border border-[#b8dce5] rounded-lg p-4">
         <span class="text-[15px] font-bold text-[#4f5b66] block">3-month sugar (HbA1c)</span>
-        <div class="font-mono text-3xl font-bold text-[#063154] my-1">{{ lab_assessment.details.hba1c.value }}%</div>
+        <div class="font-mono text-3xl font-bold text-[#014c5e] my-1">{{ lab_assessment.details.hba1c.value }}%</div>
         <p class="text-[14px] text-[#4f5b66]">Target: Under 7.0%</p>
       </div>
       {% endif %}
 
       {% if lab_assessment.details.systolic_bp %}
-      <div class="bg-[#fbf6ec] border border-[#e5dcce] rounded-lg p-4">
+      <div class="bg-[#f1fafb] border border-[#b8dce5] rounded-lg p-4">
         <span class="text-[15px] font-bold text-[#4f5b66] block">Top blood pressure</span>
-        <div class="font-mono text-3xl font-bold text-[#063154] my-1">{{ lab_assessment.details.systolic_bp.value }} mmHg</div>
+        <div class="font-mono text-3xl font-bold text-[#014c5e] my-1">{{ lab_assessment.details.systolic_bp.value }} mmHg</div>
         <p class="text-[14px] text-[#4f5b66]">Target: Under 130 mmHg</p>
       </div>
       {% endif %}
 
       {% if lab_assessment.details.ldl %}
-      <div class="bg-[#fbf6ec] border border-[#e5dcce] rounded-lg p-4">
+      <div class="bg-[#f1fafb] border border-[#b8dce5] rounded-lg p-4">
         <span class="text-[15px] font-bold text-[#4f5b66] block">Bad cholesterol (LDL)</span>
-        <div class="font-mono text-3xl font-bold text-[#063154] my-1">{{ lab_assessment.details.ldl.value }} mg/dL</div>
+        <div class="font-mono text-3xl font-bold text-[#014c5e] my-1">{{ lab_assessment.details.ldl.value }} mg/dL</div>
         <p class="text-[14px] text-[#4f5b66]">Target: Under 100 mg/dL</p>
       </div>
       {% endif %}
@@ -322,11 +322,11 @@
   </section>
   {% else %}
   <!-- Reassurance / Tip if labs were omitted -->
-  <div class="bg-[#f3e9d6] border border-[#e5dcce] rounded-card p-6 mb-10 flex items-start gap-4">
-    <div class="flex-shrink-0 mt-0.5 text-[#063154]">
+  <div class="bg-[#f1fafb] border border-[#b8dce5] rounded-card p-6 mb-10 flex items-start gap-4">
+    <div class="flex-shrink-0 mt-0.5 text-[#014c5e]">
       <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/></svg>
     </div>
-    <div class="text-[18px] text-[#063154] leading-relaxed">
+    <div class="text-[18px] text-[#014c5e] leading-relaxed">
       <strong class="font-bold">Tip for your next doctor's visit:</strong>
       Ask your doctor or clinic for a 3-month sugar test (HbA1c) and a simple urine check for your kidneys. When you have those results, come back to update your check!
     </div>
@@ -334,86 +334,43 @@
   {% endif %}
 
   <!-- 5. Your Next Steps (Picture-led, Local Philippine Examples) -->
-  <section class="bg-[#ffffff] border border-[#e5dcce] rounded-card p-6 sm:p-8 shadow-card mb-10">
-    <h2 class="font-heading text-2xl sm:text-3xl font-bold text-[#063154] mb-2">
+  <section class="bg-[#ffffff] border border-[#b8dce5] rounded-card p-6 sm:p-8 shadow-card mb-10">
+    <h2 class="font-heading text-2xl sm:text-3xl font-bold text-[#014c5e] mb-2">
       Your next steps
     </h2>
     <p class="text-[18px] text-[#4f5b66] mb-6">
-      Small, practical habits that help keep your sugar and blood vessels healthy.
+      {{ recommendations.headline }}
     </p>
 
     <div class="space-y-4">
-      
-      <!-- Step 1: Rice Portions -->
-      <div class="flex items-start gap-4 p-4 rounded-lg bg-[#fbf6ec] border border-[#e5dcce]">
+      {% for step in recommendations.steps %}
+      <div class="flex items-start gap-4 p-4 rounded-lg bg-[#f1fafb] border border-[#b8dce5]">
         <div class="flex-shrink-0">
-          {{ icon_plate("w-14 h-14") }}
+          {% if step.icon == 'plate' %}
+            {{ icon_plate("w-14 h-14") }}
+          {% elif step.icon == 'shoe' %}
+            {{ icon_shoe("w-14 h-14") }}
+          {% elif step.icon == 'companion' %}
+            {{ icon_companion("w-14 h-14") }}
+          {% elif step.icon == 'water' %}
+            {{ icon_water("w-14 h-14") }}
+          {% else %}
+            {{ icon_doctor("w-14 h-14") }}
+          {% endif %}
         </div>
         <div>
-          <span class="inline-block px-2.5 py-0.5 rounded bg-[#f3e9d6] text-[#063154] text-[14px] font-bold mb-1">1. Rice portions</span>
-          <p class="text-[18px] text-[#063154] font-medium leading-snug">
-            Try cutting white rice to 1 cup per meal. Brown or red rice helps even more.
+          <span class="inline-block px-2.5 py-0.5 rounded bg-[#f1fafb] text-[#014c5e] text-[14px] font-bold mb-1">{{ loop.index }}. {{ step.title }}</span>
+          <p class="text-[18px] text-[#014c5e] font-medium leading-snug">
+            {{ step.description }}
           </p>
         </div>
       </div>
-
-      <!-- Step 2: Walking After Meals -->
-      <div class="flex items-start gap-4 p-4 rounded-lg bg-[#fbf6ec] border border-[#e5dcce]">
-        <div class="flex-shrink-0">
-          {{ icon_shoe("w-14 h-14") }}
-        </div>
-        <div>
-          <span class="inline-block px-2.5 py-0.5 rounded bg-[#f3e9d6] text-[#063154] text-[14px] font-bold mb-1">2. Walking after meals</span>
-          <p class="text-[18px] text-[#063154] font-medium leading-snug">
-            Take a 10 to 15 minute walk after eating lunch or dinner.
-          </p>
-        </div>
-      </div>
-
-      <!-- Step 3: Merienda & Sari-Sari Snacks -->
-      <div class="flex items-start gap-4 p-4 rounded-lg bg-[#fbf6ec] border border-[#e5dcce]">
-        <div class="flex-shrink-0">
-          {{ icon_companion("w-14 h-14") }}
-        </div>
-        <div>
-          <span class="inline-block px-2.5 py-0.5 rounded bg-[#f3e9d6] text-[#063154] text-[14px] font-bold mb-1">3. Merienda choices</span>
-          <p class="text-[18px] text-[#063154] font-medium leading-snug">
-            Swap salty sari-sari store chips and fried snacks for boiled saba banana, fresh fruit, or unsalted peanuts.
-          </p>
-        </div>
-      </div>
-
-      <!-- Step 4: Water over Softdrinks -->
-      <div class="flex items-start gap-4 p-4 rounded-lg bg-[#fbf6ec] border border-[#e5dcce]">
-        <div class="flex-shrink-0">
-          {{ icon_water("w-14 h-14") }}
-        </div>
-        <div>
-          <span class="inline-block px-2.5 py-0.5 rounded bg-[#f3e9d6] text-[#063154] text-[14px] font-bold mb-1">4. Drink water</span>
-          <p class="text-[18px] text-[#063154] font-medium leading-snug">
-            Drink cold water instead of softdrinks, sweet milk teas, or instant 3-in-1 coffee.
-          </p>
-        </div>
-      </div>
-
-      <!-- Step 5: Clinic Check-up -->
-      <div class="flex items-start gap-4 p-4 rounded-lg bg-[#fbf6ec] border border-[#e5dcce]">
-        <div class="flex-shrink-0">
-          {{ icon_doctor("w-14 h-14") }}
-        </div>
-        <div>
-          <span class="inline-block px-2.5 py-0.5 rounded bg-[#f3e9d6] text-[#063154] text-[14px] font-bold mb-1">5. Clinic visit</span>
-          <p class="text-[18px] text-[#063154] font-medium leading-snug">
-            Bring this printout to your nearest barangay health center or family doctor.
-          </p>
-        </div>
-      </div>
-
+      {% endfor %}
     </div>
   </section>
 
   <!-- 6. Bottom Navigation (One Primary Button Only) -->
-  <div class="flex flex-col sm:flex-row items-center justify-between gap-4 pt-4 border-t border-[#e5dcce]">
+  <div class="flex flex-col sm:flex-row items-center justify-between gap-4 pt-4 border-t border-[#b8dce5]">
     <div class="flex flex-wrap items-center gap-3 w-full sm:w-auto">
       <a href="/assessment" class="btn-primary text-[19px] px-8 py-3.5 w-full sm:w-auto text-center shadow-card">
         Check someone else
@@ -425,7 +382,7 @@
       {% endif %}
     </div>
     <div>
-      <a href="/history" class="text-[18px] font-bold text-[#0b7a85] hover:underline">
+      <a href="/history" class="text-[18px] font-bold text-[#2e7283] hover:underline">
         See my past checks &rarr;
       </a>
     </div>

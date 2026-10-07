@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <title>DiaBeates Health Summary — {{ created_at|display_time }} PHT</title>
-  <link rel="icon" type="image/svg+xml" href="{{ url_for('static', filename='logo.svg') }}">
+  <link rel="icon" type="image/png" href="{{ url_for('static', filename='logo.png') }}">
   <link rel="stylesheet" href="{{ url_for('static', filename='css/clinical.css') }}">
   <link rel="stylesheet" href="{{ url_for('static', filename='css/print.css') }}">
 </head>
@@ -18,9 +18,13 @@
   <!-- Header -->
   <div class="header">
     <div class="brand">
-      <div class="w-8 h-8 rounded-full bg-[#e6f4f5] border border-[#0b7a85] flex items-center justify-center text-[#0b7a85] font-bold text-lg">
-        D
-      </div>
+      <img
+        src="{{ url_for('static', filename='logo.png') }}"
+        alt=""
+        class="w-8 h-8 object-contain"
+        width="32"
+        height="32"
+      >
       <div>
         <div class="brand-title">DiaBeates</div>
         <div class="text-[12px] text-[#4f5b66]">Health Screening Report</div>

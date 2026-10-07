@@ -8,13 +8,13 @@
 <div class="flex flex-col">
 
   <!-- 1. Hero Section (Cream background) -->
-  <section class="py-12 sm:py-16 md:py-20 bg-[#fbf6ec]">
+  <section class="py-12 sm:py-16 md:py-20 bg-[#f1fafb]">
     <div class="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8">
       <div class="grid grid-cols-1 md:grid-cols-12 gap-10 md:gap-12 items-center">
         
         <!-- Headline & CTA (Top on mobile, left on desktop) -->
         <div class="md:col-span-7 space-y-6 text-center md:text-left">
-          <h1 class="font-heading text-4xl sm:text-5xl md:text-6xl font-bold text-[#063154] tracking-tight leading-[1.1]">
+          <h1 class="font-heading text-4xl sm:text-5xl md:text-6xl font-bold text-[#014c5e] tracking-tight leading-[1.1]">
             Check your health risks in 3 minutes.
           </h1>
           <p class="text-[20px] text-[#4f5b66] leading-relaxed max-w-lg mx-auto md:mx-0">
@@ -32,13 +32,13 @@
           </div>
         </div>
 
-        <!-- Family Hero Image (Below CTA on mobile, right on desktop) -->
+        <!-- Hero image (Below CTA on mobile, right on desktop) -->
         <div class="md:col-span-5">
           <div class="relative max-w-md mx-auto md:max-w-none">
             <img 
               src="{{ url_for('static', filename='img/filipino_family_hero.webp') }}" 
-              alt="Warm Filipino family smiling together at home" 
-              class="w-full h-auto rounded-card object-cover border border-[#e5dcce] shadow-card aspect-[4/3]"
+              alt="People smiling together at home"
+              class="w-full h-auto rounded-card object-cover border border-[#b8dce5] shadow-card aspect-[4/3]"
               width="800" 
               height="533" 
               loading="eager"
@@ -51,10 +51,10 @@
   </section>
 
   <!-- 2. How It Works (Sand background band) -->
-  <section class="py-12 sm:py-16 bg-[#f3e9d6] border-y border-[#e5dcce]">
+  <section class="py-12 sm:py-16 bg-[#d9eff3] border-y border-[#b8dce5]">
     <div class="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8">
       <div class="text-center max-w-2xl mx-auto mb-10">
-        <h2 class="font-heading text-3xl sm:text-4xl font-bold text-[#063154]">
+        <h2 class="font-heading text-3xl sm:text-4xl font-bold text-[#014c5e]">
           How it works
         </h2>
       </div>
@@ -66,7 +66,7 @@
             {{ icon_companion("w-16 h-16 sm:w-20 sm:h-20") }}
           </div>
           <span class="inline-block px-3 py-1 bg-[#fbeed0] text-[#a86a0a] text-[15px] font-bold rounded-full mb-3">Step 1</span>
-          <h3 class="font-heading text-xl font-bold text-[#063154] mb-2">Answer 15 easy questions</h3>
+          <h3 class="font-heading text-xl font-bold text-[#014c5e] mb-2">Answer 15 easy questions</h3>
           <p class="text-[17px] text-[#4f5b66] leading-snug">
             Simple yes or no questions about your body and habits.
           </p>
@@ -78,7 +78,7 @@
             {{ icon_heart("w-16 h-16 sm:w-20 sm:h-20") }}
           </div>
           <span class="inline-block px-3 py-1 bg-[#fbeed0] text-[#a86a0a] text-[15px] font-bold rounded-full mb-3">Step 2</span>
-          <h3 class="font-heading text-xl font-bold text-[#063154] mb-2">See your results</h3>
+          <h3 class="font-heading text-xl font-bold text-[#014c5e] mb-2">See your results</h3>
           <p class="text-[17px] text-[#4f5b66] leading-snug">
             Clear, honest results for your heart, kidneys, nerves, and eyes.
           </p>
@@ -90,7 +90,7 @@
             {{ icon_doctor("w-16 h-16 sm:w-20 sm:h-20") }}
           </div>
           <span class="inline-block px-3 py-1 bg-[#fbeed0] text-[#a86a0a] text-[15px] font-bold rounded-full mb-3">Step 3</span>
-          <h3 class="font-heading text-xl font-bold text-[#063154] mb-2">Know what to ask your doctor</h3>
+          <h3 class="font-heading text-xl font-bold text-[#014c5e] mb-2">Know what to ask your doctor</h3>
           <p class="text-[17px] text-[#4f5b66] leading-snug">
             Print or save simple questions for your next clinic visit.
           </p>
@@ -100,10 +100,10 @@
   </section>
 
   <!-- 3. What We Check (Cream background band) -->
-  <section class="py-12 sm:py-16 bg-[#fbf6ec]">
+  <section class="py-12 sm:py-16 bg-[#f1fafb]">
     <div class="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8">
       <div class="text-center max-w-2xl mx-auto mb-10">
-        <h2 class="font-heading text-3xl sm:text-4xl font-bold text-[#063154]">
+        <h2 class="font-heading text-3xl sm:text-4xl font-bold text-[#014c5e]">
           What we check
         </h2>
         <p class="text-[19px] text-[#4f5b66] mt-2">
@@ -118,7 +118,7 @@
             {{ icon_heart("w-16 h-16 sm:w-20 sm:h-20") }}
           </div>
           <div class="min-w-0 flex-1">
-            <h3 class="font-heading text-2xl font-bold text-[#063154] mb-1">Heart</h3>
+            <h3 class="font-heading text-2xl font-bold text-[#014c5e] mb-1">Heart</h3>
             <p class="text-[17px] sm:text-[18px] text-[#4f5b66] leading-snug">Can high sugar harm your heart? We check.</p>
           </div>
         </div>
@@ -129,7 +129,7 @@
             {{ icon_kidneys("w-16 h-16 sm:w-20 sm:h-20") }}
           </div>
           <div class="min-w-0 flex-1">
-            <h3 class="font-heading text-2xl font-bold text-[#063154] mb-1">Kidneys</h3>
+            <h3 class="font-heading text-2xl font-bold text-[#014c5e] mb-1">Kidneys</h3>
             <p class="text-[17px] sm:text-[18px] text-[#4f5b66] leading-snug">How well are your kidneys filtering? We check.</p>
           </div>
         </div>
@@ -140,7 +140,7 @@
             {{ icon_foot("w-16 h-16 sm:w-20 sm:h-20") }}
           </div>
           <div class="min-w-0 flex-1">
-            <h3 class="font-heading text-2xl font-bold text-[#063154] mb-1">Nerves and feet</h3>
+            <h3 class="font-heading text-2xl font-bold text-[#014c5e] mb-1">Nerves and feet</h3>
             <p class="text-[17px] sm:text-[18px] text-[#4f5b66] leading-snug">Is numbness or foot pain slowing you down? We check.</p>
           </div>
         </div>
@@ -151,7 +151,7 @@
             {{ icon_eye("w-16 h-16 sm:w-20 sm:h-20") }}
           </div>
           <div class="min-w-0 flex-1">
-            <h3 class="font-heading text-2xl font-bold text-[#063154] mb-1">Eyes</h3>
+            <h3 class="font-heading text-2xl font-bold text-[#014c5e] mb-1">Eyes</h3>
             <p class="text-[17px] sm:text-[18px] text-[#4f5b66] leading-snug">Is your vision staying clear? We check.</p>
           </div>
         </div>
@@ -160,18 +160,18 @@
   </section>
 
   <!-- 4. Video & Reassurance Band (Sand background band) -->
-  <section class="py-12 sm:py-16 bg-[#f3e9d6] border-t border-[#e5dcce]">
+  <section class="py-12 sm:py-16 bg-[#d9eff3] border-t border-[#b8dce5]">
     <div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
       
       <!-- Privacy Reassurance Message -->
-      <div class="bg-[#ffffff] rounded-card p-6 sm:p-8 border border-[#e5dcce] shadow-card text-center mb-10">
+      <div class="bg-[#ffffff] rounded-card p-6 sm:p-8 border border-[#b8dce5] shadow-card text-center mb-10">
         <div class="inline-flex items-center justify-center w-12 h-12 rounded-full bg-[#e4f2e7] text-[#2f7d4a] mb-3">
           <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round">
             <rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect>
             <path d="M7 11V7a5 5 0 0 1 10 0v4"></path>
           </svg>
         </div>
-        <h3 class="font-heading text-2xl font-bold text-[#063154] mb-2">
+        <h3 class="font-heading text-2xl font-bold text-[#014c5e] mb-2">
           Your answers stay private.
         </h3>
         <p class="text-[19px] text-[#4f5b66] max-w-lg mx-auto">

@@ -51,18 +51,18 @@
 
 :root {
   /* Warm Public Health Palette */
-  --cream: #fbf6ec;
-  --sand: #f3e9d6;
+  --cream: #f1fafb;
+  --sand: #d9eff3;
   --white: #ffffff;
   --ink: #1f2a33;
   --ink-muted: #4f5b66;
-  --navy: #063154;
-  --teal: #0b7a85;
-  --teal-hover: #08616a;
-  --teal-light: #e6f4f5;
+  --navy: #014c5e;
+  --teal: #2e7283;
+  --teal-hover: #245e6d;
+  --teal-light: #e8f5f7;
   --marigold: #f2a73b;
   --coral: #e8765a;
-  --border-cream: #e5dcce;
+  --border-cream: #b8dce5;
   --card-shadow: 0 1px 2px rgba(31, 42, 51, 0.06);
 
   /* Status Colors (Always paired with an icon and a word) */
@@ -161,7 +161,7 @@ input[type="range"] {
   min-height: auto;
   padding: 0;
   border: none;
-  background-color: #e5dcce;
+  background-color: #b8dce5;
   border-radius: 9999px;
   height: 8px;
 }
@@ -197,8 +197,8 @@ textarea:focus {
 }
 
 .btn-primary:hover {
-  background-color: #0c436f;
-  border-color: #0c436f;
+  background-color: #013f4e;
+  border-color: #013f4e;
   color: #ffffff;
   transform: translateY(-1px);
 }
@@ -250,8 +250,8 @@ textarea:focus {
 }
 
 .btn-secondary:hover {
-  background-color: #faf5ed;
-  border-color: #d1c7b5;
+  background-color: #e8f5f7;
+  border-color: #76adbb;
 }
 
 /* Cards & Surfaces */
@@ -267,6 +267,79 @@ textarea:focus {
   background-color: var(--sand);
   border: 1px solid var(--border-cream);
   border-radius: 12px;
+}
+
+/* About page information blocks */
+.about-hero {
+  border-bottom: 1px solid #2e7283;
+}
+
+.about-info-card,
+.about-step-card,
+.about-disclaimer,
+.about-technical-card {
+  border: 1px solid var(--border-cream);
+  border-radius: 10px;
+  padding: 20px;
+}
+
+.about-info-card h3,
+.about-step-card h3,
+.about-technical-card h3 {
+  margin: 8px 0 6px;
+  color: var(--navy);
+  font-family: var(--font-body);
+  font-size: 17px;
+  font-weight: 700;
+  line-height: 1.3;
+}
+
+.about-info-card p,
+.about-step-card p,
+.about-disclaimer p,
+.about-technical-card p {
+  color: var(--ink-muted);
+  font-size: 15px;
+  line-height: 1.55;
+  margin: 0;
+}
+
+.about-label {
+  display: inline-flex;
+  border: 1px solid currentColor;
+  border-radius: 9999px;
+  padding: 2px 8px;
+  font-size: 11px;
+  font-weight: 700;
+}
+
+.about-step-number {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 34px;
+  height: 34px;
+  border-radius: 9999px;
+  font-family: var(--font-mono);
+  font-size: 13px;
+  font-weight: 600;
+}
+
+.about-disclaimer {
+  border-color: #f4d99f;
+  background: #fffbed;
+}
+
+.about-disclaimer h3 {
+  color: #a86a0a;
+  font-family: var(--font-body);
+  font-size: 16px;
+  font-weight: 700;
+  margin: 0 0 6px;
+}
+
+.about-technical-card {
+  background: var(--white);
 }
 
 /* Complication Status Badges */
@@ -306,7 +379,7 @@ textarea:focus {
   border-radius: 7px;
   display: flex;
   overflow: hidden;
-  background-color: #ece5d8;
+  background-color: #c5e0e7;
   border: 1px solid var(--border-cream);
 }
 
@@ -404,7 +477,7 @@ details.technical-details .technical-content {
 }
 
 .choice-tile:hover {
-  border-color: #c7bcab;
+  border-color: #76adbb;
   background-color: #fdfbf7;
 }
 
@@ -493,7 +566,7 @@ dialog[open] {
 }
 
 dialog::backdrop {
-  background-color: rgba(6, 49, 84, 0.6);
+  background-color: rgba(1, 76, 94, 0.6);
 }
 
 /* Reduced Motion Override */

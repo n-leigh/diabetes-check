@@ -7,19 +7,19 @@ module.exports = {
   theme: {
     extend: {
       colors: {
-        cream: "#fbf6ec",
-        sand: "#f3e9d6",
+        cream: "#f1fafb",
+        sand: "#d9eff3",
         ink: "#1f2a33",
         "ink-muted": "#4f5b66",
-        navy: "#063154",
+        navy: "#014c5e",
         teal: {
-          DEFAULT: "#0b7a85",
-          hover: "#08616a",
-          light: "#e6f4f5",
+          DEFAULT: "#2e7283",
+          hover: "#245e6d",
+          light: "#e8f5f7",
         },
         marigold: "#f2a73b",
         coral: "#e8765a",
-        border: "#e5dcce",
+        border: "#b8dce5",
         status: {
           good: "#2f7d4a",
           "good-bg": "#e4f2e7",

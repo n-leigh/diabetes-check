@@ -8,9 +8,9 @@
 <div class="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-8 sm:py-12">
 
   <!-- Header -->
-  <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-6 border-b border-[#e5dcce] mb-8">
+  <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-6 border-b border-[#b8dce5] mb-8">
     <div>
-      <h1 class="font-heading text-3xl sm:text-4xl md:text-5xl font-bold text-[#063154]">
+      <h1 class="font-heading text-3xl sm:text-4xl md:text-5xl font-bold text-[#014c5e]">
         Past Health Checks
       </h1>
       <p class="text-[18px] text-[#4f5b66] mt-1">
@@ -26,15 +26,15 @@
   </div>
 
   <!-- Filter & Sort Controls -->
-  <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-6 mb-8 border-b border-[#e5dcce]">
+  <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-6 mb-8 border-b border-[#b8dce5]">
     <!-- View Tabs -->
     <div class="flex items-center gap-6 text-[18px]">
       <a href="/history{{ '?sort=' + sort_order if sort_order != 'desc' else '' }}"
-         class="pb-1 font-bold transition-colors {{ 'text-[#063154] border-b-2 border-[#0b7a85]' if not show_archived else 'text-[#4f5b66] hover:text-[#063154]' }}">
+         class="pb-1 font-bold transition-colors {{ 'text-[#014c5e] border-b-2 border-[#2e7283]' if not show_archived else 'text-[#4f5b66] hover:text-[#014c5e]' }}">
         Active checks
       </a>
       <a href="/history?view=archived{{ '&sort=' + sort_order if sort_order != 'desc' else '' }}"
-         class="pb-1 font-bold transition-colors {{ 'text-[#063154] border-b-2 border-[#0b7a85]' if show_archived else 'text-[#4f5b66] hover:text-[#063154]' }}">
+         class="pb-1 font-bold transition-colors {{ 'text-[#014c5e] border-b-2 border-[#2e7283]' if show_archived else 'text-[#4f5b66] hover:text-[#014c5e]' }}">
         Archived
       </a>
     </div>
@@ -44,11 +44,11 @@
     <div class="flex items-center gap-2 text-[15px]">
       <span class="text-[#4f5b66] font-bold">Sort:</span>
       <a href="/history?{{ 'view=archived&' if show_archived else '' }}sort=desc"
-         class="px-3 py-1.5 rounded-lg border font-bold transition-colors min-h-[40px] flex items-center {{ 'bg-[#063154] text-white border-[#063154]' if sort_order == 'desc' else 'bg-white text-[#4f5b66] border-[#e5dcce] hover:bg-[#f3e9d6]' }}">
+         class="px-3 py-1.5 rounded-lg border font-bold transition-colors min-h-[40px] flex items-center {{ 'bg-[#014c5e] text-white border-[#014c5e]' if sort_order == 'desc' else 'bg-white text-[#4f5b66] border-[#b8dce5] hover:bg-[#d9eff3]' }}">
         Newest First
       </a>
       <a href="/history?{{ 'view=archived&' if show_archived else '' }}sort=asc"
-         class="px-3 py-1.5 rounded-lg border font-bold transition-colors min-h-[40px] flex items-center {{ 'bg-[#063154] text-white border-[#063154]' if sort_order == 'asc' else 'bg-white text-[#4f5b66] border-[#e5dcce] hover:bg-[#f3e9d6]' }}">
+         class="px-3 py-1.5 rounded-lg border font-bold transition-colors min-h-[40px] flex items-center {{ 'bg-[#014c5e] text-white border-[#014c5e]' if sort_order == 'asc' else 'bg-white text-[#4f5b66] border-[#b8dce5] hover:bg-[#d9eff3]' }}">
         Oldest First
       </a>
     </div>
@@ -57,11 +57,11 @@
 
   <!-- Empty State -->
   {% if not records %}
-  <div class="bg-[#ffffff] border border-[#e5dcce] rounded-card p-10 sm:p-14 text-center shadow-card max-w-lg mx-auto">
+  <div class="bg-[#ffffff] border border-[#b8dce5] rounded-card p-10 sm:p-14 text-center shadow-card max-w-lg mx-auto">
     <div class="mb-4 flex justify-center">
       {{ icon_companion("w-24 h-24") }}
     </div>
-    <h2 class="font-heading text-2xl sm:text-3xl font-bold text-[#063154] mb-2">
+    <h2 class="font-heading text-2xl sm:text-3xl font-bold text-[#014c5e] mb-2">
       No past checks yet
     </h2>
     <p class="text-[18px] text-[#4f5b66] mb-6">
@@ -78,12 +78,12 @@
   <div class="block md:hidden space-y-4">
     {% for r in records %}
     <div class="health-card p-5">
-      <div class="flex items-center justify-between pb-3 border-b border-[#e5dcce] mb-3">
+      <div class="flex items-center justify-between pb-3 border-b border-[#b8dce5] mb-3">
         <div>
-          <span class="text-[14px] font-bold text-[#0b7a85] uppercase">Check #{{ r.display_index }}</span>
-          <div class="text-[17px] font-bold text-[#063154]">{{ r.created_at|display_time }} PHT</div>
+          <span class="text-[14px] font-bold text-[#2e7283] uppercase">Check #{{ r.display_index }}</span>
+          <div class="text-[17px] font-bold text-[#014c5e]">{{ r.created_at|display_time }} PHT</div>
         </div>
-        <span class="text-[15px] font-mono font-bold text-[#4f5b66] bg-[#f3e9d6] px-2.5 py-1 rounded">
+        <span class="text-[15px] font-mono font-bold text-[#4f5b66] bg-[#f1fafb] px-2.5 py-1 rounded">
           BMI {{ r.patient.BMI }}
         </span>
       </div>
@@ -93,7 +93,7 @@
         <!-- Heart -->
         {% set heart = r.rule_results.get('cardiovascular') %}
         {% set heart_ml = r.model_results.get('cardiovascular') if r.model_results else (heart.label if heart else 'N/A') %}
-        <div class="flex items-center gap-2 p-2 rounded-lg bg-[#fbf6ec]">
+        <div class="flex items-center gap-2 p-2 rounded-lg bg-[#f1fafb]">
           {{ icon_heart("w-8 h-8") }}
           <div class="leading-tight">
             <span class="text-[13px] text-[#4f5b66] font-bold block">Heart</span>
@@ -107,7 +107,7 @@
         <!-- Kidneys -->
         {% set kidneys = r.rule_results.get('general_burden') %}
         {% set kidneys_ml = r.model_results.get('general_burden') if r.model_results else (kidneys.label if kidneys else 'N/A') %}
-        <div class="flex items-center gap-2 p-2 rounded-lg bg-[#fbf6ec]">
+        <div class="flex items-center gap-2 p-2 rounded-lg bg-[#f1fafb]">
           {{ icon_kidneys("w-8 h-8") }}
           <div class="leading-tight">
             <span class="text-[13px] text-[#4f5b66] font-bold block">Kidneys</span>
@@ -121,7 +121,7 @@
         <!-- Nerves & Feet -->
         {% set nerves = r.rule_results.get('neuropathy_mobility') %}
         {% set nerves_ml = r.model_results.get('neuropathy_mobility') if r.model_results else (nerves.label if nerves else 'N/A') %}
-        <div class="flex items-center gap-2 p-2 rounded-lg bg-[#fbf6ec]">
+        <div class="flex items-center gap-2 p-2 rounded-lg bg-[#f1fafb]">
           {{ icon_foot("w-8 h-8") }}
           <div class="leading-tight">
             <span class="text-[13px] text-[#4f5b66] font-bold block">Nerves &amp; Feet</span>
@@ -135,7 +135,7 @@
         <!-- Eyes -->
         {% set eyes = r.rule_results.get('retinopathy') %}
         {% set eyes_ml = r.model_results.get('retinopathy') if r.model_results else (eyes.label if eyes else 'N/A') %}
-        <div class="flex items-center gap-2 p-2 rounded-lg bg-[#fbf6ec]">
+        <div class="flex items-center gap-2 p-2 rounded-lg bg-[#f1fafb]">
           {{ icon_eye("w-8 h-8") }}
           <div class="leading-tight">
             <span class="text-[13px] text-[#4f5b66] font-bold block">Eyes</span>
@@ -148,7 +148,7 @@
       </div>
 
       <!-- Actions -->
-      <div class="flex items-center justify-between gap-3 pt-3 border-t border-[#e5dcce]">
+      <div class="flex items-center justify-between gap-3 pt-3 border-t border-[#b8dce5]">
         <a href="/history/{{ r.id }}" class="btn-primary text-[16px] py-2 px-4 flex-1 text-center">
           View results
         </a>
@@ -161,10 +161,10 @@
   </div>
 
   <!-- Desktop View: Table (>= 768px) -->
-  <div class="hidden md:block overflow-hidden border border-[#e5dcce] rounded-card bg-[#ffffff] shadow-card">
+  <div class="hidden md:block overflow-hidden border border-[#b8dce5] rounded-card bg-[#ffffff] shadow-card">
     <table class="w-full text-left border-collapse">
       <thead>
-        <tr class="bg-[#f3e9d6] border-b border-[#e5dcce] text-[15px] font-bold text-[#063154]">
+        <tr class="bg-[#f1fafb] border-b border-[#b8dce5] text-[15px] font-bold text-[#014c5e]">
           <th class="py-3.5 px-4 w-14">#</th>
           <th class="py-3.5 px-4">Date / Time (PHT)</th>
           <th class="py-3.5 px-3">BMI</th>
@@ -175,16 +175,16 @@
           <th class="py-3.5 px-4 text-right">Actions</th>
         </tr>
       </thead>
-      <tbody class="divide-y divide-[#e5dcce] text-[16px]">
+      <tbody class="divide-y divide-[#b8dce5] text-[16px]">
         {% for r in records %}
-        <tr class="hover:bg-[#fbf6ec] transition-colors">
+        <tr class="hover:bg-[#d9eff3] transition-colors">
           <td class="py-4 px-4 font-mono font-bold text-[#4f5b66]">
             #{{ r.display_index }}
           </td>
-          <td class="py-4 px-4 font-medium text-[#063154]">
+          <td class="py-4 px-4 font-medium text-[#014c5e]">
             {{ r.created_at|display_time }}
           </td>
-          <td class="py-4 px-3 font-mono font-bold text-[#063154]">
+          <td class="py-4 px-3 font-mono font-bold text-[#014c5e]">
             {{ r.patient.BMI }}
           </td>
 
@@ -268,23 +268,23 @@
   <div id="deleteConfirmModal" class="disclaimer-backdrop" role="presentation" hidden>
     <section class="disclaimer-dialog" role="dialog" aria-modal="true" aria-labelledby="deleteModalTitle" aria-describedby="deleteModalDesc" tabindex="-1">
       <div class="p-6 sm:p-7">
-        <div class="flex items-center justify-between pb-3 border-b border-[#e5dcce] mb-4">
+        <div class="flex items-center justify-between pb-3 border-b border-[#b8dce5] mb-4">
           <h2 id="deleteModalTitle" class="font-heading text-xl font-bold text-[#b03a2e]">
             Delete Saved Check?
           </h2>
-          <button type="button" id="cancelDeleteXBtn" aria-label="Close dialog" class="text-[#4f5b66] hover:text-[#063154] p-2 rounded-lg hover:bg-[#f3e9d6] transition-colors cursor-pointer">
+          <button type="button" id="cancelDeleteXBtn" aria-label="Close dialog" class="text-[#4f5b66] hover:text-[#014c5e] p-2 rounded-lg hover:bg-[#d9eff3] transition-colors cursor-pointer">
             <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><path d="M18 6L6 18M6 6l12 12" /></svg>
           </button>
         </div>
 
         <p id="deleteModalDesc" class="text-[17px] text-[#1f2a33] mb-6 leading-relaxed">
-          Are you sure you want to permanently delete <strong id="deleteTargetLabel" class="text-[#063154]">this assessment</strong>? This cannot be undone.
+          Are you sure you want to permanently delete <strong id="deleteTargetLabel" class="text-[#014c5e]">this assessment</strong>? This cannot be undone.
         </p>
 
         <form id="deleteAssessmentForm" method="post" action="">
           <input type="hidden" name="csrf_token" value="{{ csrf_token() }}" />
           <input type="hidden" name="from" value="{{ 'archived' if show_archived else 'active' }}" />
-          <div class="flex items-center justify-end gap-3 pt-3 border-t border-[#e5dcce]">
+          <div class="flex items-center justify-end gap-3 pt-3 border-t border-[#b8dce5]">
             <button type="button" id="cancelDeleteBtn" class="btn-secondary text-[17px] py-2 px-5 min-h-[44px]">
               Cancel
             </button>
