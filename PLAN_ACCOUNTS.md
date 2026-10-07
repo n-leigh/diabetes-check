@@ -267,9 +267,11 @@ P8 Tests and wrap-up: write test_auth.py covering all authentication, ownership,
 - CSRF enforced on every new POST
 
 PLAN_STATUS
-P1 [x] P2 [x] P3 [x] P4 [x] P5 [x] P6 [x] P7 [ ] P8 [ ]
+P1 [x] P2 [x] P3 [x] P4 [x] P5 [x] P6 [x] P7 [x] P8 [x]
 
 CHANGELOG
+- 2026-10-07: Completed P8 authentication and security verification. Added focused coverage for registration, generic login failures, lockout state, open-redirect rejection, guest claim decisions, ownership 404s including feedback, owner-only export and progress, single-use hashed password reset tokens, admin authorization, last-admin protection, and shared status mapping. All required clinical, flow, live browser, syntax, diagnostics, and whitespace checks passed. Final audit found no unapplied P1-P8 requirements.
+- 2026-10-07: Completed P7 copy and documentation. Updated home reassurance, About privacy and retention text, README account/setup/admin guidance, route documentation, and environment-variable instructions. All required regression suites passed.
 - 2026-10-07: Completed P6 admin tools. Added role-checked admin decorator, aggregate dashboard with under-five suppression, privacy-safe users/feedback/audit/system views, protected user actions with last-admin safeguards, one-time reset links, encrypted database backups, aggregate CSV export, admin navigation, and flask create-admin CLI. Admin smoke checks and all required regression suites passed.
 - 2026-10-07: Completed P5 progress view. Added the shared Low/Moderate/High to Good/Check/See a doctor presentation helper, authenticated /history/progress route, newest-right timeline cards for all four domains, plain progress sentences, and a friendly two-check empty state. P4 audit remained clean, P5 smoke checks and all required regression suites passed.
 - 2026-10-07: Completed P4 account management. Added account profile, password change, owner-only JSON export, password deletion with atomic data cleanup, 60-minute single-use reset tokens, SMTP delivery, debug-link logging, and production fallback contact text. P4 smoke checks and all required regression suites passed.

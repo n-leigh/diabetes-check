@@ -1537,6 +1537,20 @@ def print_result(assessment_id):
     )
 
 
+@app.post("/feedback/<int:assessment_id>")
+def feedback(assessment_id):
+    record = database.get_assessment(
+        assessment_id,
+        session_id=session["session_id"],
+        user_id=current_user.id if current_user.is_authenticated else None,
+    )
+    if not record:
+        abort(404)
+    helpful = request.form.get("helpful") == "1"
+    database.save_feedback(assessment_id, helpful, request.form.get("comment"))
+    return redirect(url_for("history_detail", assessment_id=assessment_id))
+
+
 @app.errorhandler(CSRFError)
 def handle_csrf_error(e):
     logger.warning(f"CSRF validation failed: {e.description}")

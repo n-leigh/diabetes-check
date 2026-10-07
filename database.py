@@ -840,6 +840,27 @@ def claim_assessments(session_id: str, user_id: int) -> int:
         conn.close()
 
 
+def save_feedback(assessment_id: int, helpful: bool, comment: str = None) -> None:
+    conn = get_connection()
+    try:
+        conn.execute(
+            """INSERT INTO feedback (assessment_id, helpful, comment, created_at)
+               VALUES (?, ?, ?, ?)""",
+            (
+                assessment_id,
+                int(bool(helpful)),
+                comment.strip()[:2000] if comment else None,
+                datetime.now(timezone.utc).isoformat(timespec="seconds"),
+            ),
+        )
+        conn.commit()
+    except Exception:
+        conn.rollback()
+        raise
+    finally:
+        conn.close()
+
+
 def prune_expired_assessments(days: int = 90) -> int:
     """Permanently deletes assessments older than `days` days and their child records.
     Returns the count of deleted assessment records to comply with GDPR storage limitation

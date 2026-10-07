@@ -29,6 +29,30 @@ All four complication models are validated. Retinopathy model discrimination was
 - **Optional Local Storage**: Saving an assessment is strictly opt-in. Unsaved assessments run in-memory and produce zero database records. Opted-in records are encrypted locally with SQLCipher (AES-256) and strictly scoped to the anonymous browser session.
 - **Decentralized Offline Sharing**: Results can be exported via self-contained URL fragments (`#report=` for unencrypted base64url or `#encrypted=v1.<salt>.<iv>.<ciphertext>` with client-side WebCrypto AES-256-GCM and PBKDF2 310,000 iterations). Per RFC 3986, URL fragments are processed purely within the client's browser and are never transmitted in HTTP requests to Flask.
 
+## Optional Accounts
+
+Accounts are optional. Guests can use the screening flow and keep checks in the
+current browser for 90 days. Account checks remain until the account is deleted.
+
+Registration stores only a nickname, email, password hash, consent time, and
+saved assessment data. Users can update their nickname, change their password,
+download their JSON data, or permanently delete their account.
+
+Administrators are created with the Flask CLI and can view account metadata,
+safe aggregates, feedback, audit events, and system status. Admin pages never
+show an individual user's health inputs or results.
+
+To create an administrator:
+
+```powershell
+python -m flask --app app create-admin
+```
+
+Password reset email delivery is configured through `SMTP_HOST`, `SMTP_PORT`,
+`SMTP_USER`, `SMTP_PASSWORD`, `SMTP_FROM`, and `BASE_URL`. Copy `.env.example`
+to `.env` and set these values for production email delivery. If SMTP is not
+configured, debug mode logs a reset link; production shows `ADMIN_CONTACT_TEXT`.
+
 ## Run Locally
 
 ```powershell
@@ -58,7 +82,7 @@ The Dockerfile is single-stage, based on `python:3.11-slim`, runs as `appuser`, 
 
 ## Routes
 
-`GET /`, `GET /assessment`, `POST /predict`, `GET /report`, `GET /about`, `GET /health`, `GET /print/<print_id>`, `GET /history`, `GET /history/<id>`, `GET /history/<id>/print`, `POST /history/<id>/archive`, and `POST /history/<id>/delete`.
+`GET /`, `GET /assessment`, `POST /predict`, `GET /report`, `GET /about`, `GET /privacy`, `GET /health`, `GET /register`, `POST /register`, `GET /login`, `POST /login`, `POST /logout`, `GET /claim`, `POST /claim`, `GET /account`, `GET /account/export`, `GET /history`, `GET /history/progress`, `GET /history/<id>`, `GET /history/<id>/print`, `POST /history/<id>/archive`, and `POST /history/<id>/delete`. Admin routes require an active admin account.
 
 ## Important Files
 
