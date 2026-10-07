@@ -1,0 +1,72 @@
+{% extends "base.html" %}
+{% block title %}DiaBeates — Clinical Assessment Report Viewer{% endblock %}
+{% set active_page = 'report' %}
+
+{% block content %}
+<div class="flex-1 py-10 px-4 sm:px-6 lg:px-8 bg-slate-50 min-h-[calc(100vh-16rem)]">
+  <div class="max-w-4xl mx-auto">
+
+    <!-- Loading State -->
+    <div id="reportLoadingBox" class="bg-white rounded-3xl border border-slate-200 p-12 text-center shadow-sm">
+      <div class="w-12 h-12 mx-auto mb-4 border-4 border-teal-500 border-t-transparent rounded-full animate-spin"></div>
+      <h2 class="font-display font-bold text-lg text-slate-800">Reading Assessment Report</h2>
+      <p class="text-sm text-slate-500 mt-1">Extracting clinical parameters directly from URL fragment...</p>
+    </div>
+
+    <!-- Error State -->
+    <div id="reportErrorBox" class="hidden bg-white rounded-3xl border border-rose-200 p-8 sm:p-10 shadow-sm text-center">
+      <div class="w-14 h-14 mx-auto mb-4 rounded-2xl bg-rose-50 text-rose-600 flex items-center justify-center">
+        <svg class="w-7 h-7" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+          <path stroke-linecap="round" stroke-linejoin="round" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+        </svg>
+      </div>
+      <h2 class="font-display font-bold text-xl text-slate-900 mb-2">Unable to Load Clinical Report</h2>
+      <p id="reportErrorText" class="text-sm text-slate-600 max-w-md mx-auto mb-6 leading-relaxed"></p>
+      <div class="flex justify-center gap-3">
+        <a href="/assessment" class="px-5 py-2.5 rounded-xl bg-teal-600 text-white text-sm font-semibold hover:bg-teal-700 transition">
+          New Assessment
+        </a>
+        <a href="/" class="px-5 py-2.5 rounded-xl bg-slate-100 text-slate-700 text-sm font-semibold hover:bg-slate-200 transition">
+          Home
+        </a>
+      </div>
+    </div>
+
+    <!-- Passphrase Prompt Modal for #encrypted= -->
+    <div id="passphrasePromptModal" class="hidden bg-white rounded-3xl border border-slate-200 p-8 sm:p-10 shadow-sm max-w-lg mx-auto text-center">
+      <div class="w-14 h-14 mx-auto mb-4 rounded-2xl bg-teal-50 text-teal-600 flex items-center justify-center">
+        <svg class="w-7 h-7" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+          <path stroke-linecap="round" stroke-linejoin="round" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
+        </svg>
+      </div>
+      <h2 class="font-display font-bold text-xl text-slate-900 mb-1">Encrypted Clinical Report</h2>
+      <p class="text-xs text-slate-500 mb-6">This report is protected with client-side AES-256-GCM encryption. Enter the passphrase provided by the assessment creator to unlock it.</p>
+
+      <div class="text-left space-y-4">
+        <div>
+          <label for="reportPassphraseInput" class="block text-xs font-semibold text-slate-700 mb-1.5">Passphrase</label>
+          <input type="password" id="reportPassphraseInput" autocomplete="current-password" placeholder="Enter passphrase"
+                 class="w-full px-4 py-2.5 rounded-xl border border-slate-300 focus:ring-2 focus:ring-teal-500 focus:border-teal-500 text-sm text-slate-900">
+        </div>
+        <div id="passphraseError" class="hidden text-xs text-rose-600 font-medium"></div>
+        <button type="button" id="decryptSubmitBtn"
+                class="w-full py-3 rounded-xl bg-teal-600 text-white font-semibold text-sm hover:bg-teal-700 active:bg-teal-800 transition shadow-sm">
+          Unlock Report
+        </button>
+      </div>
+      <p class="text-[11px] text-slate-400 mt-4">
+        Decryption occurs purely within your browser using Web Cryptography. Passphrases and clinical data are never transmitted over the network.
+      </p>
+    </div>
+
+    <!-- Rendered Report Container -->
+    <div id="reportRoot"></div>
+
+  </div>
+</div>
+{% endblock %}
+
+{% block extra_scripts %}
+<script src="{{ url_for('static', filename='js/report_viewer.js') }}"></script>
+{% endblock %}
+

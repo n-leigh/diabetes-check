@@ -10,21 +10,21 @@ patient_dict should NOT be trusted or saved.
 
 from __future__ import annotations  # keeps type hints safe on Python < 3.9
 
-# (field, label, min, max, required, is_float)
+# (field, error_msg, min, max, required, is_float)
 FIELD_RULES = [
-    ("BMI", "BMI", 10.0, 80.0, True, True),
-    ("Age", "Age band", 1, 13, True, False),
-    ("GenHlth", "General health", 1, 5, True, False),
-    ("PhysHlth", "Poor physical health days", 0, 30, True, False),
-    ("MentHlth", "Poor mental health days", 0, 30, True, False),
+    ("BMI", "Please enter your BMI (10.0 to 80.0).", 10.0, 80.0, True, True),
+    ("Age", "Please select your age range.", 1, 13, True, False),
+    ("GenHlth", "Please rate your general health.", 1, 5, True, False),
+    ("PhysHlth", "Please enter days of poor physical health (0 to 30).", 0, 30, True, False),
+    ("MentHlth", "Please enter days of poor mental health (0 to 30).", 0, 30, True, False),
 ]
 
 # Optional lab fields — validated only if the user actually provides a
 # value; blank is fine and means "not measured / not entered".
 OPTIONAL_LAB_FIELD_RULES = [
-    ("LabHbA1c", "HbA1c", 3.0, 20.0, True),
-    ("LabSystolicBP", "Systolic BP", 60, 250, False),
-    ("LabLDL", "LDL cholesterol", 20, 400, False),
+    ("LabHbA1c", "Please enter a valid HbA1c (3.0 to 20.0).", 3.0, 20.0, True),
+    ("LabSystolicBP", "Please enter a valid Systolic BP (60 to 250).", 60, 250, False),
+    ("LabLDL", "Please enter a valid LDL cholesterol (20 to 400).", 20, 400, False),
 ]
 
 CHECKBOX_FIELDS = [
@@ -90,11 +90,11 @@ def validate_patient_form(form) -> tuple[dict, dict, list[str]]:
     patient = {}
     errors = []
 
-    for field, label, lo, hi, required, is_float in FIELD_RULES:
+    for field, error_msg, lo, hi, required, is_float in FIELD_RULES:
         raw = form.get(field, "").strip()
         if raw == "":
             if required:
-                errors.append(f"{label} is required.")
+                errors.append(error_msg)
                 continue
             raw = None
 
@@ -102,11 +102,11 @@ def validate_patient_form(form) -> tuple[dict, dict, list[str]]:
             try:
                 value = float(raw) if is_float else int(float(raw))
             except ValueError:
-                errors.append(f"{label} must be a number.")
+                errors.append(error_msg)
                 continue
 
             if value < lo or value > hi:
-                errors.append(f"{label} must be between {lo} and {hi}.")
+                errors.append(error_msg)
                 continue
 
             patient[field] = value
@@ -116,31 +116,36 @@ def validate_patient_form(form) -> tuple[dict, dict, list[str]]:
         val = form.get(field)
         patient[field] = 1 if val and str(val).strip().lower() not in ("0", "false", "off", "no") else 0
 
+    select_errors = {
+        "Sex": "Please select your biological sex.",
+        "DiabetesDuration": "Please select how long you've had diabetes."
+    }
     for field, allowed in SELECT_FIELDS.items():
         raw = form.get(field, "")
+        err_msg = select_errors.get(field, f"{field} is invalid.")
         try:
             value = int(raw)
         except ValueError:
-            errors.append(f"{field} must be selected.")
+            errors.append(err_msg)
             continue
         if value not in allowed:
-            errors.append(f"{field} has an invalid value.")
+            errors.append(err_msg)
             continue
         patient[field] = value
 
     # optional lab values: blank is fine, but if provided must be in range
     lab_values = {}
-    for field, label, lo, hi, is_float in OPTIONAL_LAB_FIELD_RULES:
+    for field, error_msg, lo, hi, is_float in OPTIONAL_LAB_FIELD_RULES:
         raw = form.get(field, "").strip()
         if raw == "":
             continue
         try:
             value = float(raw) if is_float else int(float(raw))
         except ValueError:
-            errors.append(f"{label} must be a number.")
+            errors.append(error_msg)
             continue
         if value < lo or value > hi:
-            errors.append(f"{label} must be between {lo} and {hi}.")
+            errors.append(error_msg)
             continue
         lab_values[field] = value
 

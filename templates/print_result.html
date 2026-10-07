@@ -2,240 +2,184 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <title>DiaBeates Risk Summary — {{ created_at|display_time }} PHT</title>
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;700;800&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
-  <style>
-    * { box-sizing: border-box; }
-    body {
-      font-family: 'Inter', sans-serif;
-      color: #1e293b;
-      max-width: 780px;
-      margin: 0 auto;
-      padding: 40px 32px;
-      line-height: 1.5;
-    }
-    h1, h2, h3, .display { font-family: 'Plus Jakarta Sans', sans-serif; }
-
-    .print-toolbar {
-      background: #0d9488;
-      color: white;
-      padding: 14px 20px;
-      border-radius: 12px;
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      margin-bottom: 28px;
-    }
-    .print-toolbar button {
-      background: white;
-      color: #0d9488;
-      border: none;
-      padding: 9px 18px;
-      border-radius: 8px;
-      font-weight: 700;
-      font-size: 13px;
-      cursor: pointer;
-      font-family: 'Inter', sans-serif;
-    }
-    .print-toolbar button:hover { background: #f0fdfa; }
-
-    .header {
-      display: flex;
-      justify-content: space-between;
-      align-items: flex-start;
-      border-bottom: 3px solid #0d9488;
-      padding-bottom: 16px;
-      margin-bottom: 24px;
-    }
-    .brand { display: flex; align-items: center; gap: 10px; }
-    .brand img { width: 34px; height: 34px; border-radius: 50%; }
-    .brand-name { font-size: 20px; font-weight: 800; }
-    .brand-name .accent { color: #0d9488; }
-    .meta { text-align: right; font-size: 12px; color: #64748b; }
-
-    h1.title { font-size: 22px; font-weight: 800; margin: 0 0 4px 0; }
-    .subtitle { font-size: 13px; color: #64748b; margin: 0 0 24px 0; }
-
-    section { margin-bottom: 26px; break-inside: avoid; }
-    h2.section-title {
-      font-size: 12px;
-      text-transform: uppercase;
-      letter-spacing: 0.06em;
-      color: #64748b;
-      font-weight: 700;
-      margin: 0 0 12px 0;
-      padding-bottom: 6px;
-      border-bottom: 1px solid #e2e8f0;
-    }
-
-    .info-grid { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 12px 24px; }
-    .info-item .label { font-size: 11px; color: #94a3b8; margin-bottom: 2px; }
-    .info-item .value { font-size: 14px; font-weight: 600; color: #1e293b; }
-
-    .risk-factors-list { font-size: 13px; color: #334155; margin-top: 10px; }
-    .risk-factors-list span { display: inline-block; background: #f1f5f9; padding: 3px 10px; border-radius: 999px; margin: 2px 4px 2px 0; font-size: 12px; }
-
-    table.risk-table { width: 100%; border-collapse: collapse; font-size: 13px; }
-    table.risk-table th {
-      text-align: left; font-size: 11px; text-transform: uppercase; letter-spacing: 0.04em;
-      color: #94a3b8; padding: 6px 10px; border-bottom: 1px solid #e2e8f0;
-    }
-    table.risk-table td { padding: 10px; border-bottom: 1px solid #f1f5f9; }
-    .tier-badge {
-      display: inline-block; padding: 2px 10px; border-radius: 999px;
-      font-size: 12px; font-weight: 700; border: 1.5px solid;
-    }
-    .tier-Low { color: #15803d; border-color: #86efac; background: #f0fdf4; }
-    .tier-Moderate { color: #b45309; border-color: #fcd34d; background: #fffbeb; }
-    .tier-High { color: #b91c1c; border-color: #fca5a5; background: #fef2f2; }
-
-    .rec-item { padding: 10px 0; border-bottom: 1px solid #f1f5f9; }
-    .rec-item:last-child { border-bottom: none; }
-    .rec-item .rec-title { font-weight: 700; font-size: 13px; margin-bottom: 2px; }
-    .rec-item .rec-desc { font-size: 12.5px; color: #475569; line-height: 1.5; }
-
-    .disclaimer {
-      margin-top: 30px; padding: 14px 16px; background: #fffbeb; border: 1px solid #fde68a;
-      border-radius: 10px; font-size: 11.5px; color: #92400e; line-height: 1.5;
-    }
-    .footer-note { text-align: center; font-size: 11px; color: #94a3b8; margin-top: 24px; }
-
-    @media print {
-      body { padding: 0 24px; }
-      .print-toolbar { display: none; }
-      section { break-inside: avoid; }
-      a { color: inherit; text-decoration: none; }
-    }
-  </style>
+  <title>DiaBeates Health Summary — {{ created_at|display_time }} PHT</title>
+  <link rel="icon" type="image/png" href="{{ url_for('static', filename='logo.png') }}">
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/clinical.css') }}">
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/print.css') }}">
 </head>
 <body>
 
+  <!-- Print action toolbar (hidden on paper) -->
   <div class="print-toolbar">
-    <span>This is your printable summary, use your browser's print dialog to print or save as PDF.</span>
-    <button onclick="window.print()">Print / Save as PDF</button>
+    <span>DiaBeates Clinical Risk Summary &mdash; Print or Save as PDF</span>
+    <button type="button" id="printTriggerBtn">Print / Save PDF</button>
   </div>
 
+  <!-- Header -->
   <div class="header">
     <div class="brand">
-      <img src="{{ url_for('static', filename='logo.png') }}" alt="DiaBeates logo">
-      <span class="brand-name">Dia<span class="accent">Beates</span></span>
+      <img
+        src="{{ url_for('static', filename='logo.png') }}"
+        alt=""
+        class="w-8 h-8 object-contain"
+        width="32"
+        height="32"
+      >
+      <div>
+        <div class="brand-title">DiaBeates</div>
+        <div class="text-[12px] text-[#4f5b66]">Health Screening Report</div>
+      </div>
     </div>
     <div class="meta">
-      Assessment #{{ assessment_id }}<br>
-      {{ created_at|display_time }} PHT
+      <div>Report ID: #{{ assessment_id if assessment_id else 'PREVIEW' }}</div>
+      <div>Date: {{ created_at|display_time }} PHT</div>
     </div>
   </div>
 
-  <h1 class="title">Diabetes Complication Risk Summary</h1>
-  <p class="subtitle">Generated from DiaBeates Dual-Engine Clinical Architecture (Rule Matrix-clinical: ACC/AHA, KDIGO 2024, MNSI) and calibrated machine learning models. Keep this for your own records or to share with a healthcare provider.</p>
+  <h1 class="title">Health Risk Summary for Your Doctor</h1>
+  <p class="subtitle">
+    Take this printed page to your next clinic visit. It summarizes self-reported health factors and screened complication risks.
+  </p>
 
+  <!-- Section 1: Risk Overview Table -->
   <section>
-    <h2 class="section-title">Information Provided</h2>
-    <div class="info-grid">
-      <div class="info-item"><div class="label">BMI</div><div class="value">{{ patient_display.BMI }}</div></div>
-      <div class="info-item"><div class="label">Age range</div><div class="value">{{ patient_display.Age }}</div></div>
-      <div class="info-item"><div class="label">Sex</div><div class="value">{{ patient_display.Sex }}</div></div>
-      <div class="info-item"><div class="label">General health</div><div class="value">{{ patient_display.GenHlth }}</div></div>
-      <div class="info-item"><div class="label">Poor physical health days</div><div class="value">{{ patient_display.PhysHlth }} / 30</div></div>
-      <div class="info-item"><div class="label">Poor mental health days</div><div class="value">{{ patient_display.MentHlth }} / 30</div></div>
-    </div>
-    {% if patient_display.risk_factors %}
-    <div class="risk-factors-list">
-      <div class="label" style="font-size:11px;color:#94a3b8;margin-bottom:4px;">Reported risk factors</div>
-      {% for rf in patient_display.risk_factors %}<span>{{ rf }}</span>{% endfor %}
-    </div>
-    {% endif %}
-  </section>
-
-  <section>
-    <h2 class="section-title">Complication Risk Results</h2>
+    <h2 class="section-title">Complication Risk Projections</h2>
     <table class="risk-table">
       <thead>
-        <tr><th>Category</th><th>Clinical Rule</th><th>Model Prediction</th><th>Risk Level</th></tr>
+        <tr>
+          <th>Complication</th>
+          <th>Screening Status (Rule-Matrix Result)</th>
+          <th>Estimated Score (Calibrated ML Result)</th>
+          <th>What to Discuss</th>
+        </tr>
       </thead>
       <tbody>
         {% for cat in categories %}
-        {% set res = rule_results.get(cat) %}
-        {% if res %}
+        {% set result = rule_results.get(cat, {}) %}
+        {% set label = result.get('label', 'Low') %}
         <tr>
-          <td style="font-weight:600;">
+          <td class="font-semibold">
             {% if cat == 'cardiovascular' %}
-              Cardiovascular (ACC/AHA)
+              Heart
             {% elif cat == 'general_burden' %}
-              Nephropathy &amp; Renal (KDIGO)
+              Kidneys
             {% elif cat == 'neuropathy_mobility' %}
-              Neuropathy &amp; Mobility (MNSI)
+              Nerves and feet
             {% else %}
-              Diabetic Retinopathy (ADA)
+              Eyes
+              <span class="sr-only">Diabetic Retinopathy (ADA)</span>
             {% endif %}
           </td>
-          <td>{{ res.score }} pts ({{ res.percentage }}%)</td>
-          <td>
-            {{ model_results.get(cat, '—') }}
-            {% if model_confidences and model_confidences.get(cat) %}
-              <span style="color:#64748b; font-size:11.5px;">({{ model_confidences[cat] }}% risk)</span>
+          <td class="{% if label == 'Low' %}tag-low{% elif label == 'Moderate' %}tag-mod{% else %}tag-high{% endif %}">
+            {{ label }}
+          </td>
+          <td class="font-mono">{{ result.get('percentage', 0) }}% ({{ result.get('score', 0) }} pts)</td>
+          <td class="text-muted">
+            {% if cat == 'cardiovascular' %}
+              Blood pressure checks, heart health, and exercise habits.
+            {% elif cat == 'general_burden' %}
+              Urine protein test (uACR) and kidney blood filtration (eGFR).
+            {% elif cat == 'neuropathy_mobility' %}
+              Foot sensory exam, numbness checks, and proper footwear.
+            {% else %}
+              Dilated eye exam by an optometrist or ophthalmologist.
             {% endif %}
           </td>
-          <td><span class="tier-badge tier-{{ res.label }}">{{ res.label }}</span></td>
         </tr>
-        {% endif %}
         {% endfor %}
       </tbody>
     </table>
   </section>
 
-  {% if patient_drivers %}
+  <!-- Section 2: Patient Self-Reported Factors -->
   <section>
-    <h2 class="section-title">Key Clinical Risk Drivers (Individual Feature Attribution)</h2>
-    <div style="display:grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); gap:12px; font-size:12px;">
-      {% for cat in categories %}
-      <div style="background:#f8fafc; border:1px solid #e2e8f0; border-radius:8px; padding:10px;">
-        <div style="font-weight:700; color:#334155; margin-bottom:6px; font-size:11px; text-transform:uppercase;">
-          {% if cat == 'cardiovascular' %}Cardiovascular{% elif cat == 'general_burden' %}Nephropathy{% elif cat == 'neuropathy_mobility' %}Neuropathy{% else %}Retinopathy{% endif %}
-        </div>
-        <ul style="margin:0; padding-left:14px; color:#475569; font-size:11px;">
-          {% for d in patient_drivers.get(cat, []) %}
-          <li style="margin-bottom:4px;"><strong>{{ d.factor }}</strong> ({{ d.impact }}): {{ d.detail }}</li>
-          {% endfor %}
-        </ul>
-      </div>
+    <h2 class="section-title">Self-Reported Health Profile</h2>
+    <div class="patient-info-grid">
+      <div><span class="patient-info-label">BMI:</span> <strong>{{ patient_display.BMI if patient_display else 'N/A' }}</strong></div>
+      <div><span class="patient-info-label">Age bracket:</span> <strong>{{ patient_display.Age if patient_display else 'N/A' }}</strong></div>
+      <div><span class="patient-info-label">Sex:</span> <strong>{{ patient_display.Sex if patient_display else 'N/A' }}</strong></div>
+      <div><span class="patient-info-label">Diabetes duration:</span> <strong>{{ patient_display.DiabetesDuration if patient_display else 'N/A' }}</strong></div>
+      <div><span class="patient-info-label">High blood pressure:</span> <strong>{{ patient_display.HighBP if patient_display else 'No' }}</strong></div>
+      <div><span class="patient-info-label">High cholesterol:</span> <strong>{{ patient_display.HighChol if patient_display else 'No' }}</strong></div>
+      <div><span class="patient-info-label">Smoker:</span> <strong>{{ patient_display.Smoker if patient_display else 'No' }}</strong></div>
+      <div><span class="patient-info-label">Walking difficulty:</span> <strong>{{ patient_display.DiffWalk if patient_display else 'No' }}</strong></div>
+      <div><span class="patient-info-label">General health:</span> <strong>{{ patient_display.GenHlth if patient_display else 'Good' }}</strong></div>
+      <div><span class="patient-info-label">Past heart trouble:</span> <strong>{{ patient_display.HeartDiseaseorAttack if patient_display else 'No' }}</strong></div>
+      <div><span class="patient-info-label">Past stroke:</span> <strong>{{ patient_display.Stroke if patient_display else 'No' }}</strong></div>
+      <div><span class="patient-info-label">Blurry vision:</span> <strong>{{ patient_display.BlurryVision if patient_display else 'No' }}</strong></div>
+    </div>
+  </section>
+
+  <!-- Section 3: Lab Biomarkers (If entered) -->
+  {% if lab_assessment and lab_assessment.details %}
+  <section>
+    <h2 class="section-title">Laboratory Biomarkers (Optional)</h2>
+    <table class="risk-table">
+      <thead>
+        <tr>
+          <th>Test Name</th>
+          <th>Entered Value</th>
+          <th>Clinical Target</th>
+          <th>Status</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% if lab_assessment.details.get('hba1c') %}
+        <tr>
+          <td>HbA1c (Glycated Hemoglobin)</td>
+          <td class="font-mono">{{ lab_assessment.details.hba1c.value }}%</td>
+          <td>&lt; 7.0%</td>
+          <td>{{ lab_assessment.details.hba1c.label or 'Reported' }}</td>
+        </tr>
+        {% endif %}
+        {% if lab_assessment.details.get('systolic_bp') %}
+        <tr>
+          <td>Systolic Blood Pressure</td>
+          <td class="font-mono">{{ lab_assessment.details.systolic_bp.value }} mmHg</td>
+          <td>&lt; 130 mmHg</td>
+          <td>{{ lab_assessment.details.systolic_bp.label or 'Reported' }}</td>
+        </tr>
+        {% endif %}
+        {% if lab_assessment.details.get('ldl') %}
+        <tr>
+          <td>LDL Cholesterol</td>
+          <td class="font-mono">{{ lab_assessment.details.ldl.value }} mg/dL</td>
+          <td>&lt; 100 mg/dL</td>
+          <td>{{ lab_assessment.details.ldl.label or 'Reported' }}</td>
+        </tr>
+        {% endif %}
+      </tbody>
+    </table>
+  </section>
+  {% endif %}
+
+  <!-- Section 4: Next Steps -->
+  <section>
+    <h2 class="section-title">Your Next Steps</h2>
+    <p class="text-muted">{{ recommendations.headline }}</p>
+    <ol class="space-y-2 text-[14px] text-[#1f2a33] pl-5 list-decimal">
+      {% for step in recommendations.steps %}
+      <li><strong>{{ step.title }}:</strong> {{ step.description }}</li>
       {% endfor %}
-    </div>
+    </ol>
   </section>
-  {% endif %}
 
-  {% if lab_assessment %}
+  <!-- Section 5: Clinician Review Notes -->
   <section>
-    <h2 class="section-title">Lab-Based Assessment (Point-of-Care Guidelines)</h2>
-    <div class="info-grid" style="margin-bottom:10px;">
-      {% if lab_assessment.details.hba1c %}<div class="info-item"><div class="label">HbA1c</div><div class="value">{{ lab_assessment.details.hba1c.value }}%</div></div>{% endif %}
-      {% if lab_assessment.details.systolic_bp %}<div class="info-item"><div class="label">Systolic BP</div><div class="value">{{ lab_assessment.details.systolic_bp.value }} mmHg</div></div>{% endif %}
-      {% if lab_assessment.details.ldl %}<div class="info-item"><div class="label">LDL Cholesterol</div><div class="value">{{ lab_assessment.details.ldl.value }} mg/dL</div></div>{% endif %}
+    <h2 class="section-title">Clinician Review Notes</h2>
+    <div class="patient-info-grid">
+      <div><span class="patient-info-label">Reviewed by:</span> ___________________</div>
+      <div><span class="patient-info-label">Review date:</span> ___________________</div>
+      <div><span class="patient-info-label">Follow-up action:</span> ___________________</div>
+      <div><span class="patient-info-label">Next review date:</span> ___________________</div>
     </div>
-    <span class="tier-badge tier-{{ lab_assessment.label }}">{{ lab_assessment.label }} Risk</span>
-  </section>
-  {% endif %}
-
-  <section>
-    <h2 class="section-title">What You Can Do</h2>
-    {% for item in recommendations.steps %}
-    <div class="rec-item">
-      <div class="rec-title">{{ item.title }}</div>
-      <div class="rec-desc">{{ item.description }}</div>
-    </div>
-    {% endfor %}
   </section>
 
-  <div class="disclaimer">
-    <strong>Not medical advice.</strong> This summary is generated for educational and preliminary screening
-    purposes and is not a certified diagnostic device. Risk levels are clinical projections based on an evidence-aligned
-    rule matrix (clinical) and calibrated classification models trained on CDC NHANES and BRFSS clinical cohorts;
-    they do not constitute a medical diagnosis. Please share this summary with a licensed healthcare provider for
-    interpretation and any decisions about your care.
+  <!-- Disclaimer Footer -->
+  <div class="print-footer-notice">
+    <strong>Notice:</strong> DiaBeates is a clinical decision-support screening aid, not a diagnostic medical device. Projections are based on clinical guidelines (ADA 2026, KDIGO 2024, AAO) and calibrated machine-learning models. All results must be reviewed and interpreted by a licensed medical provider.
   </div>
 
-  <p class="footer-note">DiaBeates — Dual-engine clinical decision support and diabetes complication risk screening.</p>
-
+  <script src="{{ url_for('static', filename='js/print.js') }}"></script>
 </body>
 </html>

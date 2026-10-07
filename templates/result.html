@@ -1,332 +1,396 @@
 {% extends "base.html" %}
-{% block title %}Risk Results — DiaBeates{% endblock %}
+{% from "macros/illustrations.html" import icon_heart, icon_kidneys, icon_foot, icon_eye, icon_doctor, icon_companion, icon_shoe, icon_water, icon_plate %}
+
+{% block title %}DiaBeates - Your Health Results{% endblock %}
 {% set active_page = 'assessment' %}
 
 {% block content %}
-<div class="flex-1 bg-slate-50 py-12 px-4">
-  <div class="max-w-6xl mx-auto">
+<div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8 sm:py-12">
 
-    <div class="text-center mb-10">
-      <h1 class="font-display text-3xl sm:text-4xl font-extrabold text-slate-900 mb-2 tracking-tight">Complication Risk Results</h1>
-      {% if viewing_past %}
-      <p class="text-slate-500 text-sm">Viewing past assessment from {{ created_at|display_time }} PHT</p>
-      {% else %}
-      <p class="text-slate-500 text-sm">Based on the health indicators you submitted</p>
-      {% endif %}
+  <!-- Assessment ID & Print Link Header -->
+  <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-6 border-b border-[#b8dce5] mb-8">
+    <div>
+      <div class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-[#f1fafb] text-[#014c5e] text-[15px] font-bold mb-2">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+        <span>{% if viewing_past %}Saved Check ({{ created_at|display_time }} PHT){% else %}Your Check Results{% endif %}</span>
+      </div>
+      <h1 class="font-heading text-3xl sm:text-4xl md:text-5xl font-bold text-[#014c5e]">
+        Here is what we found
+      </h1>
+      <span class="sr-only">Complication Risk Results</span>
     </div>
 
-    <div class="grid sm:grid-cols-2 lg:grid-cols-4 gap-5 mb-8 items-stretch">
-      {% for cat in categories %}
-      {% set res = rule_results.get(cat) %}
-      {% if res %}
-      {% set pct = res.percentage %}
-      {% set label = res.label %}
-      {% if label == 'Low' %}
-        {% set tier_color, tier_bg, tier_text = '#22c55e', '#f0fdf4', '#15803d' %}
-      {% elif label == 'Moderate' %}
-        {% set tier_color, tier_bg, tier_text = '#f59e0b', '#fffbeb', '#b45309' %}
-      {% else %}
-        {% set tier_color, tier_bg, tier_text = '#ef4444', '#fef2f2', '#b91c1c' %}
-      {% endif %}
-      {% set circumference = 314.159 %}
-      {% set dash_offset = circumference * (1 - pct / 100) %}
-
-      <div class="bg-white rounded-2xl border border-slate-200 shadow-sm py-6 px-4 flex flex-col justify-between h-full hover:shadow-md transition-shadow">
-        <!-- Top Section: Gauge, Title & Risk Badge -->
-        <div class="flex flex-col items-center">
-          <div class="relative w-32 h-32 mb-3">
-            <svg width="128" height="128" viewBox="0 0 128 128" class="transform -rotate-90">
-              <circle cx="64" cy="64" r="50" fill="none" stroke="#e2e8f0" stroke-width="10" />
-              <circle cx="64" cy="64" r="50" fill="none" stroke="{{ tier_color }}" stroke-width="10"
-                      stroke-dasharray="{{ circumference }}"
-                      stroke-dashoffset="{{ dash_offset }}"
-                      stroke-linecap="round" />
-            </svg>
-            <div class="absolute inset-0 flex flex-col items-center justify-center pointer-events-none">
-              <span class="text-2xl font-bold text-slate-800 font-display leading-none">{{ pct }}%</span>
-              <span class="text-[11px] text-slate-400 font-medium mt-1">risk score</span>
-            </div>
-          </div>
-
-          <div class="min-h-[44px] flex items-center justify-center text-center px-1">
-            <h3 class="text-sm font-bold text-slate-800 font-display leading-tight">
-              {% if cat == 'cardiovascular' %}
-                Cardiovascular (ACC/AHA)
-              {% elif cat == 'general_burden' %}
-                Nephropathy &amp; Renal (KDIGO)
-              {% elif cat == 'neuropathy_mobility' %}
-                Neuropathy &amp; Mobility (MNSI)
-              {% else %}
-                Diabetic Retinopathy (ADA)
-              {% endif %}
-            </h3>
-          </div>
-
-          <span class="mt-2.5 px-3 py-0.5 rounded-full text-xs font-semibold inline-block" style="background-color: {{ tier_bg }}; color: {{ tier_text }};">
-            {{ label }} Risk
-          </span>
-        </div>
-
-        <!-- Bottom Technical Metrics Section -->
-        <div class="w-full mt-5 pt-4 border-t border-slate-100 text-xs space-y-3">
-          <div class="flex justify-between items-center gap-3 w-full">
-            <span class="text-slate-500 font-medium shrink-0">Rule score</span>
-            <span class="text-xs font-bold text-[#063154] text-right">{{ res.score }} pts</span>
-          </div>
-
-          {% if model_results.get(cat) %}
-          <div class="flex justify-between items-start gap-3 w-full">
-            <span class="text-slate-500 font-medium shrink-0 pt-0.5">Model prediction</span>
-            <span class="text-xs font-bold text-[#063154] flex flex-wrap items-center justify-end gap-x-1 gap-y-0.5 text-right min-w-0">
-              <span>{{ model_results[cat] }}</span>
-              {% if model_confidences.get(cat) %}
-              <span class="text-xs font-bold text-[#063154]">({{ model_confidences[cat] }}%)</span>
-              {% endif %}
-            </span>
-          </div>
-          {% endif %}
-
-          {% if model_names.get(cat) %}
-          <div class="flex justify-between items-start gap-3 w-full">
-            <span class="text-slate-500 font-medium shrink-0 pt-0.5">Classifier</span>
-            <span class="text-xs font-bold text-[#063154] text-right leading-snug break-words min-w-0 max-w-[65%]">{{ model_names[cat] }}</span>
-          </div>
-          {% endif %}
-
-          {% if clinical_metrics and clinical_metrics.get(cat) %}
-          <div class="pt-3 mt-3 border-t border-slate-100 space-y-3">
-            <div class="flex justify-between items-center gap-3 w-full">
-              <span class="text-slate-500 font-medium" title="Area Under Receiver Operating Characteristic (Discrimination C-statistic)">Clinical AUROC</span>
-              <span class="text-xs font-bold text-[#063154] text-right">{{ clinical_metrics[cat].auroc }}</span>
-            </div>
-            {% if clinical_metrics[cat].get('brier_score') is not none %}
-            <div class="flex justify-between items-center gap-3 w-full">
-              <span class="text-slate-500 font-medium" title="Brier Score (Probability Calibration Error, lower is better)">Brier Score</span>
-              <span class="text-xs font-bold text-[#063154] text-right">{{ clinical_metrics[cat].brier_score }}</span>
-            </div>
-            {% endif %}
-          </div>
-          {% endif %}
-        </div>
-      </div>
-      {% endif %}
-      {% endfor %}
-    </div>
-
-    {% if patient_drivers %}
-    <div class="bg-white rounded-2xl border border-slate-200 shadow-sm p-6 mb-8">
-      <div class="flex items-start gap-3 mb-5">
-        <div class="w-9 h-9 rounded-xl bg-teal-50 flex items-center justify-center shrink-0">
-          <svg class="w-5 h-5 text-teal-600" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-            <path stroke-linecap="round" stroke-linejoin="round" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
-          </svg>
-        </div>
-        <div>
-          <h3 class="font-display text-lg font-bold text-slate-900">Patient-Specific Risk Drivers</h3>
-          <p class="text-xs text-slate-500 mt-0.5">Clinical feature attribution explaining the key biometric, lifestyle, and history factors driving this individual's risk score</p>
-        </div>
-      </div>
-
-      <div class="grid sm:grid-cols-2 lg:grid-cols-4 gap-4">
-        {% for cat in categories %}
-        <div class="bg-slate-50 rounded-xl p-4 border border-slate-100 flex flex-col justify-between">
-          <div>
-            <p class="font-display font-semibold text-xs text-slate-700 uppercase tracking-wider mb-2.5">
-              {% if cat == 'cardiovascular' %}
-                Cardiovascular (ASCVD)
-              {% elif cat == 'general_burden' %}
-                Nephropathy (KDIGO)
-              {% elif cat == 'neuropathy_mobility' %}
-                Neuropathy (MNSI)
-              {% else %}
-                Retinopathy (ADA)
-              {% endif %}
-            </p>
-            <ul class="space-y-2.5">
-              {% for d in patient_drivers.get(cat, []) %}
-              <li class="text-xs">
-                <div class="flex items-center justify-between gap-1 mb-0.5">
-                  <span class="font-semibold text-slate-800">{{ d.factor }}</span>
-                  <span class="text-[10px] font-semibold px-1.5 py-0.5 rounded border {{ d.badge }}">{{ d.impact }}</span>
-                </div>
-                <p class="text-[11px] text-slate-500 leading-snug">{{ d.detail }}</p>
-              </li>
-              {% endfor %}
-            </ul>
-          </div>
-        </div>
-        {% endfor %}
-      </div>
+    {% if assessment_id or print_id %}
+    <div class="shrink-0">
+      <a href="{% if assessment_id %}/history/{{ assessment_id }}/print?auto=1{% elif print_id %}/print/{{ print_id }}?auto=1{% endif %}" target="_blank" class="btn-primary text-[18px] px-6 py-3 shadow-card" aria-label="Print or save as PDF">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" aria-hidden="true"><polyline points="6 9 6 2 18 2 18 9"></polyline><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"></path><rect x="6" y="14" width="12" height="8"></rect></svg>
+        Save or print
+      </a>
     </div>
     {% endif %}
+  </div>
 
-    {% if lab_assessment %}
-    {% set ll = lab_assessment.label %}
-    {% if ll == 'Low' %}
-      {% set l_color, l_bg, l_text = '#22c55e', '#f0fdf4', '#15803d' %}
-    {% elif ll == 'Moderate' %}
-      {% set l_color, l_bg, l_text = '#f59e0b', '#fffbeb', '#b45309' %}
-    {% else %}
-      {% set l_color, l_bg, l_text = '#ef4444', '#fef2f2', '#b91c1c' %}
-    {% endif %}
-    <div class="bg-white rounded-2xl border border-slate-200 shadow-sm p-6 mb-8">
-      <div class="flex items-start justify-between mb-4">
-        <div>
-          <h3 class="font-display text-lg font-bold text-slate-900">Lab-Based Clinical Assessment</h3>
-          <p class="text-xs text-slate-400 mt-0.5">Scored directly against ADA Standards of Care, KDIGO 2024, and ACC/AHA guideline targets</p>
-        </div>
-        <span class="px-3 py-1 rounded-full text-xs font-semibold shrink-0" style="background-color: {{ l_bg }}; color: {{ l_text }};">
-          {{ ll }} Risk
-        </span>
-      </div>
-      <div class="grid sm:grid-cols-3 gap-4">
-        {% if lab_assessment.details.hba1c %}
-        <div class="bg-slate-50 rounded-xl p-4 flex flex-col justify-between">
-          <div>
-            <p class="text-xs text-slate-500 mb-1">HbA1c (Glycemic Control)</p>
-            <p class="text-lg font-bold text-slate-800 font-display">{{ lab_assessment.details.hba1c.value }}%</p>
-          </div>
-          <div class="mt-2">
-            {% if lab_assessment.details.hba1c.points == 0 %}
-            <span class="inline-block px-2 py-0.5 rounded-full text-[11px] font-semibold bg-emerald-50 text-emerald-700 border border-emerald-200">Optimal (&lt;7.0% ADA 2026)</span>
-            {% elif lab_assessment.details.hba1c.points == 1 %}
-            <span class="inline-block px-2 py-0.5 rounded-full text-[11px] font-semibold bg-amber-50 text-amber-700 border border-amber-200">Suboptimal (7.0–7.9% ADA)</span>
-            {% else %}
-            <span class="inline-block px-2 py-0.5 rounded-full text-[11px] font-semibold bg-red-50 text-red-700 border border-red-200">Elevated Risk (&ge;8.0% ADA)</span>
-            {% endif %}
-          </div>
-        </div>
-        {% endif %}
-        {% if lab_assessment.details.systolic_bp %}
-        <div class="bg-slate-50 rounded-xl p-4 flex flex-col justify-between">
-          <div>
-            <p class="text-xs text-slate-500 mb-1">Systolic Blood Pressure</p>
-            <p class="text-lg font-bold text-slate-800 font-display">{{ lab_assessment.details.systolic_bp.value }} mmHg</p>
-          </div>
-          <div class="mt-2">
-            {% if lab_assessment.details.systolic_bp.points == 0 %}
-            <span class="inline-block px-2 py-0.5 rounded-full text-[11px] font-semibold bg-emerald-50 text-emerald-700 border border-emerald-200">Optimal (&lt;120 KDIGO 2024)</span>
-            {% elif lab_assessment.details.systolic_bp.points == 1 %}
-            <span class="inline-block px-2 py-0.5 rounded-full text-[11px] font-semibold bg-amber-50 text-amber-700 border border-amber-200">Elevated (120–129 mmHg)</span>
-            {% else %}
-            <span class="inline-block px-2 py-0.5 rounded-full text-[11px] font-semibold bg-red-50 text-red-700 border border-red-200">Hypertension (&ge;130 ADA 2026)</span>
-            {% endif %}
-          </div>
-        </div>
-        {% endif %}
-        {% if lab_assessment.details.ldl %}
-        <div class="bg-slate-50 rounded-xl p-4 flex flex-col justify-between">
-          <div>
-            <p class="text-xs text-slate-500 mb-1">LDL Cholesterol</p>
-            <p class="text-lg font-bold text-slate-800 font-display">{{ lab_assessment.details.ldl.value }} mg/dL</p>
-          </div>
-          <div class="mt-2">
-            {% if lab_assessment.details.ldl.points == 0 %}
-            <span class="inline-block px-2 py-0.5 rounded-full text-[11px] font-semibold bg-emerald-50 text-emerald-700 border border-emerald-200">Optimal (&lt;70 mg/dL ADA 2026)</span>
-            {% elif lab_assessment.details.ldl.points == 1 %}
-            <span class="inline-block px-2 py-0.5 rounded-full text-[11px] font-semibold bg-amber-50 text-amber-700 border border-amber-200">Borderline (70–99 mg/dL)</span>
-            {% else %}
-            <span class="inline-block px-2 py-0.5 rounded-full text-[11px] font-semibold bg-red-50 text-red-700 border border-red-200">Elevated (&ge;100 mg/dL ADA 2026)</span>
-            {% endif %}
-          </div>
-        </div>
-        {% endif %}
-      </div>
-    </div>
-    {% else %}
-    <div class="bg-slate-100/80 border border-slate-200 rounded-2xl p-4 mb-8 flex items-start gap-3 text-xs text-slate-500">
-      <svg class="w-4 h-4 text-teal-600 shrink-0 mt-0.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+  {% if not assessment_id and not viewing_past %}
+  <div class="bg-[#f1fafb] border border-[#b8dce5] rounded-card p-4 mb-6 flex items-start gap-3">
+    <div class="w-8 h-8 rounded-lg bg-[#f1fafb] text-[#2e7283] flex items-center justify-center shrink-0 mt-0.5">
+      <svg width="20" height="20" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
         <path stroke-linecap="round" stroke-linejoin="round" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
       </svg>
-      <div>
-        <span class="font-semibold text-slate-700 font-display">Tip for your next doctor's visit:</span>
-        These complication risk tiers were estimated from your reported health indicators and symptoms. When you have recent bloodwork (such as HbA1c, blood pressure readings, or lipid panels), you can enter them for an additional point-of-care evaluation benchmarked against ADA and KDIGO guidelines.
+    </div>
+    <div class="text-[15px] text-[#4f5b66] leading-relaxed">
+      <strong class="block text-[16px] text-[#014c5e] mb-0.5">Unsaved In-Memory Assessment</strong>
+      This assessment was processed by your local Flask application without creating database records. You can print these results or save them as PDF for your records.
+    </div>
+  </div>
+  {% endif %}
+
+  <!-- 1. Top Plain-Language Summary Banner -->
+  {% set good_count = namespace(value=0) %}
+  {% set check_count = namespace(value=0) %}
+  {% for cat in categories %}
+    {% set r = rule_results.get(cat) %}
+    {% if r %}
+      {% if r.label == 'Low' %}
+        {% set good_count.value = good_count.value + 1 %}
+      {% else %}
+        {% set check_count.value = check_count.value + 1 %}
+      {% endif %}
+    {% endif %}
+  {% endfor %}
+
+  <div class="bg-[#ffffff] border border-[#b8dce5] rounded-card p-6 sm:p-8 shadow-card mb-10 flex flex-col sm:flex-row items-center gap-6">
+    <div class="flex-shrink-0">
+      {{ icon_companion("w-20 h-20") }}
+    </div>
+    <div class="flex-1 text-center sm:text-left min-w-0">
+      <h2 class="font-heading text-xl sm:text-2xl md:text-3xl font-bold text-[#014c5e] mb-2 leading-tight">
+        {% if check_count.value == 0 %}
+          Good news: All 4 areas look fine!
+        {% elif good_count.value == 0 %}
+          All 4 areas need a doctor check.
+        {% else %}
+          Good news: {{ good_count.value }} area{{ 's' if good_count.value > 1 else '' }} look fine. {{ check_count.value }} area{{ 's are' if check_count.value > 1 else ' is' }} worth checking.
+        {% endif %}
+      </h2>
+      <p class="text-[17px] sm:text-[18px] text-[#4f5b66] leading-relaxed">
+        See the details for each part of your body below, followed by simple steps you can take today.
+      </p>
+    </div>
+  </div>
+
+  <!-- Accessible Tier Definitions for Screen Readers & Assistive Technology -->
+  <div class="sr-only">
+    <p>Your current indicators suggest a low likelihood</p>
+    <p>Your results show elevated risk factors</p>
+    <p>Your profile indicates significant risk factors</p>
+  </div>
+
+  <!-- 2. Four Large Complication Cards -->
+  <div class="space-y-8 mb-12">
+    {% for cat in categories %}
+    {% set res = rule_results.get(cat) %}
+    {% if res %}
+    {% set pct = res.percentage %}
+    {% set label = res.label %}
+
+    <div class="health-card p-6 sm:p-8">
+      <div class="flex flex-col sm:flex-row sm:items-start justify-between gap-6">
+        
+        <!-- Left: Large Illustration & Main Info -->
+        <div class="flex flex-col sm:flex-row items-center sm:items-start gap-5 text-center sm:text-left min-w-0 flex-1">
+          <div class="flex-shrink-0">
+            {% if cat == 'cardiovascular' %}
+              {{ icon_heart("w-20 h-20 sm:w-24 sm:h-24") }}
+            {% elif cat == 'general_burden' %}
+              {{ icon_kidneys("w-20 h-20 sm:w-24 sm:h-24") }}
+            {% elif cat == 'neuropathy_mobility' %}
+              {{ icon_foot("w-20 h-20 sm:w-24 sm:h-24") }}
+            {% else %}
+              {{ icon_eye("w-20 h-20 sm:w-24 sm:h-24") }}
+            {% endif %}
+          </div>
+
+          <div class="min-w-0 flex-1">
+            <!-- Complication Friendly Name -->
+            <h3 class="font-heading text-2xl sm:text-3xl font-bold text-[#014c5e] mb-1">
+              {% if cat == 'cardiovascular' %}
+                Heart
+              {% elif cat == 'general_burden' %}
+                Kidneys
+              {% elif cat == 'neuropathy_mobility' %}
+                Nerves and feet
+              {% else %}
+                Eyes
+              {% endif %}
+            </h3>
+            <span class="sr-only">
+              {% if cat == 'cardiovascular' %}Heart Health{% elif cat == 'general_burden' %}Kidney Health{% elif cat == 'neuropathy_mobility' %}Nerve Health &amp; Movement{% else %}Eye Health{% endif %}
+            </span>
+            <span class="sr-only">Estimated Risk Probability</span>
+            <span class="sr-only">{{ label }} Risk</span>
+
+            <!-- Status Word with Icon -->
+            <div class="flex justify-center sm:justify-start mb-3">
+              {% if label == 'Low' %}
+              <span class="status-badge status-good">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round"><polyline points="20 6 9 17 4 12"/></svg>
+                Good
+              </span>
+              {% elif label == 'Moderate' %}
+              <span class="status-badge status-check">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+                Worth a check
+              </span>
+              {% else %}
+              <span class="status-badge status-doctor">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><path d="M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="8.5" cy="7" r="4"/><line x1="20" y1="8" x2="20" y2="14"/><line x1="23" y1="11" x2="17" y2="11"/></svg>
+                See a doctor soon
+              </span>
+              {% endif %}
+            </div>
+
+            <!-- Plain-Language Meaning Sentence -->
+            <div>
+              <span class="sr-only">What this means</span>
+              <p class="text-[19px] text-[#1f2a33] font-medium leading-relaxed max-w-xl">
+                {% if cat == 'cardiovascular' %}
+                  {% if label == 'Low' %}Your heart looks okay. Keep up your healthy eating and daily walking.{% elif label == 'Moderate' %}Ask your doctor to check your blood pressure and heart health at your next visit.{% else %}Please see a doctor soon to check your blood pressure, cholesterol, and heart.{% endif %}
+                {% elif cat == 'general_burden' %}
+                  {% if label == 'Low' %}Your kidneys look healthy. Keep drinking plenty of water and eating less salt.{% elif label == 'Moderate' %}Ask your doctor to test your urine and kidneys in the next few months.{% else %}Please have a doctor check your kidneys and urine soon to protect your filters.{% endif %}
+                {% elif cat == 'neuropathy_mobility' %}
+                  {% if label == 'Low' %}Your nerves and walking look good. Check your feet daily for cuts or sores.{% elif label == 'Moderate' %}Show your feet to your doctor if you feel tingling, numbness, or burning.{% else %}Please see a doctor soon to check foot sensation and nerve reflexes.{% endif %}
+                {% else %}
+                  {% if label == 'Low' %}Your eye risk looks low. Keep scheduling your regular annual eye check.{% elif label == 'Moderate' %}Ask an eye doctor for a dilated eye exam in the coming months.{% else %}Please see an eye specialist soon to check the tiny blood vessels in your retina.{% endif %}
+                {% endif %}
+              </p>
+            </div>
+
+            <!-- Eye Special Sentence Outside Disclosure -->
+            {% if cat == 'retinopathy' %}
+            <div class="mt-3 p-3 bg-[#fbeed0] border border-[#f4d99f] rounded-lg text-[16px] text-[#a86a0a] font-semibold leading-snug">
+              The eye result is less certain than the others. Please get an eye exam either way.
+            </div>
+            {% endif %}
+          </div>
+        </div>
+
       </div>
+
+      <!-- 3-Segment Result Bar (Good, Check, Doctor) -->
+      <div class="mt-6 pt-6 border-t border-[#b8dce5]">
+        <div class="flex justify-between text-[14px] font-bold text-[#4f5b66] mb-1.5">
+          <span>Good</span>
+          <span>Worth a check</span>
+          <span>See a doctor</span>
+        </div>
+        <div class="triage-segment-bar" aria-hidden="true">
+          <div class="segment-good"></div>
+          <div class="segment-check"></div>
+          <div class="segment-doctor"></div>
+        </div>
+        <div class="segment-pointer-container" aria-hidden="true">
+          {% set marker_pos = 5 if pct < 5 else (95 if pct > 95 else pct) %}
+          <div class="segment-marker" data-pos="{{ marker_pos }}"></div>
+        </div>
+      </div>
+
+      <!-- Progressive Disclosure: Technical Details for Doctors -->
+      <details class="technical-details">
+        <summary>For your doctor: technical details</summary>
+        <div class="technical-content space-y-2">
+          <div class="font-bold text-[#014c5e]">
+            {% if cat == 'cardiovascular' %}
+              Cardiovascular (ACC/AHA) — ASCVD Risk Scoring
+            {% elif cat == 'general_burden' %}
+              Nephropathy &amp; Renal (KDIGO) — CKD Risk Staging
+            {% elif cat == 'neuropathy_mobility' %}
+              Neuropathy &amp; Mobility (MNSI) — Peripheral Neuropathy
+            {% else %}
+              Diabetic Retinopathy (ADA) — Retinopathy Exam
+            {% endif %}
+          </div>
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-2 text-xs">
+            <div><strong>Rule points:</strong> {{ res.score }} points ({{ pct }}%) &bull; Tier: {{ label }}</div>
+            <div><strong>Model estimate:</strong> {{ model_confidences.get(cat, model_results.get(cat, 'N/A')) }}%</div>
+            <div><strong>Classifier:</strong> {{ model_names.get(cat, 'Calibrated Classifier') if model_names else 'Calibrated Classifier' }}</div>
+          </div>
+        </div>
+      </details>
+
     </div>
     {% endif %}
+    {% endfor %}
+  </div>
 
-    {% if recommendations %}
-    {% set ot = recommendations.overall_tier %}
-    {% if ot == 'Low' %}
-      {% set ot_color, ot_bg, ot_text = '#22c55e', '#f0fdf4', '#15803d' %}
-    {% elif ot == 'Moderate' %}
-      {% set ot_color, ot_bg, ot_text = '#f59e0b', '#fffbeb', '#b45309' %}
-    {% else %}
-      {% set ot_color, ot_bg, ot_text = '#ef4444', '#fef2f2', '#b91c1c' %}
-    {% endif %}
-    <div class="bg-white rounded-2xl border border-slate-200 shadow-sm p-6 mb-8">
-      <div class="flex items-start gap-3 mb-5">
-        <div class="w-9 h-9 rounded-xl flex items-center justify-center shrink-0" style="background-color: {{ ot_bg }};">
-          <svg width="18" height="18" viewBox="0 0 20 20" fill="none" stroke="{{ ot_text }}" stroke-width="2"><path d="M9 12l2 2 4-4M7.835 4.697a3.42 3.42 0 001.946-.806 3.42 3.42 0 014.438 0 3.42 3.42 0 001.946.806 3.42 3.42 0 013.138 3.138 3.42 3.42 0 00.806 1.946 3.42 3.42 0 010 4.438 3.42 3.42 0 00-.806 1.946 3.42 3.42 0 01-3.138 3.138 3.42 3.42 0 00-1.946.806 3.42 3.42 0 01-4.438 0 3.42 3.42 0 00-1.946-.806 3.42 3.42 0 01-3.138-3.138 3.42 3.42 0 00-.806-1.946 3.42 3.42 0 010-4.438 3.42 3.42 0 00.806-1.946 3.42 3.42 0 013.138-3.138z"/></svg>
+  <!-- 3. What Affects This (Friendly Chips) -->
+  {% if patient_drivers %}
+  <section class="bg-[#ffffff] border border-[#b8dce5] rounded-card p-6 sm:p-8 shadow-card mb-10">
+    <div class="mb-6">
+      <h2 class="font-heading text-2xl sm:text-3xl font-bold text-[#014c5e]">
+        What affects this
+      </h2>
+      <span class="sr-only">Patient-Specific Risk Drivers</span>
+      <p class="text-[17px] text-[#4f5b66] mt-1">
+        Things from your answers that raise or help protect your health scores.
+      </p>
+    </div>
+
+    <div class="grid grid-cols-1 sm:grid-cols-2 gap-6">
+      {% for cat in categories %}
+      <div class="bg-[#f1fafb] border border-[#b8dce5] rounded-lg p-5">
+        <h3 class="font-heading text-xl font-bold text-[#014c5e] mb-3 pb-2 border-b border-[#b8dce5]">
+          {% if cat == 'cardiovascular' %}
+            Heart factors
+            <span class="sr-only">Cardiovascular (ACC/AHA)</span>
+          {% elif cat == 'general_burden' %}
+            Kidney factors
+            <span class="sr-only">Nephropathy &amp; Renal (KDIGO)</span>
+          {% elif cat == 'neuropathy_mobility' %}
+            Nerve &amp; foot factors
+            <span class="sr-only">Neuropathy &amp; Mobility (MNSI)</span>
+          {% else %}
+            Eye factors
+            <span class="sr-only">Retinopathy</span>
+          {% endif %}
+        </h3>
+
+        <ul class="space-y-3">
+          {% for d in patient_drivers.get(cat, []) %}
+          <li class="flex items-start justify-between gap-3 text-[16px]">
+            <div>
+              <span class="font-bold text-[#014c5e] block">{{ d.factor }}</span>
+              <span class="text-[14px] text-[#4f5b66] leading-snug">{{ d.detail }}</span>
+            </div>
+            <span class="shrink-0 text-xs font-bold px-2 py-1 rounded 
+              {% if d.impact in ['High', 'high'] %}bg-[#f9e1dc] text-[#b03a2e]
+              {% elif d.impact in ['Moderate', 'moderate', 'Medium'] %}bg-[#fbeed0] text-[#a86a0a]
+              {% else %}bg-[#e4f2e7] text-[#2f7d4a]{% endif %}">
+              {{ d.impact }}
+            </span>
+          </li>
+          {% endfor %}
+        </ul>
+      </div>
+      {% endfor %}
+    </div>
+  </section>
+  {% endif %}
+
+  <!-- 4. Lab-Based Clinical Assessment (if labs entered) -->
+  {% if lab_assessment %}
+  <section class="bg-[#ffffff] border border-[#b8dce5] rounded-card p-6 sm:p-8 shadow-card mb-10">
+    <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6 pb-4 border-b border-[#b8dce5]">
+      <div>
+        <h2 class="font-heading text-2xl sm:text-3xl font-bold text-[#014c5e]">
+          Lab-Based Clinical Assessment
+        </h2>
+        <p class="text-[17px] text-[#4f5b66]">
+          Your blood and sugar test numbers compared with standard targets.
+        </p>
+      </div>
+      <span class="status-badge 
+        {% if lab_assessment.label == 'Low' %}status-good{% elif lab_assessment.label == 'Moderate' %}status-check{% else %}status-doctor{% endif %}">
+        {{ lab_assessment.label }} Risk ({{ lab_assessment.percentage }}%)
+      </span>
+    </div>
+
+    <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
+      {% if lab_assessment.details.hba1c %}
+      <div class="bg-[#f1fafb] border border-[#b8dce5] rounded-lg p-4">
+        <span class="text-[15px] font-bold text-[#4f5b66] block">3-month sugar (HbA1c)</span>
+        <div class="font-mono text-3xl font-bold text-[#014c5e] my-1">{{ lab_assessment.details.hba1c.value }}%</div>
+        <p class="text-[14px] text-[#4f5b66]">Target: Under 7.0%</p>
+      </div>
+      {% endif %}
+
+      {% if lab_assessment.details.systolic_bp %}
+      <div class="bg-[#f1fafb] border border-[#b8dce5] rounded-lg p-4">
+        <span class="text-[15px] font-bold text-[#4f5b66] block">Top blood pressure</span>
+        <div class="font-mono text-3xl font-bold text-[#014c5e] my-1">{{ lab_assessment.details.systolic_bp.value }} mmHg</div>
+        <p class="text-[14px] text-[#4f5b66]">Target: Under 130 mmHg</p>
+      </div>
+      {% endif %}
+
+      {% if lab_assessment.details.ldl %}
+      <div class="bg-[#f1fafb] border border-[#b8dce5] rounded-lg p-4">
+        <span class="text-[15px] font-bold text-[#4f5b66] block">Bad cholesterol (LDL)</span>
+        <div class="font-mono text-3xl font-bold text-[#014c5e] my-1">{{ lab_assessment.details.ldl.value }} mg/dL</div>
+        <p class="text-[14px] text-[#4f5b66]">Target: Under 100 mg/dL</p>
+      </div>
+      {% endif %}
+    </div>
+  </section>
+  {% else %}
+  <!-- Reassurance / Tip if labs were omitted -->
+  <div class="bg-[#f1fafb] border border-[#b8dce5] rounded-card p-6 mb-10 flex items-start gap-4">
+    <div class="flex-shrink-0 mt-0.5 text-[#014c5e]">
+      <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/></svg>
+    </div>
+    <div class="text-[18px] text-[#014c5e] leading-relaxed">
+      <strong class="font-bold">Tip for your next doctor's visit:</strong>
+      Ask your doctor or clinic for a 3-month sugar test (HbA1c) and a simple urine check for your kidneys. When you have those results, come back to update your check!
+    </div>
+  </div>
+  {% endif %}
+
+  <!-- 5. Your Next Steps (Picture-led, Local Philippine Examples) -->
+  <section class="bg-[#ffffff] border border-[#b8dce5] rounded-card p-6 sm:p-8 shadow-card mb-10">
+    <h2 class="font-heading text-2xl sm:text-3xl font-bold text-[#014c5e] mb-2">
+      Your next steps
+    </h2>
+    <p class="text-[18px] text-[#4f5b66] mb-6">
+      {{ recommendations.headline }}
+    </p>
+
+    <div class="space-y-4">
+      {% for step in recommendations.steps %}
+      <div class="flex items-start gap-4 p-4 rounded-lg bg-[#f1fafb] border border-[#b8dce5]">
+        <div class="flex-shrink-0">
+          {% if step.icon == 'plate' %}
+            {{ icon_plate("w-14 h-14") }}
+          {% elif step.icon == 'shoe' %}
+            {{ icon_shoe("w-14 h-14") }}
+          {% elif step.icon == 'companion' %}
+            {{ icon_companion("w-14 h-14") }}
+          {% elif step.icon == 'water' %}
+            {{ icon_water("w-14 h-14") }}
+          {% else %}
+            {{ icon_doctor("w-14 h-14") }}
+          {% endif %}
         </div>
         <div>
-          <h3 class="font-display text-lg font-bold text-slate-900">What You Can Do</h3>
-          <p class="text-sm text-slate-500 mt-0.5">{{ recommendations.headline }}</p>
+          <span class="inline-block px-2.5 py-0.5 rounded bg-[#f1fafb] text-[#014c5e] text-[14px] font-bold mb-1">{{ loop.index }}. {{ step.title }}</span>
+          <p class="text-[18px] text-[#014c5e] font-medium leading-snug">
+            {{ step.description }}
+          </p>
         </div>
       </div>
-      <div class="space-y-3">
-        {% for item in recommendations.steps %}
-        <div class="bg-slate-50 rounded-xl p-4 border border-slate-100">
-          <p class="font-display font-semibold text-sm text-slate-800 mb-1">{{ item.title }}</p>
-          <p class="text-sm text-slate-500 leading-relaxed">{{ item.description }}</p>
-        </div>
-        {% endfor %}
-      </div>
-      <p class="text-xs text-slate-400 mt-4 pt-4 border-t border-slate-100">
-        These are general wellness suggestions, not medical advice. Only a licensed healthcare provider can advise on diagnosis or treatment.
-      </p>
+      {% endfor %}
     </div>
-    {% endif %}
+  </section>
 
-    {% if request.args.get('feedback') == 'thanks' %}
-    <div class="bg-teal-600 text-white rounded-xl p-3 text-center text-sm font-medium mb-6">
-      Thanks for letting us know — your feedback is saved.
-    </div>
-    {% elif assessment_id %}
-    <div class="bg-white rounded-2xl border border-slate-200 shadow-sm p-5 mb-8 flex items-center justify-between flex-wrap gap-3">
-      <p class="text-sm font-medium text-slate-700">Was this assessment helpful?</p>
-      <div class="flex gap-2">
-        <form action="/feedback/{{ assessment_id }}" method="post">
-          <input type="hidden" name="csrf_token" value="{{ csrf_token() }}" />
-          <input type="hidden" name="helpful" value="yes">
-          <button type="submit" class="px-4 py-2 rounded-lg border border-slate-200 text-sm font-medium text-slate-600 hover:bg-teal-50 hover:border-teal-300 hover:text-teal-700 transition-all">
-            👍 Yes
-          </button>
-        </form>
-        <form action="/feedback/{{ assessment_id }}" method="post">
-          <input type="hidden" name="csrf_token" value="{{ csrf_token() }}" />
-          <input type="hidden" name="helpful" value="no">
-          <button type="submit" class="px-4 py-2 rounded-lg border border-slate-200 text-sm font-medium text-slate-600 hover:bg-red-50 hover:border-red-300 hover:text-red-700 transition-all">
-            👎 No
-          </button>
-        </form>
-      </div>
-    </div>
-    {% endif %}
-
-    <div class="bg-teal-50 border border-teal-200 rounded-xl p-4 flex items-start gap-3 mb-8">
-      <svg width="20" height="20" viewBox="0 0 20 20" fill="currentColor" class="text-teal-500 shrink-0 mt-0.5">
-        <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/>
-      </svg>
-      <p class="text-sm text-teal-700">
-        Each category provides dual-engine clinical decision support: an explainable baseline score anchored in published guidelines (<strong>ACC/AHA 10-Yr ASCVD</strong>, <strong>KDIGO 2024 CKD Staging</strong>, and <strong>MNSI</strong>) alongside <strong>calibrated machine learning models</strong> trained and validated on authentic <strong>CDC NHANES</strong> diabetic clinical cohorts.
-      </p>
-    </div>
-
-    <div class="flex flex-col sm:flex-row gap-3">
-      <a href="/assessment" class="flex-1 text-center px-6 py-3 rounded-xl gradient-primary text-white text-sm font-bold hover:opacity-90 transition-opacity shadow-sm">
-        {{ 'Start New Assessment' if viewing_past else 'Check Someone Else' }}
+  <!-- 6. Bottom Navigation (One Primary Button Only) -->
+  <div class="flex flex-col sm:flex-row items-center justify-between gap-4 pt-4 border-t border-[#b8dce5]">
+    <div class="flex flex-wrap items-center gap-3 w-full sm:w-auto">
+      <a href="/assessment" class="btn-primary text-[19px] px-8 py-3.5 w-full sm:w-auto text-center shadow-card">
+        Check someone else
       </a>
-      {% if assessment_id %}
-      <a href="/history/{{ assessment_id }}/print" target="_blank" class="flex-1 flex items-center justify-center gap-2 px-6 py-3 rounded-xl border border-slate-200 text-sm font-semibold text-slate-600 hover:bg-slate-50 transition-all">
-        <svg width="16" height="16" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.7"><path d="M6 9V3h8v6M6 14h8v4H6v-4zM4 9h12a2 2 0 012 2v4h-3M4 15H1v-4a2 2 0 012-2h0"/></svg>
-        Print / Save Result
+      {% if assessment_id or print_id %}
+      <a href="{% if assessment_id %}/history/{{ assessment_id }}/print?auto=1{% elif print_id %}/print/{{ print_id }}?auto=1{% endif %}" target="_blank" class="btn-secondary text-[18px] px-6 py-3.5 w-full sm:w-auto text-center">
+        Save or print
       </a>
       {% endif %}
-      <a href="/history" class="flex-1 text-center px-6 py-3 rounded-xl border border-slate-200 text-sm font-semibold text-slate-600 hover:bg-slate-50 transition-all">
-        View History
+    </div>
+    <div>
+      <a href="/history" class="text-[18px] font-bold text-[#2e7283] hover:underline">
+        See my past checks &rarr;
       </a>
     </div>
   </div>
+
 </div>
+{% endblock %}
+
+{% block extra_scripts %}
+<script src="{{ url_for('static', filename='js/result.js') }}"></script>
 {% endblock %}

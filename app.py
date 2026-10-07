@@ -22,12 +22,15 @@ import uuid
 import secrets
 import logging
 import logging.handlers
+import re
+import threading
 from datetime import datetime, timezone
 from zoneinfo import ZoneInfo
 from dotenv import load_dotenv
 import joblib
+import numpy as np
 import pandas as pd
-from flask import Flask, render_template, request, redirect, url_for, session
+from flask import Flask, render_template, request, redirect, url_for, session, abort
 from flask_wtf.csrf import CSRFProtect, CSRFError
 from flask_limiter import Limiter
 from flask_limiter.util import get_remote_address
@@ -104,6 +107,39 @@ app.config.update(
 )
 csrf = CSRFProtect(app)
 
+# ===== IN-MEMORY ASSESSMENT STORE =====
+# Single-process deployment constraint:
+# This in-process memory model assumes single-process multi-threaded deployment 
+# (Waitress on 127.0.0.1:5000 with 8 worker threads per wsgi.py). 
+# Scaling to multiple worker processes requires a shared server-side store (e.g. Redis).
+_IN_MEMORY_ASSESSMENTS = {}
+_IN_MEMORY_LOCK = threading.Lock()
+IN_MEMORY_TTL_SECONDS = 900  # 15 minutes
+PRINT_TOKEN_TTL_SECONDS = 300 # 5 minutes
+MAX_IN_MEMORY_ITEMS = 500
+
+def _prune_in_memory_assessments():
+    """Purge expired assessments and enforce LRU eviction limit."""
+    now = datetime.now(timezone.utc).timestamp()
+    with _IN_MEMORY_LOCK:
+        # Step 1: Purge expired
+        expired = [
+            sid for sid, data in _IN_MEMORY_ASSESSMENTS.items() 
+            if (now - data['timestamp']) > (PRINT_TOKEN_TTL_SECONDS if data.get("is_print_token") else IN_MEMORY_TTL_SECONDS)
+        ]
+        for sid in expired:
+            del _IN_MEMORY_ASSESSMENTS[sid]
+        
+        # Step 2: LRU eviction if over capacity
+        if len(_IN_MEMORY_ASSESSMENTS) >= MAX_IN_MEMORY_ITEMS:
+            # Sort by timestamp ascending (oldest first)
+            sorted_items = sorted(_IN_MEMORY_ASSESSMENTS.items(), key=lambda item: item[1]['timestamp'])
+            # Remove oldest items until we are below capacity (e.g., 499 to allow 1 new write)
+            while len(_IN_MEMORY_ASSESSMENTS) >= MAX_IN_MEMORY_ITEMS:
+                oldest_sid = sorted_items.pop(0)[0]
+                if oldest_sid in _IN_MEMORY_ASSESSMENTS:
+                    del _IN_MEMORY_ASSESSMENTS[oldest_sid]
+
 
 @app.template_filter("display_time")
 def display_time(value):
@@ -121,11 +157,31 @@ def display_time(value):
 def set_security_headers(response):
     response.headers["X-Frame-Options"] = "DENY"
     response.headers["X-Content-Type-Options"] = "nosniff"
+    response.headers["X-XSS-Protection"] = "1; mode=block"
     response.headers["Referrer-Policy"] = "strict-origin-when-cross-origin"
     response.headers["Permissions-Policy"] = "geolocation=(), microphone=(), camera=()"
+    response.headers["Content-Security-Policy"] = (
+        "default-src 'self'; "
+        "script-src 'self'; "
+        "style-src 'self'; "
+        "img-src 'self' data:; "
+        "font-src 'self'; "
+        "connect-src 'self'; "
+        "frame-ancestors 'none'; "
+        "object-src 'none'; "
+        "base-uri 'self'; "
+        "form-action 'self';"
+    )
     if not DEBUG:
         response.headers["Strict-Transport-Security"] = "max-age=31536000; includeSubDomains"
+
+    # Enforce strict Cache-Control for sensitive clinical routes
+    if request.path == "/predict" or request.path.startswith("/print") or request.path.startswith("/history") or request.path.startswith("/result"):
+        response.headers["Cache-Control"] = "no-store, no-cache, must-revalidate, max-age=0"
+        response.headers["Pragma"] = "no-cache"
+
     return response
+
 
 limiter = Limiter(
     app=app,
@@ -135,6 +191,7 @@ limiter = Limiter(
 )
 
 database.init_db()
+database.verify_database_integrity()
 logger.info("Database initialized successfully with non-destructive WAL mode.")
 try:
     RETENTION_DAYS = int(os.getenv("RETENTION_DAYS", "90"))
@@ -181,7 +238,10 @@ for cat in CATEGORIES:
     path = os.path.join(BASE_DIR, "model", f"{cat}_model.pkl")
     if os.path.exists(path):
         try:
-            MODELS[cat] = joblib.load(path)
+            model = joblib.load(path)
+            if hasattr(model, "classes_") and not np.array_equal(np.asarray(model.classes_), np.array([0, 1])):
+                raise ValueError("model classes_ must be [0, 1]")
+            MODELS[cat] = model
         except Exception as e:
             logger.error(f"Error loading model for {cat}: {e}")
     else:
@@ -194,25 +254,6 @@ def ensure_session_id():
         session["session_id"] = str(uuid.uuid4())
         session.permanent = True
 
-
-@app.after_request
-def add_security_headers(response):
-    response.headers["X-Frame-Options"] = "SAMEORIGIN"
-    response.headers["X-Content-Type-Options"] = "nosniff"
-    response.headers["X-XSS-Protection"] = "1; mode=block"
-    response.headers["Referrer-Policy"] = "strict-origin-when-cross-origin"
-    response.headers["Content-Security-Policy"] = (
-        "default-src 'self'; "
-        "script-src 'self' 'unsafe-inline' 'unsafe-eval' data: https:; "
-        "style-src 'self' 'unsafe-inline' https:; "
-        "img-src 'self' data: https:; "
-        "font-src 'self' data: https:; "
-        "connect-src 'self'; "
-        "frame-ancestors 'self'; "
-        "object-src 'none'; "
-        "base-uri 'self';"
-    )
-    return response
 
 
 @app.route("/", methods=["GET"])
@@ -228,6 +269,12 @@ def assessment():
 @app.route("/about", methods=["GET"])
 def about():
     return render_template("about.html")
+
+
+@app.route("/report", methods=["GET"])
+def report():
+    """Serve standalone client-side report viewer shell without medical data."""
+    return render_template("report_viewer.html")
 
 
 @app.route("/health", methods=["GET"])
@@ -506,31 +553,79 @@ def predict():
 
     model_results = {}
     model_confidences = {}
+    model_metadata = {}
     if MODELS:
         X = pd.DataFrame([patient])[FEATURE_COLUMNS]
         for cat in CATEGORIES:
             if cat in MODELS:
                 model = MODELS[cat]
-                pred = model.predict(X)[0]
-                model_results[cat] = pred
                 if hasattr(model, "predict_proba"):
-                    proba = model.predict_proba(X)[0]
-                    risk_pct = round(proba[1] * 100, 1) if len(proba) == 2 else round(max(proba) * 100, 1)
+                    if hasattr(model, "predict_with_probability"):
+                        predictions, probabilities = model.predict_with_probability(X)
+                        pred = predictions[0]
+                        risk_pct = round(probabilities[0] * 100, 1)
+                    else:
+                        pred = model.predict(X)[0]
+                        proba = model.predict_proba(X)[0]
+                        risk_pct = round(proba[1] * 100, 1) if len(proba) == 2 else round(max(proba) * 100, 1)
+                    model_results[cat] = pred
                     model_confidences[cat] = risk_pct
+                else:
+                    model_results[cat] = model.predict(X)[0]
+                # Extract model quality metadata for UI display
+                model_metadata[cat] = {
+                    "model_status": getattr(model, "model_status", "validated"),
+                    "calibration_quality": getattr(model, "calibration_quality", "fair"),
+                    "uncertainty_level": getattr(model, "uncertainty_level", "moderate"),
+                }
 
-    assessment_id = database.save_assessment(
-        session_id=session["session_id"],
-        patient=patient,
-        rule_results=rule_results,
-        model_results=model_results,
-        lab_assessment=lab_assessment,
-        model_confidences=model_confidences,
-        model_names=MODEL_NAMES,
-        rule_version=RULE_VERSION,
-    )
+    save_history = request.form.get("save_history") == "1"
+    assessment_id = None
+    if save_history:
+        assessment_id = database.save_assessment(
+            session_id=session["session_id"],
+            patient=patient,
+            rule_results=rule_results,
+            model_results=model_results,
+            lab_assessment=lab_assessment,
+            model_confidences=model_confidences,
+            model_names=MODEL_NAMES,
+            rule_version=RULE_VERSION,
+        )
 
     recommendations = build_recommendations(rule_results, lab_assessment)
     patient_drivers = explain_patient_risk(patient)
+
+    report_payload = {
+        "v": 1,
+        "created_at": datetime.now(timezone.utc).isoformat(timespec="seconds"),
+        "rule_results": rule_results,
+        "model_results": model_results,
+        "model_confidences": model_confidences,
+        "recommendations": recommendations,
+        "patient_drivers": patient_drivers,
+        "patient_summary": describe_patient(patient),
+        "lab_assessment": lab_assessment,
+    }
+    report_payload_json = json.dumps(report_payload).replace("</", "<\\/")
+
+    # Always generate a print token so the print button has a valid in-memory link,
+    # regardless of whether the assessment was saved to the database.
+    _prune_in_memory_assessments()
+    print_id = str(uuid.uuid4())
+    with _IN_MEMORY_LOCK:
+        _IN_MEMORY_ASSESSMENTS[print_id] = {
+            "is_print_token": True,
+            "originating_session": session.get("session_id"),
+            "patient": patient,
+            "rule_results": rule_results,
+            "model_results": model_results,
+            "model_confidences": model_confidences,
+            "model_names": MODEL_NAMES,
+            "lab_assessment": lab_assessment,
+            "created_at": report_payload["created_at"],
+            "timestamp": datetime.now(timezone.utc).timestamp(),
+        }
 
     return render_template(
         "result.html",
@@ -545,6 +640,54 @@ def predict():
         recommendations=recommendations,
         patient_drivers=patient_drivers,
         assessment_id=assessment_id,
+        print_id=print_id,
+        model_metadata=model_metadata,
+        report_payload_json=report_payload_json,
+    )
+
+
+@app.route("/print/<print_id>", methods=["GET"])
+def print_current(print_id):
+    _prune_in_memory_assessments()
+    with _IN_MEMORY_LOCK:
+        record = _IN_MEMORY_ASSESSMENTS.get(print_id)
+    
+    if not record:
+        return redirect(url_for("assessment"))
+        
+    had_cookie = app.config.get("SESSION_COOKIE_NAME", "session") in request.cookies
+    if had_cookie and session.get("session_id") != record.get("originating_session"):
+        abort(403)
+        
+    # Don't pop the token here — let TTL-based expiration handle cleanup.
+    # This allows the user to re-open the print page within the TTL window
+    # (e.g. if the browser print dialog was dismissed accidentally).
+
+    patient_drivers = explain_patient_risk(record["patient"])
+    print_model_metadata = {}
+    for pcat in CATEGORIES:
+        if pcat in MODELS:
+            pmodel = MODELS[pcat]
+            print_model_metadata[pcat] = {
+                "model_status": getattr(pmodel, "model_status", "validated"),
+                "calibration_quality": getattr(pmodel, "calibration_quality", "fair"),
+                "uncertainty_level": getattr(pmodel, "uncertainty_level", "moderate"),
+            }
+            
+    return render_template(
+        "print_result.html",
+        assessment_id=None,
+        created_at=record["created_at"],
+        patient_display=describe_patient(record["patient"]),
+        rule_results=record["rule_results"],
+        model_results=record["model_results"],
+        model_confidences=record.get("model_confidences", {}),
+        model_names=record.get("model_names") or MODEL_NAMES,
+        categories=CATEGORIES,
+        lab_assessment=record.get("lab_assessment"),
+        recommendations=build_recommendations(record["rule_results"], record.get("lab_assessment")),
+        patient_drivers=patient_drivers,
+        model_metadata=print_model_metadata,
     )
 
 
@@ -593,6 +736,30 @@ def history_detail(assessment_id):
     if not record:
         return redirect(url_for("history"))
     patient_drivers = explain_patient_risk(record["patient"])
+    # Build model metadata from currently loaded models
+    hist_model_metadata = {}
+    for hcat in CATEGORIES:
+        if hcat in MODELS:
+            hmodel = MODELS[hcat]
+            hist_model_metadata[hcat] = {
+                "model_status": getattr(hmodel, "model_status", "validated"),
+                "calibration_quality": getattr(hmodel, "calibration_quality", "fair"),
+                "uncertainty_level": getattr(hmodel, "uncertainty_level", "moderate"),
+            }
+    recommendations = build_recommendations(record["rule_results"], record.get("lab_assessment"))
+    report_payload = {
+        "v": 1,
+        "created_at": record["created_at"],
+        "rule_results": record["rule_results"],
+        "model_results": record["model_results"],
+        "model_confidences": record.get("model_confidences", {}),
+        "recommendations": recommendations,
+        "patient_drivers": patient_drivers,
+        "patient_summary": describe_patient(record["patient"]),
+        "lab_assessment": record.get("lab_assessment"),
+    }
+    report_payload_json = json.dumps(report_payload).replace("</", "<\\/")
+
     return render_template(
         "result.html",
         patient=record["patient"],
@@ -603,12 +770,15 @@ def history_detail(assessment_id):
         clinical_metrics=CLINICAL_METRICS,
         categories=CATEGORIES,
         lab_assessment=record.get("lab_assessment"),
-        recommendations=build_recommendations(record["rule_results"], record.get("lab_assessment")),
+        recommendations=recommendations,
         patient_drivers=patient_drivers,
         viewing_past=True,
         created_at=record["created_at"],
         assessment_id=assessment_id,
+        model_metadata=hist_model_metadata,
+        report_payload_json=report_payload_json,
     )
+
 
 
 @app.route("/history/<int:assessment_id>/print", methods=["GET"])
@@ -617,6 +787,16 @@ def print_result(assessment_id):
     if not record:
         return redirect(url_for("history"))
     patient_drivers = explain_patient_risk(record["patient"])
+    # Build model metadata from currently loaded models
+    print_model_metadata = {}
+    for pcat in CATEGORIES:
+        if pcat in MODELS:
+            pmodel = MODELS[pcat]
+            print_model_metadata[pcat] = {
+                "model_status": getattr(pmodel, "model_status", "validated"),
+                "calibration_quality": getattr(pmodel, "calibration_quality", "fair"),
+                "uncertainty_level": getattr(pmodel, "uncertainty_level", "moderate"),
+            }
     return render_template(
         "print_result.html",
         assessment_id=assessment_id,
@@ -630,18 +810,8 @@ def print_result(assessment_id):
         lab_assessment=record.get("lab_assessment"),
         recommendations=build_recommendations(record["rule_results"], record.get("lab_assessment")),
         patient_drivers=patient_drivers,
+        model_metadata=print_model_metadata,
     )
-
-
-@app.route("/feedback/<int:assessment_id>", methods=["POST"])
-def feedback(assessment_id):
-    record = database.get_assessment(assessment_id, session_id=session["session_id"])
-    if not record:
-        return redirect(url_for("history"))
-
-    helpful = request.form.get("helpful") == "yes"
-    database.save_feedback(assessment_id, helpful)
-    return redirect(url_for("history_detail", assessment_id=assessment_id) + "?feedback=thanks")
 
 
 @app.errorhandler(CSRFError)
@@ -656,6 +826,9 @@ def handle_csrf_error(e):
 
 @app.errorhandler(Exception)
 def handle_unexpected_error(e):
+    from werkzeug.exceptions import HTTPException
+    if isinstance(e, HTTPException):
+        return e
     logger.exception("Unexpected server error")
     return render_template(
         "assessment.html",

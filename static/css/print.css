@@ -1,0 +1,115 @@
+/* DiaBeates Print Styles */
+* { box-sizing: border-box; }
+body {
+  background-color: #ffffff;
+  color: #1f2a33;
+  font-family: 'Source Sans 3', -apple-system, sans-serif;
+  max-width: 820px;
+  margin: 0 auto;
+  padding: 32px 24px;
+  line-height: 1.5;
+}
+h1, h2, h3, .brand-title, .display {
+  font-family: 'Fraunces', Georgia, serif;
+  color: #063154;
+  font-weight: 700;
+}
+
+.print-toolbar {
+  background-color: #fbf6ec;
+  border: 1px solid #e5dcce;
+  color: #4f5b66;
+  padding: 12px 18px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 24px;
+  border-radius: 8px;
+  font-size: 15px;
+}
+.print-toolbar button {
+  background-color: #063154;
+  color: #ffffff;
+  border: 1px solid #063154;
+  padding: 8px 18px;
+  border-radius: 8px;
+  font-size: 15px;
+  font-weight: 600;
+  cursor: pointer;
+}
+.print-toolbar button:hover { background-color: #0c436f; }
+
+.header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-end;
+  border-bottom: 2px solid #063154;
+  padding-bottom: 12px;
+  margin-bottom: 20px;
+}
+.brand { display: flex; align-items: center; gap: 8px; }
+.brand img { width: 32px; height: 32px; }
+.brand-title { font-size: 24px; font-weight: 700; margin: 0; color: #063154; }
+.meta { text-align: right; font-size: 13px; font-family: 'IBM Plex Mono', monospace; color: #4f5b66; }
+
+h1.title { font-size: 24px; margin: 0 0 4px 0; }
+.subtitle { font-size: 14px; color: #4f5b66; margin: 0 0 20px 0; }
+
+section { margin-bottom: 24px; break-inside: avoid; }
+h2.section-title {
+  font-size: 13px;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: #063154;
+  font-weight: 700;
+  margin: 0 0 10px 0;
+  padding-bottom: 4px;
+  border-bottom: 1px solid #e5dcce;
+}
+
+.summary-box {
+  background-color: #fbf6ec;
+  border: 1px solid #e5dcce;
+  border-radius: 8px;
+  padding: 16px;
+  margin-bottom: 20px;
+}
+
+table.risk-table { width: 100%; border-collapse: collapse; font-size: 14px; }
+table.risk-table th {
+  text-align: left; font-size: 12px; text-transform: uppercase; letter-spacing: 0.04em;
+  color: #4f5b66; font-family: 'IBM Plex Mono', monospace; padding: 8px 10px; border-bottom: 1px solid #e5dcce;
+}
+table.risk-table td { padding: 10px; border-bottom: 1px solid #f1ece1; }
+
+.font-semibold { font-weight: 600; }
+.text-muted { font-size: 12px; color: #4f5b66; }
+.font-mono { font-family: 'IBM Plex Mono', monospace; }
+
+.tag-low { color: #2f7d4a; font-weight: bold; }
+.tag-mod { color: #a86a0a; font-weight: bold; }
+.tag-high { color: #b03a2e; font-weight: bold; }
+
+.patient-info-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 10px;
+  font-size: 13px;
+}
+.patient-info-label {
+  color: #4f5b66;
+  font-size: 11px;
+  display: block;
+}
+.print-footer-notice {
+  font-size: 11px;
+  color: #4f5b66;
+  border-top: 1px solid #e5dcce;
+  padding-top: 12px;
+  margin-top: 24px;
+}
+
+@media print {
+  .print-toolbar { display: none !important; }
+  body { padding: 0; max-width: 100%; }
+}

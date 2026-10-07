@@ -1,7 +1,7 @@
 """
 database.py — SQLite backend for DiaBeates.
 
-Normalized into 4 tables rather than one flat table of JSON blobs:
+Normalized into 3 tables rather than one flat table of JSON blobs:
 
   assessments      — one row per submission: the raw inputs, an anonymous
                       session_id (so each visitor's history stays private
@@ -13,9 +13,6 @@ Normalized into 4 tables rather than one flat table of JSON blobs:
                       forget to capture at write time if you don't do it
                       from the start).
   lab_assessments   — one row per assessment IF lab values were given.
-  feedback          — one row per "was this helpful?" click, so real
-                      usage signal exists for any future model iteration,
-                      not just the offline training metrics.
 
 get_assessment()/get_all_assessments() reconstruct the same nested dict
 shape the templates already expect, so upgrading the storage layer
@@ -25,45 +22,259 @@ SCHEMA_VERSION is tracked with SQLite's built-in PRAGMA user_version.
 Migrations are additive and preserve existing assessment data.
 """
 
-import sqlite3
 import json
 import os
+import ctypes
 import getpass
 import platform
+import secrets
+import sqlite3
+import shutil
 import subprocess
 from datetime import datetime, timedelta, timezone
+from ctypes import wintypes
+
+import sqlcipher3
+
+from rule_matrix import compute_lab_assessment
 
 DB_PATH = os.path.join(os.path.dirname(os.path.abspath(__file__)), "diabetes_system.db")
+KEY_PATH = os.path.join(os.path.dirname(os.path.abspath(__file__)), ".db.key")
+PROTECTED_KEY_PATH = os.path.join(os.path.dirname(os.path.abspath(__file__)), ".db.key.dpapi")
+BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 SCHEMA_VERSION = 4
+_KEY_ENVIRONMENT_VARIABLE = "DIABEATES_DB_KEY"
 
 
-def get_connection():
-    conn = sqlite3.connect(DB_PATH, timeout=10.0)
-    conn.row_factory = sqlite3.Row
-    conn.execute("PRAGMA foreign_keys = ON")
-    conn.execute("PRAGMA journal_mode = WAL")
+def get_sqlcipher_version() -> str:
+    conn = _open_cipher_connection(DB_PATH, _load_database_key())
+    try:
+        return str(conn.execute("PRAGMA cipher_version").fetchone()[0])
+    finally:
+        conn.close()
+
+
+def _sql_literal(value: str) -> str:
+    return "'" + value.replace("'", "''") + "'"
+
+
+if platform.system() == "Windows":
+    class _DataBlob(ctypes.Structure):
+        _fields_ = [("cbData", wintypes.DWORD), ("pbData", ctypes.POINTER(ctypes.c_ubyte))]
+
+
+def _dpapi_protect(value: str) -> bytes:
+    if platform.system() != "Windows":
+        raise RuntimeError("Windows DPAPI is required for local database key storage")
+    raw = value.encode("utf-8")
+    raw_buffer = (ctypes.c_ubyte * len(raw)).from_buffer_copy(raw)
+    input_blob = _DataBlob(len(raw), raw_buffer)
+    output_blob = _DataBlob()
+    if not ctypes.windll.crypt32.CryptProtectData(
+        ctypes.byref(input_blob), "DiaBeates database key", None, None, None, 0, ctypes.byref(output_blob)
+    ):
+        raise ctypes.WinError()
+    try:
+        return ctypes.string_at(output_blob.pbData, output_blob.cbData)
+    finally:
+        ctypes.windll.kernel32.LocalFree(output_blob.pbData)
+
+
+def _dpapi_unprotect(protected: bytes) -> str:
+    if platform.system() != "Windows":
+        raise RuntimeError("Windows DPAPI is required for local database key storage")
+    protected_buffer = (ctypes.c_ubyte * len(protected)).from_buffer_copy(protected)
+    input_blob = _DataBlob(len(protected), protected_buffer)
+    output_blob = _DataBlob()
+    if not ctypes.windll.crypt32.CryptUnprotectData(
+        ctypes.byref(input_blob), None, None, None, None, 0, ctypes.byref(output_blob)
+    ):
+        raise ctypes.WinError()
+    try:
+        return ctypes.string_at(output_blob.pbData, output_blob.cbData).decode("utf-8")
+    finally:
+        ctypes.windll.kernel32.LocalFree(output_blob.pbData)
+
+
+def _write_protected_key(key: str) -> None:
+    protected = _dpapi_protect(key)
+    temporary_path = f"{PROTECTED_KEY_PATH}.tmp-{secrets.token_hex(8)}"
+    try:
+        with open(temporary_path, "wb") as key_file:
+            key_file.write(protected)
+        restrict_database_permissions(temporary_path)
+        os.replace(temporary_path, PROTECTED_KEY_PATH)
+        restrict_database_permissions(PROTECTED_KEY_PATH)
+    finally:
+        if os.path.exists(temporary_path):
+            os.remove(temporary_path)
+
+
+def _load_database_key() -> str:
+    key = os.getenv(_KEY_ENVIRONMENT_VARIABLE, "").strip()
+    if key:
+        return key
+    if os.path.exists(PROTECTED_KEY_PATH):
+        with open(PROTECTED_KEY_PATH, "rb") as key_file:
+            key = _dpapi_unprotect(key_file.read()).strip()
+        if key:
+            return key
+    if os.path.exists(KEY_PATH):
+        with open(KEY_PATH, encoding="utf-8") as key_file:
+            key = key_file.read().strip()
+        if key:
+            _write_protected_key(key)
+            os.remove(KEY_PATH)
+            return key
+    if platform.system() != "Windows":
+        raise RuntimeError("DIABEATES_DB_KEY is required outside Windows; refusing unprotected key storage")
+    key = secrets.token_hex(32)
+    _write_protected_key(key)
+    return key
+
+
+def _apply_key(conn, key: str) -> None:
+    conn.execute(f"PRAGMA key = {_sql_literal(key)}")
+
+
+def _open_cipher_connection(path: str, key: str):
+    conn = sqlcipher3.connect(path, timeout=10.0)
+    _apply_key(conn, key)
     conn.execute("PRAGMA busy_timeout = 5000")
     return conn
 
 
-def restrict_database_permissions():
-    """Best-effort: restrict SQLite files to the current OS user (where supported)."""
-    for path in (DB_PATH, f"{DB_PATH}-wal", f"{DB_PATH}-shm"):
-        if not os.path.exists(path):
-            continue
-
-        if platform.system() == "Windows":
+def _database_is_readable(path: str, key: str) -> bool:
+    conn = None
+    try:
+        conn = _open_cipher_connection(path, key)
+        conn.execute("SELECT count(*) FROM sqlite_master").fetchone()
+        return True
+    except Exception:
+        return False
+    finally:
+        if conn is not None:
+            conn.close()
+
+
+def _database_is_plaintext(path: str) -> bool:
+    conn = None
+    try:
+        conn = sqlite3.connect(path, timeout=10.0)
+        conn.execute("SELECT count(*) FROM sqlite_master").fetchone()
+        return True
+    except Exception:
+        return False
+    finally:
+        if conn is not None:
+            conn.close()
+
+
+def _copy_legacy_database(path: str) -> str:
+    backup_path = f"{path}.plaintext-backup-{datetime.now(timezone.utc).strftime('%Y%m%d%H%M%S')}"
+    shutil.copy2(path, backup_path)
+    for suffix in ("-wal", "-shm"):
+        sidecar = f"{path}{suffix}"
+        if os.path.exists(sidecar):
+            shutil.copy2(sidecar, f"{backup_path}{suffix}")
+    restrict_database_permissions(backup_path)
+    return backup_path
+
+
+def migrate_plaintext_database(path: str = None, key: str = None) -> bool:
+    """Convert a legacy SQLite file to SQLCipher without replacing its source early."""
+    path = path or DB_PATH
+    key = key or _load_database_key()
+    if not os.path.exists(path) or _database_is_readable(path, key):
+        return False
+    if not _database_is_plaintext(path):
+        raise RuntimeError(f"Database is neither valid SQLCipher nor readable legacy SQLite: {path}")
+
+    legacy_backup = _copy_legacy_database(path)
+    temporary_path = f"{path}.sqlcipher-migration-{secrets.token_hex(8)}.tmp"
+    try:
+        source = sqlite3.connect(path, timeout=10.0)
+        source.execute("PRAGMA wal_checkpoint(TRUNCATE)")
+        source_schema_version = source.execute("PRAGMA user_version").fetchone()[0]
+        destination = _open_cipher_connection(temporary_path, key)
+        try:
+            destination.executescript("\n".join(source.iterdump()))
+            destination.commit()
+        finally:
+            destination.close()
+            source.close()
+
+        encrypted = _open_cipher_connection(temporary_path, key)
+        try:
+            encrypted.execute(f"PRAGMA user_version = {int(source_schema_version)}")
+            encrypted.commit()
+            verify_database_integrity(encrypted)
+        finally:
+            encrypted.close()
+        os.replace(temporary_path, path)
+        restrict_database_permissions(path)
+        return True
+    except Exception:
+        if os.path.exists(temporary_path):
+            os.remove(temporary_path)
+        raise RuntimeError(
+            f"SQLCipher migration failed; original database preserved at {legacy_backup}"
+        ) from None
+
+
+def verify_database_integrity(conn=None) -> bool:
+    owns_connection = conn is None
+    conn = conn or get_connection()
+    try:
+        result = conn.execute("PRAGMA quick_check").fetchone()[0]
+        if str(result).lower() != "ok":
+            raise RuntimeError(f"Database integrity check failed: {result}")
+        return True
+    finally:
+        if owns_connection:
+            conn.close()
+
+
+def get_connection():
+    if not os.path.exists(DB_PATH):
+        _load_database_key()
+    migrate_plaintext_database(DB_PATH)
+    conn = _open_cipher_connection(DB_PATH, _load_database_key())
+    conn.row_factory = sqlcipher3.Row
+    conn.execute("PRAGMA foreign_keys = ON")
+    conn.execute("PRAGMA journal_mode = WAL")
+    return conn
+
+
+def restrict_database_permissions(path: str = None):
+    """Best-effort: restrict SQLite files to the current OS user (where supported)."""
+
+    paths = (path,) if path else (DB_PATH, f"{DB_PATH}-wal", f"{DB_PATH}-shm", KEY_PATH)
+    for current_path in paths:
+        if not os.path.exists(current_path):
+
+            continue
+
+
+
+        if platform.system() == "Windows":
+
             subprocess.run(
-                ["icacls", path, "/inheritance:r", "/grant:r", f"{getpass.getuser()}:F"],
+                ["icacls", current_path, "/inheritance:r", "/grant:r", f"{getpass.getuser()}:F"],
                 check=False,
                 capture_output=True,
                 text=True,
             )
-        else:
-            try:
-                os.chmod(path, 0o600)
-            except OSError:
-                pass
+        else:
+
+            try:
+
+                os.chmod(current_path, 0o600)
+
+            except OSError:
+
+                pass
+
 
 
 def init_db():
@@ -113,20 +324,10 @@ def init_db():
             label TEXT, percentage INTEGER
         )
     """)
-    conn.execute("""
-        CREATE TABLE IF NOT EXISTS feedback (
-            id INTEGER PRIMARY KEY AUTOINCREMENT,
-            assessment_id INTEGER NOT NULL REFERENCES assessments(id),
-            created_at TEXT NOT NULL,
-            helpful INTEGER NOT NULL,
-            comment TEXT
-        )
-    """)
     conn.execute("CREATE INDEX IF NOT EXISTS idx_assessments_session_archived_id ON assessments(session_id, archived, id)")
     conn.execute("CREATE INDEX IF NOT EXISTS idx_assessments_created_at ON assessments(created_at)")
     conn.execute("CREATE INDEX IF NOT EXISTS idx_risk_results_assessment_id ON risk_results(assessment_id)")
     conn.execute("CREATE INDEX IF NOT EXISTS idx_lab_assessments_assessment_id ON lab_assessments(assessment_id)")
-    conn.execute("CREATE INDEX IF NOT EXISTS idx_feedback_assessment_id ON feedback(assessment_id)")
     conn.execute(f"PRAGMA user_version = {SCHEMA_VERSION}")
     conn.commit()
     conn.close()
@@ -191,16 +392,6 @@ def save_assessment(session_id: str, patient: dict, rule_results: dict,
         conn.close()
 
 
-def save_feedback(assessment_id: int, helpful: bool, comment: str = None):
-    conn = get_connection()
-    conn.execute(
-        "INSERT INTO feedback (assessment_id, created_at, helpful, comment) VALUES (?, ?, ?, ?)",
-        (assessment_id, datetime.now(timezone.utc).isoformat(timespec="seconds"), int(helpful), comment),
-    )
-    conn.commit()
-    conn.close()
-
-
 def _reconstruct(conn, row) -> dict:
     assessment_id = row["id"]
 
@@ -236,6 +427,16 @@ def _reconstruct(conn, row) -> dict:
             details["systolic_bp"] = {"value": lab_row["systolic_bp"]}
         if lab_row["ldl"] is not None:
             details["ldl"] = {"value": lab_row["ldl"]}
+        # Older rows store the values but not the per-measure points used by
+        # the result template to select the correct guideline legend.
+        recalculated = compute_lab_assessment(
+            hba1c=details.get("hba1c", {}).get("value"),
+            systolic_bp=details.get("systolic_bp", {}).get("value"),
+            ldl=details.get("ldl", {}).get("value"),
+        )
+        if recalculated:
+            for name, assessment in recalculated["details"].items():
+                details[name]["points"] = assessment["points"]
         lab_assessment = {"label": lab_row["label"], "percentage": lab_row["percentage"], "details": details}
 
     return {
@@ -307,7 +508,6 @@ def delete_assessment(assessment_id: int, session_id: str) -> bool:
     if not row or row["session_id"] != session_id:
         conn.close()
         return False
-    conn.execute("DELETE FROM feedback WHERE assessment_id = ?", (assessment_id,))
     conn.execute("DELETE FROM lab_assessments WHERE assessment_id = ?", (assessment_id,))
     conn.execute("DELETE FROM risk_results WHERE assessment_id = ?", (assessment_id,))
     conn.execute("DELETE FROM assessments WHERE id = ?", (assessment_id,))
@@ -333,7 +533,6 @@ def prune_expired_assessments(days: int = 90) -> int:
         return 0
     ids = [r["id"] for r in rows]
     placeholders = ",".join("?" for _ in ids)
-    conn.execute(f"DELETE FROM feedback WHERE assessment_id IN ({placeholders})", ids)
     conn.execute(f"DELETE FROM lab_assessments WHERE assessment_id IN ({placeholders})", ids)
     conn.execute(f"DELETE FROM risk_results WHERE assessment_id IN ({placeholders})", ids)
     cur = conn.execute(f"DELETE FROM assessments WHERE id IN ({placeholders})", ids)
@@ -341,3 +540,4 @@ def prune_expired_assessments(days: int = 90) -> int:
     conn.commit()
     conn.close()
     return deleted_count
+
