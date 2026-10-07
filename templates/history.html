@@ -99,7 +99,7 @@
             <span class="text-[13px] text-[#4f5b66] font-bold block">Heart</span>
             <span class="sr-only">{{ heart_ml }}</span>
             <span class="text-[14px] font-bold {% if heart and heart.label == 'Low' %}text-[#2f7d4a]{% elif heart and heart.label == 'Moderate' %}text-[#a86a0a]{% else %}text-[#b03a2e]{% endif %}">
-              {{ 'Good' if heart and heart.label == 'Low' else ('Check' if heart and heart.label == 'Moderate' else 'Doctor') }}
+              {{ heart.label if heart else 'N/A' }}
             </span>
           </div>
         </div>
@@ -113,7 +113,7 @@
             <span class="text-[13px] text-[#4f5b66] font-bold block">Kidneys</span>
             <span class="sr-only">{{ kidneys_ml }}</span>
             <span class="text-[14px] font-bold {% if kidneys and kidneys.label == 'Low' %}text-[#2f7d4a]{% elif kidneys and kidneys.label == 'Moderate' %}text-[#a86a0a]{% else %}text-[#b03a2e]{% endif %}">
-              {{ 'Good' if kidneys and kidneys.label == 'Low' else ('Check' if kidneys and kidneys.label == 'Moderate' else 'Doctor') }}
+              {{ kidneys.label if kidneys else 'N/A' }}
             </span>
           </div>
         </div>
@@ -127,7 +127,7 @@
             <span class="text-[13px] text-[#4f5b66] font-bold block">Nerves &amp; Feet</span>
             <span class="sr-only">{{ nerves_ml }}</span>
             <span class="text-[14px] font-bold {% if nerves and nerves.label == 'Low' %}text-[#2f7d4a]{% elif nerves and nerves.label == 'Moderate' %}text-[#a86a0a]{% else %}text-[#b03a2e]{% endif %}">
-              {{ 'Good' if nerves and nerves.label == 'Low' else ('Check' if nerves and nerves.label == 'Moderate' else 'Doctor') }}
+              {{ nerves.label if nerves else 'N/A' }}
             </span>
           </div>
         </div>
@@ -141,7 +141,7 @@
             <span class="text-[13px] text-[#4f5b66] font-bold block">Eyes</span>
             <span class="sr-only">{{ eyes_ml }}</span>
             <span class="text-[14px] font-bold {% if eyes and eyes.label == 'Low' %}text-[#2f7d4a]{% elif eyes and eyes.label == 'Moderate' %}text-[#a86a0a]{% else %}text-[#b03a2e]{% endif %}">
-              {{ 'Good' if eyes and eyes.label == 'Low' else ('Check' if eyes and eyes.label == 'Moderate' else 'Doctor') }}
+              {{ eyes.label if eyes else 'N/A' }}
             </span>
           </div>
         </div>
@@ -197,7 +197,7 @@
               {% if heart and heart.label == 'Low' %}bg-[#e4f2e7] text-[#2f7d4a]
               {% elif heart and heart.label == 'Moderate' %}bg-[#fbeed0] text-[#a86a0a]
               {% else %}bg-[#f9e1dc] text-[#b03a2e]{% endif %}">
-              {{ 'Good' if heart and heart.label == 'Low' else ('Check' if heart and heart.label == 'Moderate' else 'Doctor') }}
+              {{ heart.label if heart else 'N/A' }}
             </span>
           </td>
 
@@ -210,7 +210,7 @@
               {% if kidneys and kidneys.label == 'Low' %}bg-[#e4f2e7] text-[#2f7d4a]
               {% elif kidneys and kidneys.label == 'Moderate' %}bg-[#fbeed0] text-[#a86a0a]
               {% else %}bg-[#f9e1dc] text-[#b03a2e]{% endif %}">
-              {{ 'Good' if kidneys and kidneys.label == 'Low' else ('Check' if kidneys and kidneys.label == 'Moderate' else 'Doctor') }}
+              {{ kidneys.label if kidneys else 'N/A' }}
             </span>
           </td>
 
@@ -223,7 +223,7 @@
               {% if nerves and nerves.label == 'Low' %}bg-[#e4f2e7] text-[#2f7d4a]
               {% elif nerves and nerves.label == 'Moderate' %}bg-[#fbeed0] text-[#a86a0a]
               {% else %}bg-[#f9e1dc] text-[#b03a2e]{% endif %}">
-              {{ 'Good' if nerves and nerves.label == 'Low' else ('Check' if nerves and nerves.label == 'Moderate' else 'Doctor') }}
+              {{ nerves.label if nerves else 'N/A' }}
             </span>
           </td>
 
@@ -236,7 +236,7 @@
               {% if eyes and eyes.label == 'Low' %}bg-[#e4f2e7] text-[#2f7d4a]
               {% elif eyes and eyes.label == 'Moderate' %}bg-[#fbeed0] text-[#a86a0a]
               {% else %}bg-[#f9e1dc] text-[#b03a2e]{% endif %}">
-              {{ 'Good' if eyes and eyes.label == 'Low' else ('Check' if eyes and eyes.label == 'Moderate' else 'Doctor') }}
+              {{ eyes.label if eyes else 'N/A' }}
             </span>
           </td>
 
