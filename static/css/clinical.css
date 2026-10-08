@@ -266,6 +266,64 @@ textarea:focus {
   align-self: flex-start;
 }
 
+/* ── Disclaimer Warning Card ────────────────────────── */
+.disclaimer-warning {
+  border-left: 5px solid #f2a73b;
+  border-color: #f4d99f;
+}
+
+.disclaimer-warning-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 16px 20px 14px;
+  background-color: #fbeed0;
+  border-bottom: 1px solid #f4d99f;
+  border-radius: 16px 16px 0 0;
+}
+
+.disclaimer-warning-icon {
+  width: 28px;
+  height: 28px;
+  flex-shrink: 0;
+}
+
+.disclaimer-urgent-row {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  background-color: #fdf0ec;
+  border: 1px solid #f1b8af;
+  border-radius: 8px;
+  padding: 10px 12px;
+}
+
+.disclaimer-agree-btn {
+  min-height: 48px;
+  background-color: #a86a0a;
+  color: #ffffff;
+  font-family: var(--font-body);
+  font-weight: 600;
+  padding: 12px 22px;
+  border-radius: 8px;
+  border: none;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: background-color 150ms ease-out;
+}
+
+.disclaimer-agree-btn:hover {
+  background-color: #8a5408;
+}
+
+.disclaimer-agree-btn:focus {
+  outline: 2px solid var(--teal) !important;
+  outline-offset: 2px !important;
+}
+
 .account-avatar-link {
   display: inline-flex;
   min-width: 48px;
