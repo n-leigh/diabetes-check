@@ -36,15 +36,46 @@
         <div class="md:col-span-5">
           <div class="relative max-w-md mx-auto md:max-w-none aspect-[4/3] flex items-center justify-center">
             <svg class="home-mascot w-full h-full overflow-visible" viewBox="0 0 400 300" role="img" aria-label="A smiling sugar cube waving hello">
+              <defs>
+                <pattern id="sugar-top-grain" width="14" height="14" patternUnits="userSpaceOnUse">
+                  <rect width="14" height="14" fill="#ffffff"/>
+                  <circle cx="3" cy="4" r="1.4" fill="#e6f4f5"/>
+                  <circle cx="10" cy="11" r="1" fill="#d8e7e7"/>
+                  <path d="M8 1v3M6.5 2.5h3" stroke="#e6f4f5" stroke-width=".8"/>
+                  <path d="M2 10v2M1 11h2" stroke="#e6f4f5" stroke-width=".7"/>
+                </pattern>
+                <pattern id="sugar-front-grain" width="14" height="14" patternUnits="userSpaceOnUse">
+                  <rect width="14" height="14" fill="#fff3d6"/>
+                  <circle cx="3" cy="4" r="1.3" fill="#ffffff"/>
+                  <circle cx="10" cy="11" r="1" fill="#f2e3bf"/>
+                  <path d="M8 1v3M6.5 2.5h3" stroke="#ffffff" stroke-width=".8"/>
+                  <path d="M2 10v2M1 11h2" stroke="#f2e3bf" stroke-width=".7"/>
+                </pattern>
+                <pattern id="sugar-side-grain" width="14" height="14" patternUnits="userSpaceOnUse">
+                  <rect width="14" height="14" fill="#e6f4f5"/>
+                  <circle cx="3" cy="4" r="1.3" fill="#ffffff"/>
+                  <circle cx="10" cy="11" r="1" fill="#cce5e8"/>
+                  <path d="M8 1v3M6.5 2.5h3" stroke="#ffffff" stroke-width=".8"/>
+                  <path d="M2 10v2M1 11h2" stroke="#cce5e8" stroke-width=".7"/>
+                </pattern>
+              </defs>
               <circle cx="200" cy="150" r="116" fill="#e6f4f5"/>
-              <path d="M133 119 184 79h99l-53 40z" fill="#ffffff" stroke="#063154" stroke-linejoin="round" stroke-width="6"/>
-              <path d="M230 119 283 79v103l-53 39z" fill="#e6f4f5" stroke="#063154" stroke-linejoin="round" stroke-width="6"/>
-              <path d="M133 119h97v102h-97z" fill="#fff3d6" stroke="#063154" stroke-linejoin="round" stroke-width="6"/>
-              <g class="home-mascot-wave-arm">
-                <path d="M222 143c19-11 34-29 45-50" fill="none" stroke="#0b7a85" stroke-linecap="round" stroke-width="11"/>
-                <path d="M263 99c-6-4-5-11-3-20l2-9c2-8 11-7 12 1l-1 10 8-13c5-7 13-1 9 5l-8 13 10-6c7-4 12 4 6 9l-15 12-10 7z" fill="#fff3d6" stroke="#0b7a85" stroke-linecap="round" stroke-linejoin="round" stroke-width="7"/>
+              <g fill="#fff" stroke="#063154" stroke-linejoin="round" stroke-width="5" opacity=".92">
+                <path d="m95 129 31-24h57l-31 24z" fill="url(#sugar-top-grain)"/>
+                <path d="m152 129 31-24v59l-31 24z" fill="url(#sugar-side-grain)"/>
+                <path d="M95 129h57v59H95z" fill="url(#sugar-front-grain)"/>
+                <path d="m245 95 28-22h51l-28 22z" fill="url(#sugar-top-grain)"/>
+                <path d="m296 95 28-22v53l-28 22z" fill="url(#sugar-side-grain)"/>
+                <path d="M245 95h51v53h-51z" fill="url(#sugar-front-grain)"/>
               </g>
-              <g fill="none" stroke="#0b7a85" stroke-linecap="round" stroke-width="4">
+              <path d="M133 119 184 79h99l-53 40z" fill="url(#sugar-top-grain)" stroke="#063154" stroke-linejoin="round" stroke-width="6"/>
+              <path d="M230 119 283 79v103l-53 39z" fill="url(#sugar-side-grain)" stroke="#063154" stroke-linejoin="round" stroke-width="6"/>
+              <path d="M133 119h97v102h-97z" fill="url(#sugar-front-grain)" stroke="#063154" stroke-linejoin="round" stroke-width="6"/>
+              <g class="home-mascot-wave-arm">
+                <path d="M222 143c19-11 34-29 45-50" fill="none" stroke="#063154" stroke-linecap="round" stroke-width="11"/>
+                <path d="M263 99c-6-4-5-11-3-20l2-9c2-8 11-7 12 1l-1 10 8-13c5-7 13-1 9 5l-8 13 10-6c7-4 12 4 6 9l-15 12-10 7z" fill="#fff3d6" stroke="#063154" stroke-linecap="round" stroke-linejoin="round" stroke-width="7"/>
+              </g>
+              <g fill="none" stroke="#063154" stroke-linecap="round" stroke-width="4">
                 <path d="M157 222v16"/>
                 <path d="M204 222v16"/>
               </g>
