@@ -658,6 +658,10 @@ details.technical-details .technical-content {
   margin: 0;
 }
 
+.home-mascot {
+  transform: scale(1.12);
+}
+
 .input-unit-suffix {
   position: absolute;
   right: 12px;
@@ -669,6 +673,19 @@ details.technical-details .technical-content {
   pointer-events: none;
   user-select: none;
   line-height: 1;
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .home-mascot-wave-arm {
+    transform-box: view-box;
+    transform-origin: 57.5% 47%;
+    animation: home-mascot-wave 1.8s ease-in-out infinite;
+  }
+
+  @keyframes home-mascot-wave {
+    0%, 100% { transform: rotate(0deg); }
+    35%, 65% { transform: rotate(12deg); }
+  }
 }
 
 /* Dialog & Modal */

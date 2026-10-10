@@ -18,7 +18,7 @@
             Check your health risks in 3 minutes.
           </h1>
           <p class="text-[20px] text-[#4f5b66] leading-relaxed max-w-lg mx-auto md:mx-0">
-            Free. No name or email needed.
+            Free. Quick and private.
           </p>
           <div class="pt-2 flex justify-center md:justify-start">
             <a href="/assessment" class="btn-primary text-[20px] px-8 py-4 shadow-card w-full sm:w-auto" aria-label="Start Risk Assessment">
@@ -32,17 +32,30 @@
           </div>
         </div>
 
-        <!-- Hero image (Below CTA on mobile, right on desktop) -->
+        <!-- Friendly waving illustration (Below CTA on mobile, right on desktop) -->
         <div class="md:col-span-5">
-          <div class="relative max-w-md mx-auto md:max-w-none">
-            <img 
-              src="{{ url_for('static', filename='img/hero_sugar.jpg') }}"
-              alt="Sugar cubes representing added sugar"
-              class="w-full h-auto rounded-card object-cover border border-[#b8dce5] shadow-card aspect-[4/3]"
-              width="800" 
-              height="533" 
-              loading="eager"
-            >
+          <div class="relative max-w-md mx-auto md:max-w-none aspect-[4/3] flex items-center justify-center">
+            <svg class="home-mascot w-full h-full overflow-visible" viewBox="0 0 400 300" role="img" aria-label="A smiling sugar cube waving hello">
+              <circle cx="200" cy="150" r="116" fill="#e6f4f5"/>
+              <path d="M133 119 184 79h99l-53 40z" fill="#ffffff" stroke="#063154" stroke-linejoin="round" stroke-width="6"/>
+              <path d="M230 119 283 79v103l-53 39z" fill="#e6f4f5" stroke="#063154" stroke-linejoin="round" stroke-width="6"/>
+              <path d="M133 119h97v102h-97z" fill="#fff3d6" stroke="#063154" stroke-linejoin="round" stroke-width="6"/>
+              <g class="home-mascot-wave-arm">
+                <path d="M222 143c19-11 34-29 45-50" fill="none" stroke="#0b7a85" stroke-linecap="round" stroke-width="11"/>
+                <path d="M263 99c-6-4-5-11-3-20l2-9c2-8 11-7 12 1l-1 10 8-13c5-7 13-1 9 5l-8 13 10-6c7-4 12 4 6 9l-15 12-10 7z" fill="#fff3d6" stroke="#0b7a85" stroke-linecap="round" stroke-linejoin="round" stroke-width="7"/>
+              </g>
+              <g fill="none" stroke="#0b7a85" stroke-linecap="round" stroke-width="4">
+                <path d="M157 222v16"/>
+                <path d="M204 222v16"/>
+              </g>
+              <circle cx="163" cy="157" r="7" fill="#063154"/>
+              <circle cx="201" cy="157" r="7" fill="#063154"/>
+              <circle cx="161" cy="154" r="2.5" fill="#ffffff"/>
+              <circle cx="199" cy="154" r="2.5" fill="#ffffff"/>
+              <circle cx="151" cy="176" r="5" fill="#e8765a" opacity=".65"/>
+              <circle cx="213" cy="176" r="5" fill="#e8765a" opacity=".65"/>
+              <path d="M172 184c6 7 15 7 21 0" fill="none" stroke="#063154" stroke-linecap="round" stroke-width="5"/>
+            </svg>
           </div>
         </div>
 
@@ -175,7 +188,7 @@
           Your answers stay private.
         </h3>
         <p class="text-[19px] text-[#4f5b66] max-w-lg mx-auto">
-          Your answers stay private. We do not ask for your name or email, and we do not share your answers.
+          Your answers stay private. We do not share your answers.
         </p>
       </div>
 
