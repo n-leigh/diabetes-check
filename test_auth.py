@@ -226,6 +226,19 @@ def test_admin_routes_and_last_admin_protection(client, admin, user):
     assert _login(client, admin_email).status_code == 302
     for path in ("/admin", "/admin/users", "/admin/feedback", "/admin/audit", "/admin/system", "/admin/export.csv"):
         assert client.get(path).status_code == 200
+    dashboard = client.get("/admin").get_data(as_text=True)
+    assert "Admin workspace" in dashboard
+    assert "Individual health checks are not shown here" in dashboard
+    assert 'href="/assessment"' not in dashboard
+    assert 'href="/history"' not in dashboard
+    assert 'href="/admin/export.csv"' not in dashboard
+    assert 'href="/admin/audit"' not in dashboard
+    assert 'href="/admin/system"' not in dashboard
+    assert "Admin account menu for Test Admin" in dashboard
+    assert "Sign out" in dashboard
+    assert 'class="admin-account-menu"' in dashboard
+    assert "<progress" in dashboard
+    assert 'style="width:' not in dashboard
     csrf = _csrf(client, "/admin/users")
     assert client.post(
         f"/admin/users/{admin_id}/deactivate",
@@ -242,3 +255,5 @@ def test_status_helper_and_csrf():
     assert app.get_status_presentation("Low")["label"] == "Good"
     assert app.get_status_presentation("Moderate")["label"] == "Check"
     assert app.get_status_presentation("High")["label"] == "See a doctor"
+    assert app._admin_count(4) == "<5"
+    assert app._admin_count(5) == "5"

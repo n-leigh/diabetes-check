@@ -201,8 +201,8 @@ def admin_required(view):
     return wrapped
 
 
-def _admin_count(value, total):
-    return str(value) if total >= 5 else "<5"
+def _admin_count(value):
+    return str(value) if value >= 5 else "<5"
 
 
 def _admin_dashboard_data():
@@ -217,6 +217,11 @@ def _admin_dashboard_data():
         assessments_total = conn.execute("SELECT COUNT(*) FROM assessments").fetchone()[0]
         feedback_total = conn.execute("SELECT COUNT(*) FROM feedback").fetchone()[0]
         helpful_total = conn.execute("SELECT COUNT(*) FROM feedback WHERE helpful = 1").fetchone()[0]
+        unhelpful_total = feedback_total - helpful_total
+        if helpful_total < 5 or unhelpful_total < 5:
+            feedback_helpful_rate = "<5 responses"
+        else:
+            feedback_helpful_rate = f"{helpful_total / feedback_total:.0%}"
         status_counts = {}
         for category, title in (
             ("cardiovascular", "Heart"),
@@ -229,11 +234,13 @@ def _admin_dashboard_data():
                    WHERE category = ? GROUP BY rule_label""",
                 (category,),
             ).fetchall()
-            total = sum(row["total"] for row in rows)
             status_counts[title] = {
-                get_status_presentation(row["rule_label"])["label"]: _admin_count(row["total"], total)
-                for row in rows
+                label: "<5"
+                for label in ("Good", "Check", "See a doctor")
             }
+            for row in rows:
+                label = get_status_presentation(row["rule_label"])["label"]
+                status_counts[title][label] = _admin_count(row["total"])
         days = []
         for offset in range(29, -1, -1):
             day = (now - timedelta(days=offset)).date()
@@ -241,12 +248,16 @@ def _admin_dashboard_data():
                 "SELECT COUNT(*) FROM assessments WHERE date(created_at) = ?",
                 (day.isoformat(),),
             ).fetchone()[0]
-            days.append({"date": day.isoformat(), "count": count})
+            days.append({
+                "date": day.isoformat(),
+                "display_count": _admin_count(count),
+                "bar_width": min(count * 12, 100) if count >= 5 else 0,
+            })
         return {
-            "users_total": users_total,
-            "new_users": _admin_count(new_users, users_total),
-            "assessments_total": assessments_total,
-            "feedback_helpful": _admin_count(helpful_total, feedback_total),
+            "users_total": _admin_count(users_total),
+            "new_users": _admin_count(new_users),
+            "assessments_total": _admin_count(assessments_total),
+            "feedback_helpful_rate": feedback_helpful_rate,
             "status_counts": status_counts,
             "days": days,
         }
@@ -759,7 +770,7 @@ def admin_audit():
         where = "WHERE action = ?" if action else ""
         params = (action, 50, offset) if action else (50, offset)
         audit = [dict(row) for row in conn.execute(
-            f"""SELECT id, actor_user_id, action, target, ip, created_at
+            f"""SELECT id, actor_user_id, action, target, created_at
                 FROM audit_log {where} ORDER BY id DESC LIMIT ? OFFSET ?""",
             params,
         ).fetchall()]
@@ -821,7 +832,7 @@ def admin_export_csv():
     writer.writerow(["total_users", dashboard["users_total"]])
     writer.writerow(["new_users_last_7_days", dashboard["new_users"]])
     writer.writerow(["total_assessments", dashboard["assessments_total"]])
-    writer.writerow(["feedback_helpful", dashboard["feedback_helpful"]])
+    writer.writerow(["helpful_feedback_rate", dashboard["feedback_helpful_rate"]])
     for title, counts in dashboard["status_counts"].items():
         for status, value in counts.items():
             writer.writerow([f"{title.lower()}_{status.lower().replace(' ', '_')}", value])

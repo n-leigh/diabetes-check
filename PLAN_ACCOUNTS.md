@@ -270,6 +270,11 @@ PLAN_STATUS
 P1 [x] P2 [x] P3 [x] P4 [x] P5 [x] P6 [x] P7 [x] P8 [x]
 
 CHANGELOG
+- 2026-11-02: Refined admin dashboard, account support, feedback, audit, and system layouts with clearer hierarchy, plain-language descriptions, warm surfaces, responsive tables, and accessible activity bars that do not rely on CSP-blocked inline styles.
+- 2026-11-02: Replaced the admin header's standalone account/sign-out links with an initial avatar menu. The menu exposes Account and CSRF-protected Sign out on hover, keyboard focus, and touch/click.
+- 2026-11-02: Removed Audit and System links from desktop/mobile admin navigation and admin footer; protected pages and routes remain available as required by the admin plan.
+- 2026-11-02: Removed the Summary CSV link from desktop and mobile admin navigation while retaining the aggregate-only export route required by the admin plan.
+- 2026-11-02: Separated admin navigation and page context from the patient interface; clarified that admins see account/service tools, not individual health checks. Tightened dashboard and CSV aggregate suppression so every count below five is hidden, removed IP addresses from the audit view, and added privacy notices for feedback and backups.
 - 2026-10-07: Fixed account form controls appearing without borders by applying the shared input styling to nickname and password fields; corrected registration helper copy to match the fields shown.
 - 2026-10-07: Completed P8 authentication and security verification. Added focused coverage for registration, generic login failures, lockout state, open-redirect rejection, guest claim decisions, ownership 404s including feedback, owner-only export and progress, single-use hashed password reset tokens, admin authorization, last-admin protection, and shared status mapping. All required clinical, flow, live browser, syntax, diagnostics, and whitespace checks passed. Final audit found no unapplied P1-P8 requirements.
 - 2026-10-07: Completed P7 copy and documentation. Updated home reassurance, About privacy and retention text, README account/setup/admin guidance, route documentation, and environment-variable instructions. All required regression suites passed.
