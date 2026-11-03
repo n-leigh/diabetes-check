@@ -33,7 +33,7 @@
         <td data-label="Actions">
           <div class="admin-user-actions">
             {% if user.is_active %}
-            <form method="post" action="/admin/users/{{ user.id }}/deactivate" onsubmit="return confirm('Deactivate this user?')">
+            <form method="post" action="/admin/users/{{ user.id }}/deactivate" data-confirm-message="Deactivate this user?">
               <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
               <button class="admin-action-button" type="submit">Deactivate</button>
             </form>
@@ -48,7 +48,7 @@
               <button class="admin-action-button" type="submit">Reset link</button>
             </form>
             {% if user.id != current_user.id %}
-            <form method="post" action="/admin/users/{{ user.id }}/delete" onsubmit="return confirm('Delete this user and saved checks?')">
+            <form method="post" action="/admin/users/{{ user.id }}/delete" data-confirm-message="Delete this user and saved checks?">
               <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
               <button class="admin-action-button is-danger" type="submit">Delete</button>
             </form>
