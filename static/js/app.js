@@ -12,6 +12,16 @@ document.addEventListener('DOMContentLoaded', () => {
       mobileMenu.classList.toggle('hidden');
     });
   }
+
+  document.addEventListener('submit', (event) => {
+    const form = event.target instanceof HTMLFormElement ? event.target : null;
+    if (!form) return;
+    const message = form.dataset.confirmMessage;
+    if (!message) return;
+    if (!window.confirm(message)) {
+      event.preventDefault();
+    }
+  });
 });
 
 (function () {
@@ -84,5 +94,4 @@ document.addEventListener('DOMContentLoaded', () => {
     });
   }
 }());
-
 

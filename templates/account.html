@@ -1,0 +1,47 @@
+{% extends "base.html" %}
+{% block title %}DiaBeates - Your account{% endblock %}
+{% block content %}
+<section class="max-w-3xl mx-auto px-4 py-10 sm:py-16">
+  <div class="space-y-6">
+    <div>
+      <h1 class="font-heading text-3xl sm:text-4xl font-bold text-[#014c5e]">Your account</h1>
+      {% if message %}<p role="alert" aria-live="polite" class="mt-3 text-[18px] text-[#0b7a85]">{{ message }}</p>{% endif %}
+    </div>
+    <article class="health-card p-6 sm:p-8">
+      <h2 class="font-heading text-2xl font-bold text-[#014c5e]">Your details</h2>
+      <form method="post" action="/account/profile" class="mt-5 space-y-4">
+        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+        <label class="block text-[18px] font-semibold">Nickname
+          <input name="nickname" maxlength="40" required value="{{ user.display_name }}" class="mt-2 w-full input-field">
+        </label>
+        <p class="text-[17px] text-[#4f5b66]">Email: {{ user.email }}</p>
+        <button class="btn-primary text-[18px]" type="submit">Save details</button>
+      </form>
+    </article>
+    <article class="health-card p-6 sm:p-8">
+      <h2 class="font-heading text-2xl font-bold text-[#014c5e]">Change password</h2>
+      <form method="post" action="/account/password" class="mt-5 space-y-4">
+        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+        <input name="current_password" type="password" required placeholder="Current password" class="w-full input-field">
+        <input name="password" type="password" minlength="8" maxlength="128" required placeholder="New password" class="w-full input-field">
+        <input name="confirm_password" type="password" minlength="8" maxlength="128" required placeholder="Confirm new password" class="w-full input-field">
+        <button class="btn-primary text-[18px]" type="submit">Change password</button>
+      </form>
+    </article>
+    <article class="health-card p-6 sm:p-8">
+      <h2 class="font-heading text-2xl font-bold text-[#014c5e]">Download my data</h2>
+      <p class="mt-2 text-[17px] text-[#4f5b66]">Download your nickname, email, checks, risks, and lab values.</p>
+      <a href="/account/export" class="btn-secondary inline-flex mt-5 text-[18px]">Download my data</a>
+    </article>
+    <article class="health-card p-6 sm:p-8 border-[#f1b8af]">
+      <h2 class="font-heading text-2xl font-bold text-[#b03a2e]">Delete my account</h2>
+      <p class="mt-2 text-[17px] text-[#4f5b66]">This permanently deletes your account and all your saved checks. This cannot be undone.</p>
+      <form method="post" action="/account/delete" class="mt-5 space-y-4">
+        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+        <input name="current_password" type="password" required placeholder="Current password" class="w-full input-field">
+        <button class="btn-primary text-[18px] bg-[#b03a2e] hover:bg-[#8e2e24]" type="submit">Delete my account</button>
+      </form>
+    </article>
+  </div>
+</section>
+{% endblock %}

@@ -1,0 +1,37 @@
+{% extends "base.html" %}
+{% block title %}DiaBeates - Admin system{% endblock %}
+{% block content %}
+<section class="admin-page max-w-5xl mx-auto px-4 py-10">
+  <div class="admin-page-heading">
+    <p class="admin-eyebrow">Operations</p>
+    <h1 class="font-heading text-3xl sm:text-4xl font-bold text-[#063154]">System</h1>
+    <p class="admin-intro">Check service health and manage protected backups.</p>
+  </div>
+  {% if backup_message %}<p role="alert" aria-live="polite" class="admin-reset-notice">{{ backup_message }}</p>{% endif %}
+  <div class="admin-system-grid">
+    <article class="admin-panel">
+      <p class="admin-eyebrow">Service status</p>
+      <h2 class="font-heading text-2xl font-bold text-[#063154]">Health and storage</h2>
+      <dl class="admin-system-list">
+        <div><dt>Health check</dt><dd><a href="/health">View service health</a></dd></div>
+        <div><dt>Database size</dt><dd>{{ database_size }} bytes</dd></div>
+        <div><dt>Guest data retention</dt><dd>{{ retention_days }} days</dd></div>
+        <div><dt>Loaded models</dt><dd>{{ model_names.values()|join(', ') }}</dd></div>
+      </dl>
+    </article>
+    <article class="admin-panel">
+      <p class="admin-eyebrow">Data protection</p>
+      <h2 class="font-heading text-2xl font-bold text-[#063154]">Backups</h2>
+      <p class="admin-panel-description">Backups contain private records. Store and share them carefully.</p>
+      <form method="post" action="/admin/system/backup">
+      <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+      <button class="btn-primary" type="submit">Create backup</button>
+      </form>
+    </article>
+  </div>
+  <div class="admin-backup-list">
+    <h2 class="font-heading text-2xl font-bold text-[#063154]">Existing backups</h2>
+    <ul>{% for backup in backups %}<li><code>{{ backup }}</code></li>{% else %}<li>No backups yet.</li>{% endfor %}</ul>
+  </div>
+</section>
+{% endblock %}

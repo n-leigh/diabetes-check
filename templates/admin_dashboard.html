@@ -1,0 +1,78 @@
+{% extends "base.html" %}
+{% block title %}DiaBeates - Admin dashboard{% endblock %}
+{% block content %}
+<section class="admin-page max-w-6xl mx-auto px-4 py-10">
+  <div class="admin-page-heading">
+    <p class="admin-eyebrow">Service operations</p>
+    <h1 class="font-heading text-3xl sm:text-4xl font-bold text-[#063154]">Admin dashboard</h1>
+    <p class="admin-intro">A quick view of account growth and service use.</p>
+  </div>
+  <div class="admin-metric-grid">
+    <article class="admin-metric">
+      <p class="admin-metric-label">Accounts</p>
+      <p class="admin-metric-value">{{ dashboard.users_total }}</p>
+      <p class="admin-metric-note">All registered accounts</p>
+    </article>
+    <article class="admin-metric">
+      <p class="admin-metric-label">New accounts</p>
+      <p class="admin-metric-value">{{ dashboard.new_users }}</p>
+      <p class="admin-metric-note">Created in the last 7 days</p>
+    </article>
+    <article class="admin-metric">
+      <p class="admin-metric-label">Checks completed</p>
+      <p class="admin-metric-value">{{ dashboard.assessments_total }}</p>
+      <p class="admin-metric-note">Service-wide total</p>
+    </article>
+  </div>
+  <aside class="admin-privacy-note" role="note">
+    <span class="admin-privacy-mark" aria-hidden="true">i</span>
+    <p><strong>Privacy first.</strong> Only group totals appear here. Counts under five are hidden.</p>
+  </aside>
+  <div class="admin-panel-grid">
+    <article class="admin-panel">
+      <div class="admin-panel-heading">
+        <div>
+          <p class="admin-eyebrow">Group totals</p>
+          <h2 class="font-heading text-2xl font-bold text-[#063154]">Screening overview</h2>
+        </div>
+      </div>
+      <p class="admin-panel-description">These totals describe service use, not individual people.</p>
+      <div class="admin-status-list">
+        {% for title, counts in dashboard.status_counts.items() %}
+        <div class="admin-status-row">
+          <h3>{{ title }}</h3>
+          <div class="admin-status-values">
+            {% for status, value in counts.items() %}
+            <span class="admin-status-value"><span>{{ status }}</span><strong>{{ value }}</strong></span>
+            {% endfor %}
+          </div>
+        </div>
+        {% endfor %}
+      </div>
+      <div class="admin-feedback-rate">
+        <span>Helpful feedback</span>
+        <strong>{{ dashboard.feedback_helpful_rate }}</strong>
+      </div>
+    </article>
+    <article class="admin-panel">
+      <div class="admin-panel-heading">
+        <div>
+          <p class="admin-eyebrow">Recent activity</p>
+          <h2 class="font-heading text-2xl font-bold text-[#063154]">Checks per day</h2>
+        </div>
+        <span class="admin-period-label">Last 30 days</span>
+      </div>
+      <p class="admin-panel-description">Daily totals below five are hidden.</p>
+      <div class="admin-activity-chart" role="list" aria-label="Daily check totals for the last 30 days">
+        {% for day in dashboard.days %}
+        <div class="admin-activity-row" role="listitem">
+          <time datetime="{{ day.date }}">{{ day.date[5:] }}</time>
+          <progress max="100" value="{{ day.bar_width }}" aria-label="{{ day.date }}: {{ day.display_count }} checks">{{ day.bar_width }}%</progress>
+          <span class="admin-activity-count">{{ day.display_count }}</span>
+        </div>
+        {% endfor %}
+      </div>
+    </article>
+  </div>
+</section>
+{% endblock %}

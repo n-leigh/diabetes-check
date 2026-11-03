@@ -1,0 +1,66 @@
+{% extends "base.html" %}
+{% block title %}DiaBeates - Admin users{% endblock %}
+{% block content %}
+<section class="admin-page max-w-6xl mx-auto px-4 py-10">
+  <div class="admin-page-heading admin-page-heading-row">
+    <div>
+      <p class="admin-eyebrow">Account support</p>
+      <h1 class="font-heading text-3xl sm:text-4xl font-bold text-[#063154]">Accounts</h1>
+      <p class="admin-intro">Manage sign-in access. Health checks stay private.</p>
+    </div>
+    <a class="admin-back-link" href="/admin">Back to dashboard</a>
+  </div>
+  {% if reset_link %}
+  <div role="alert" aria-live="polite" class="admin-reset-notice">
+    <div>
+      <strong>One-time password reset link</strong>
+      <p>Share it privately. It expires in 60 minutes.</p>
+    </div>
+    <code class="break-all">{{ reset_link }}</code>
+  </div>
+  {% endif %}
+  <div class="admin-table-wrap">
+    <table class="admin-table">
+      <thead><tr><th scope="col">Account</th><th scope="col">Role</th><th scope="col">Status</th><th scope="col">Created</th><th scope="col">Last login</th><th scope="col">Actions</th></tr></thead>
+      <tbody>
+      {% for user in users %}
+      <tr>
+        <td data-label="Account"><strong>{{ user.display_name }}</strong><span>{{ user.email }}</span></td>
+        <td data-label="Role"><span class="admin-role-chip">{{ user.role }}</span></td>
+        <td data-label="Status"><span class="admin-account-status {{ 'is-active' if user.is_active else 'is-inactive' }}">{{ 'Active' if user.is_active else 'Inactive' }}</span></td>
+        <td data-label="Created">{{ user.created_at|display_time }}</td>
+        <td data-label="Last login">{{ user.last_login_at|display_time if user.last_login_at else 'Not yet' }}</td>
+        <td data-label="Actions">
+          <div class="admin-user-actions">
+            {% if user.is_active %}
+            <form method="post" action="/admin/users/{{ user.id }}/deactivate" data-confirm-message="Deactivate this user?">
+              <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+              <button class="admin-action-button" type="submit">Deactivate</button>
+            </form>
+            {% else %}
+            <form method="post" action="/admin/users/{{ user.id }}/reactivate">
+              <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+              <button class="admin-action-button" type="submit">Reactivate</button>
+            </form>
+            {% endif %}
+            <form method="post" action="/admin/users/{{ user.id }}/reset-link">
+              <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+              <button class="admin-action-button" type="submit">Reset link</button>
+            </form>
+            {% if user.id != current_user.id %}
+            <form method="post" action="/admin/users/{{ user.id }}/delete" data-confirm-message="Delete this user and saved checks?">
+              <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+              <button class="admin-action-button is-danger" type="submit">Delete</button>
+            </form>
+            {% endif %}
+          </div>
+        </td>
+      </tr>
+      {% else %}
+      <tr><td class="admin-empty-state" colspan="6">No accounts have been created yet.</td></tr>
+      {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</section>
+{% endblock %}

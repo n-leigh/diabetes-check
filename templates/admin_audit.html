@@ -1,0 +1,34 @@
+{% extends "base.html" %}
+{% block title %}DiaBeates - Admin audit{% endblock %}
+{% block content %}
+<section class="admin-page max-w-6xl mx-auto px-4 py-10">
+  <div class="admin-page-heading">
+    <p class="admin-eyebrow">Service security</p>
+    <h1 class="font-heading text-3xl sm:text-4xl font-bold text-[#063154]">Audit log</h1>
+    <p class="admin-intro">Review account and admin actions. Network addresses are hidden here.</p>
+  </div>
+  <form class="admin-filter-form">
+    <label for="auditAction">Action</label>
+    <input id="auditAction" name="action" value="{{ action }}" placeholder="For example, login_success" class="input-field">
+    <button class="btn-secondary" type="submit">Filter log</button>
+  </form>
+  <div class="admin-table-wrap">
+    <table class="admin-table">
+      <thead><tr><th scope="col">Date</th><th scope="col">Action</th><th scope="col">Actor ID</th><th scope="col">Target</th></tr></thead>
+      <tbody>
+      {% for item in audit %}
+      <tr>
+        <td data-label="Date">{{ item.created_at|display_time }}</td>
+        <td data-label="Action"><span class="admin-role-chip">{{ item.action }}</span></td>
+        <td data-label="Actor ID">{{ item.actor_user_id or 'System' }}</td>
+        <td data-label="Target">{{ item.target or '—' }}</td>
+      </tr>
+      {% else %}
+      <tr><td class="admin-empty-state" colspan="4">No matching audit entries.</td></tr>
+      {% endfor %}
+      </tbody>
+    </table>
+  </div>
+  <div class="admin-pagination"><a class="admin-action-button" href="?page={{ page + 1 }}{% if action %}&action={{ action }}{% endif %}">Next page</a></div>
+</section>
+{% endblock %}

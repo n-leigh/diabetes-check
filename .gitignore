@@ -45,3 +45,4 @@ logs/
 node_modules/
 !static/css/tailwind.min.css
 !static/fonts/
+logs/diabetes_system.log

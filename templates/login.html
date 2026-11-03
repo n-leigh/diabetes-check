@@ -1,0 +1,29 @@
+{% extends "base.html" %}
+{% block title %}DiaBeates - Welcome back{% endblock %}
+{% block content %}
+<section class="max-w-xl mx-auto px-4 py-10 sm:py-16">
+  <div class="health-card p-6 sm:p-10">
+    <h1 class="font-heading text-3xl sm:text-4xl font-bold text-[#014c5e]">Welcome back</h1>
+    {% if errors %}
+    <div role="alert" aria-live="polite" class="mt-6 rounded-lg border border-[#f1b8af] bg-[#f9e1dc] p-4 text-[#b03a2e]">
+      {% for error in errors %}<p>{{ error }}</p>{% endfor %}
+    </div>
+    {% endif %}
+    <form method="post" class="mt-8 space-y-5">
+      <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+      <label class="block text-[18px] font-semibold">Email
+        <input type="email" name="email" required value="{{ form_data.get('email', '') }}" class="mt-2 w-full input-field">
+      </label>
+      <label class="block text-[18px] font-semibold">Password
+        <input type="password" name="password" required class="mt-2 w-full input-field">
+      </label>
+      <label class="flex gap-3 items-center text-[17px]">
+        <input type="checkbox" name="remember" value="1">
+        Keep me signed in
+      </label>
+      <button type="submit" class="btn-primary w-full text-[19px]">Sign in</button>
+    </form>
+    <div class="mt-6 space-y-2 text-[17px]"><a class="underline text-[#0b7a85] block" href="/forgot-password">Forgot your password?</a><a class="underline text-[#0b7a85] block" href="/register">New here? Create an account.</a></div>
+  </div>
+</section>
+{% endblock %}

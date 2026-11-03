@@ -1,4 +1,5 @@
 <!DOCTYPE html>
+{% set admin_area = request.path.startswith('/admin') %}
 <html lang="en">
 <head>
   <meta charset="UTF-8">
@@ -9,7 +10,7 @@
   <link rel="stylesheet" href="{{ url_for('static', filename='css/clinical.css') }}">
   {% block extra_head %}{% endblock %}
 </head>
-<body class="bg-[#f1fafb] text-[#1f2a33] font-sans antialiased min-h-screen flex flex-col">
+<body class="bg-[#f1fafb] text-[#1f2a33] font-sans antialiased min-h-screen flex flex-col {{ 'admin-interface' if admin_area else '' }}">
 
   <!-- Header / Navigation Bar (Min 48px tap targets, 18px+ font) -->
   <header class="bg-[#ffffff] border-b border-[#b8dce5] sticky top-0 z-40">
@@ -17,7 +18,7 @@
       <div class="flex items-center justify-between h-20">
         
         <!-- Logo / Brand Link -->
-        <a href="/" class="flex items-center gap-3 group focus:outline-none" aria-label="DiaBeates Home">
+        <a href="{{ '/admin' if admin_area else '/' }}" class="flex items-center gap-3 group focus:outline-none" aria-label="{{ 'DiaBeates Admin dashboard' if admin_area else 'DiaBeates Home' }}">
           <img
             src="{{ url_for('static', filename='logo.png') }}"
             alt=""
@@ -30,13 +31,31 @@
               Dia<span class="text-[#2e7283]">Beates</span>
             </span>
             <span class="text-[14px] text-[#4f5b66] font-medium block leading-none mt-1">
-              Health screening tool
+              {{ 'Service administration' if admin_area else 'Health screening tool' }}
             </span>
           </div>
         </a>
 
-        <!-- Desktop Navigation: Plain Nouns (Check, History, About) -->
-        <nav class="hidden md:flex items-center gap-8" aria-label="Main Navigation">
+        <nav class="hidden md:flex items-center {{ 'gap-4' if admin_area else 'gap-8' }}" aria-label="{{ 'Admin Navigation' if admin_area else 'Main Navigation' }}">
+          {% if admin_area %}
+          <a href="/admin" class="inline-flex min-h-[48px] items-center text-[18px] font-semibold {{ 'text-[#014c5e] border-b-2 border-[#2e7283]' if request.path == '/admin' else 'text-[#4f5b66] hover:text-[#014c5e] border-b-2 border-transparent' }}">Dashboard</a>
+          <a href="/admin/users" class="inline-flex min-h-[48px] items-center text-[18px] font-semibold {{ 'text-[#014c5e] border-b-2 border-[#2e7283]' if request.path.startswith('/admin/users') else 'text-[#4f5b66] hover:text-[#014c5e] border-b-2 border-transparent' }}">Accounts</a>
+          <a href="/admin/feedback" class="inline-flex min-h-[48px] items-center text-[18px] font-semibold {{ 'text-[#014c5e] border-b-2 border-[#2e7283]' if request.path == '/admin/feedback' else 'text-[#4f5b66] hover:text-[#014c5e] border-b-2 border-transparent' }}">Feedback</a>
+          {% if current_user.is_authenticated %}
+          <details class="admin-account-menu">
+            <summary class="account-avatar-link" aria-label="Admin account menu for {{ current_user.display_name }}" title="{{ current_user.display_name }}">
+              <span class="account-avatar" aria-hidden="true">{{ current_user.display_name[:1]|upper }}</span>
+            </summary>
+            <div class="admin-account-popover">
+              <a href="/account">Account</a>
+              <form action="/logout" method="post">
+                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                <button type="submit">Sign out</button>
+              </form>
+            </div>
+          </details>
+          {% endif %}
+          {% else %}
           <a href="/" class="text-[19px] font-semibold transition-colors duration-150 py-1.5 {{ 'text-[#014c5e] border-b-2 border-[#2e7283]' if active_page == 'home' else 'text-[#4f5b66] hover:text-[#014c5e] border-b-2 border-transparent' }}">
             Home
           </a>
@@ -49,6 +68,15 @@
           <a href="/about" class="text-[19px] font-semibold transition-colors duration-150 py-1.5 {{ 'text-[#014c5e] border-b-2 border-[#2e7283]' if active_page == 'about' else 'text-[#4f5b66] hover:text-[#014c5e] border-b-2 border-transparent' }}">
             About
           </a>
+          {% if current_user.is_authenticated %}
+          <a href="/account" class="account-avatar-link" aria-label="Account for {{ current_user.display_name }}" title="{{ current_user.display_name }}">
+            <span class="account-avatar" aria-hidden="true">{{ current_user.display_name[:1]|upper }}</span>
+          </a>
+          {% if current_user.role == 'admin' %}<a href="/admin" class="text-[19px] font-semibold text-[#0b7a85]">Admin</a>{% endif %}
+          {% else %}
+          <a href="/login" class="text-[19px] font-semibold text-[#0b7a85] hover:text-[#08616a]">Sign in</a>
+          {% endif %}
+          {% endif %}
         </nav>
 
         <!-- Mobile Menu Toggle Button (Min 48px tap target) -->
@@ -63,36 +91,93 @@
 
       <!-- Mobile Menu Dropdown -->
       <div id="mobileMenu" class="hidden md:hidden py-4 border-t border-[#b8dce5] space-y-3">
+        {% if admin_area %}
+        <a href="/admin" class="block px-4 py-3 text-[19px] font-semibold rounded-lg text-[#0b7a85]">Dashboard</a>
+        <a href="/admin/users" class="block px-4 py-3 text-[19px] font-semibold rounded-lg text-[#0b7a85]">Accounts</a>
+        <a href="/admin/feedback" class="block px-4 py-3 text-[19px] font-semibold rounded-lg text-[#0b7a85]">Feedback</a>
+        {% if current_user.is_authenticated %}
+        <details class="admin-account-menu mobile-admin-account-menu">
+          <summary class="account-avatar-link" aria-label="Admin account menu for {{ current_user.display_name }}" title="{{ current_user.display_name }}">
+            <span class="account-avatar" aria-hidden="true">{{ current_user.display_name[:1]|upper }}</span>
+          </summary>
+          <div class="admin-account-popover">
+            <a href="/account">Account</a>
+            <form action="/logout" method="post">
+              <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+              <button type="submit">Sign out</button>
+            </form>
+          </div>
+        </details>
+        {% endif %}
+        {% else %}
         <a href="/" class="block px-4 py-3 text-[19px] font-semibold rounded-lg {{ 'bg-[#e8f5f7] text-[#014c5e]' if active_page == 'home' else 'text-[#4f5b66] hover:bg-[#d9eff3]' }}">Home</a>
         <a href="/assessment" class="block px-4 py-3 text-[19px] font-semibold rounded-lg {{ 'bg-[#e8f5f7] text-[#014c5e]' if active_page == 'assessment' else 'text-[#4f5b66] hover:bg-[#d9eff3]' }}">Check</a>
         <a href="/history" class="block px-4 py-3 text-[19px] font-semibold rounded-lg {{ 'bg-[#e8f5f7] text-[#014c5e]' if active_page == 'history' else 'text-[#4f5b66] hover:bg-[#d9eff3]' }}">History</a>
         <a href="/about" class="block px-4 py-3 text-[19px] font-semibold rounded-lg {{ 'bg-[#e8f5f7] text-[#014c5e]' if active_page == 'about' else 'text-[#4f5b66] hover:bg-[#d9eff3]' }}">About</a>
+        {% if current_user.is_authenticated %}
+        <a href="/account" class="block px-4 py-3 text-[19px] font-semibold rounded-lg text-[#0b7a85]">Account</a>
+        {% if current_user.role == 'admin' %}<a href="/admin" class="block px-4 py-3 text-[19px] font-semibold rounded-lg text-[#0b7a85]">Admin</a>{% endif %}
+        <form action="/logout" method="post" class="px-4">
+          <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+          <button type="submit" class="w-full text-left py-3 text-[19px] font-semibold text-[#4f5b66]">Sign out</button>
+        </form>
+        {% else %}
+        <a href="/login" class="block px-4 py-3 text-[19px] font-semibold rounded-lg text-[#0b7a85]">Sign in</a>
+        {% endif %}
+        {% endif %}
       </div>
     </div>
   </header>
 
+  {% if admin_area %}
+  <div class="admin-workspace-banner">
+    <p class="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-3 text-[16px] text-[#1f2a33]" role="note">
+      Admin workspace: account and service tools only. Individual health checks are not shown here.
+    </p>
+  </div>
+  {% else %}
   <!-- Plain-Language Disclaimer Modal -->
   <div id="disclaimerModal" class="disclaimer-backdrop" role="presentation" hidden>
-    <section class="disclaimer-dialog" role="dialog" aria-modal="true" aria-labelledby="disclaimerTitle" aria-describedby="disclaimerDescription" tabindex="-1">
-      <div class="p-6 sm:p-8">
-        <div class="flex items-start justify-between gap-4 pb-4 border-b border-[#b8dce5]">
-          <h2 id="disclaimerTitle" class="font-heading text-2xl font-bold text-[#014c5e]">Before you start</h2>
-          <button type="button" id="disclaimerClose" class="min-h-[44px] min-w-[44px] p-2 text-[#4f5b66] hover:text-[#014c5e] flex items-center justify-center rounded" aria-label="Close message">
-            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><path d="M18 6L6 18M6 6l12 12" /></svg>
-          </button>
+    <section class="disclaimer-dialog disclaimer-warning" role="dialog" aria-modal="true" aria-labelledby="disclaimerTitle" aria-describedby="disclaimerDescription" tabindex="-1">
+      <!-- Warning header band -->
+      <div class="disclaimer-warning-header">
+        <div class="flex items-center gap-3">
+          <svg class="disclaimer-warning-icon" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+            <path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z" fill="#a86a0a" stroke="#a86a0a" stroke-width="0"/>
+            <line x1="12" y1="9" x2="12" y2="13" stroke="#fff" stroke-width="2" stroke-linecap="round"/>
+            <line x1="12" y1="17" x2="12.01" y2="17" stroke="#fff" stroke-width="2.5" stroke-linecap="round"/>
+          </svg>
+          <h2 id="disclaimerTitle" class="font-heading text-xl font-bold text-amber-800">Before you start</h2>
         </div>
-        <div id="disclaimerDescription" class="mt-4 space-y-3 text-[18px] text-[#1f2a33] leading-relaxed">
-          <p class="font-medium text-[#014c5e]">This is a screening tool. It does not replace a doctor. It helps you know what to ask.</p>
-          <p>Your answers stay private. We do not ask for your name or email, and we never share your answers.</p>
-          <p class="text-[16px] text-[#4f5b66]">If you feel very sick or have chest pain right now, please visit the nearest hospital or clinic immediately.</p>
+        <button type="button" id="disclaimerClose" class="min-h-[44px] min-w-[44px] p-2 flex items-center justify-center rounded text-amber-700 hover:bg-amber-200 transition-colors" aria-label="Close message">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><path d="M18 6L6 18M6 6l12 12"/></svg>
+        </button>
+      </div>
+
+      <!-- Body -->
+      <div class="p-6 sm:p-7">
+        <div id="disclaimerDescription" class="space-y-3 text-[17px] leading-relaxed text-amber-950">
+          <p class="font-semibold text-amber-800">This is a screening tool. It does not replace a doctor. It helps you know what to ask.</p>
+          <p class="text-amber-900">Your privacy is protected. Your health assessments are securely saved to your personal account and will never be shared without your permission.</p>
+          <!-- Inline alert for the urgent notice -->
+          <div class="disclaimer-urgent-row" role="note">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" aria-hidden="true" class="shrink-0 mt-0.5">
+              <circle cx="12" cy="12" r="10" fill="#e8765a"/>
+              <line x1="12" y1="8" x2="12" y2="12" stroke="#fff" stroke-width="2" stroke-linecap="round"/>
+              <line x1="12" y1="16" x2="12.01" y2="16" stroke="#fff" stroke-width="2.5" stroke-linecap="round"/>
+            </svg>
+            <p class="text-[15px] text-red-900">If you feel very sick right now, please visit the nearest hospital or clinic immediately.</p>
+          </div>
         </div>
-        <div class="mt-6 pt-4 border-t border-[#b8dce5] flex flex-col sm:flex-row sm:justify-end gap-3">
-          <button type="button" id="disclaimerCancel" class="btn-secondary text-[18px]">Cancel</button>
-          <button type="button" id="disclaimerAgree" class="btn-primary text-[19px]">I understand</button>
+
+        <div class="mt-6 pt-4 flex flex-col sm:flex-row sm:justify-end gap-3 border-t border-[#f4d99f]">
+          <button type="button" id="disclaimerCancel" class="btn-secondary text-[17px]">Cancel</button>
+          <button type="button" id="disclaimerAgree" class="disclaimer-agree-btn text-[17px]">I understand</button>
         </div>
       </div>
     </section>
   </div>
+  {% endif %}
 
   <!-- Page Content -->
   <main class="flex-1">
@@ -106,9 +191,24 @@
         <div>
           <div class="font-heading text-2xl font-bold text-white mb-2">DiaBeates</div>
           <p class="text-[#cbd5e1] text-[16px] leading-relaxed">
-            A free health screening tool that helps you check complication risks early.
+            {{ 'Admin tools for account support and service operations.' if admin_area else 'A free health screening tool that helps you check complication risks early.' }}
           </p>
         </div>
+        {% if admin_area %}
+        <div>
+          <div class="text-[15px] uppercase tracking-wider font-bold text-[#f2a73b] mb-3">Admin tools</div>
+          <ul class="space-y-2.5 text-[17px]">
+            <li><a href="/admin" class="text-[#cbd5e1] hover:text-white transition-colors">Dashboard</a></li>
+            <li><a href="/admin/users" class="text-[#cbd5e1] hover:text-white transition-colors">Accounts</a></li>
+          </ul>
+        </div>
+        <div>
+          <div class="text-[15px] uppercase tracking-wider font-bold text-[#f2a73b] mb-3">Privacy boundary</div>
+          <p class="text-[#cbd5e1] text-[16px] leading-relaxed">
+            Individual health checks and saved results are not available in admin tools.
+          </p>
+        </div>
+        {% else %}
         <div>
           <div class="text-[15px] uppercase tracking-wider font-bold text-[#f2a73b] mb-3">Pages</div>
           <ul class="space-y-2.5 text-[17px]">
@@ -121,13 +221,14 @@
         <div>
           <div class="text-[15px] uppercase tracking-wider font-bold text-[#f2a73b] mb-3">Your Privacy</div>
           <p class="text-[#cbd5e1] text-[16px] leading-relaxed">
-            Free. No name, phone number, or email required. Your answers stay private on your device.
+            Free. Quick and private. Your answers stay private on your device.
           </p>
         </div>
+        {% endif %}
       </div>
       <div class="pt-6 flex flex-col sm:flex-row items-center justify-between text-[15px] text-[#94a3b8] gap-2">
-        <div>&copy; <span id="currentYear"></span> DiaBeates. Pre-screening tool, not a medical diagnosis.</div>
-        <div>Philippine Time (PHT)</div>
+        <div>&copy; <span id="currentYear"></span> DiaBeates. {{ 'Service administration.' if admin_area else 'Pre-screening tool, not a medical diagnosis.' }}</div>
+        {% if not admin_area %}<div>Philippine Time (PHT)</div>{% endif %}
       </div>
     </div>
   </footer>
