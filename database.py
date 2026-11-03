@@ -38,6 +38,11 @@ from ctypes import wintypes
 import sqlcipher3
 from werkzeug.security import generate_password_hash
 
+try:
+    from psycopg_pool import ConnectionPool
+except ImportError:  # SQLite remains usable without PostgreSQL dependencies.
+    ConnectionPool = None
+
 from rule_matrix import compute_lab_assessment
 
 DB_PATH = os.path.join(os.path.dirname(os.path.abspath(__file__)), "diabetes_system.db")
@@ -46,6 +51,78 @@ PROTECTED_KEY_PATH = os.path.join(os.path.dirname(os.path.abspath(__file__)), ".
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 SCHEMA_VERSION = 5
 _KEY_ENVIRONMENT_VARIABLE = "DIABEATES_DB_KEY"
+DB_BACKEND = os.getenv("DB_BACKEND", "sqlite").strip().lower()
+SUPABASE_DB_URL = os.getenv("SUPABASE_DB_URL", "").strip()
+_postgres_pool = None
+
+
+class _HybridRow(dict):
+    def __init__(self, columns, values):
+        super().__init__(zip(columns, values))
+        self._values = tuple(values)
+
+    def __getitem__(self, key):
+        if isinstance(key, int):
+            return self._values[key]
+        return super().__getitem__(key)
+
+
+def _hybrid_row(cursor):
+    columns = [column.name for column in (cursor.description or ())]
+
+    def make_row(values):
+        return _HybridRow(columns, values)
+
+    return make_row
+
+
+class _PostgresConnection:
+    """Small compatibility wrapper for the existing repository functions."""
+
+    def __init__(self, pool):
+        self._pool = pool
+        self._connection = pool.getconn()
+        self._closed = False
+
+    def execute(self, query, params=()):
+        return self._connection.execute(query.replace("?", "%s"), params)
+
+    def commit(self):
+        self._connection.commit()
+
+    def rollback(self):
+        self._connection.rollback()
+
+    def close(self):
+        if not self._closed:
+            self._connection.rollback()
+            self._pool.putconn(self._connection)
+            self._closed = True
+
+
+def _get_postgres_pool():
+    global _postgres_pool
+    if ConnectionPool is None:
+        raise RuntimeError(
+            "PostgreSQL backend requires psycopg[binary] and psycopg_pool; "
+            "install project dependencies before setting DB_BACKEND=postgres"
+        )
+    if not SUPABASE_DB_URL:
+        raise RuntimeError("SUPABASE_DB_URL is required when DB_BACKEND=postgres")
+    if _postgres_pool is None:
+        min_size = int(os.getenv("POSTGRES_POOL_MIN_SIZE", "1"))
+        max_size = int(os.getenv("POSTGRES_POOL_MAX_SIZE", "8"))
+        if min_size < 1 or max_size < min_size:
+            raise RuntimeError("PostgreSQL pool size must satisfy 1 <= min_size <= max_size")
+        _postgres_pool = ConnectionPool(
+            conninfo=SUPABASE_DB_URL,
+            min_size=min_size,
+            max_size=max_size,
+            timeout=float(os.getenv("POSTGRES_POOL_TIMEOUT", "10")),
+            kwargs={"row_factory": _hybrid_row},
+            open=True,
+        )
+    return _postgres_pool
 
 
 def get_sqlcipher_version() -> str:
@@ -228,6 +305,9 @@ def verify_database_integrity(conn=None) -> bool:
     owns_connection = conn is None
     conn = conn or get_connection()
     try:
+        if DB_BACKEND == "postgres":
+            conn.execute("SELECT 1").fetchone()
+            return True
         result = conn.execute("PRAGMA quick_check").fetchone()[0]
         if str(result).lower() != "ok":
             raise RuntimeError(f"Database integrity check failed: {result}")
@@ -238,6 +318,8 @@ def verify_database_integrity(conn=None) -> bool:
 
 
 def get_connection():
+    if DB_BACKEND == "postgres":
+        return _PostgresConnection(_get_postgres_pool())
     if not os.path.exists(DB_PATH):
         _load_database_key()
     migrate_plaintext_database(DB_PATH)
@@ -280,6 +362,13 @@ def restrict_database_permissions(path: str = None):
 
 
 def init_db():
+    if DB_BACKEND == "postgres":
+        conn = get_connection()
+        try:
+            conn.execute("SELECT 1").fetchone()
+        finally:
+            conn.close()
+        return
     conn = get_connection()
     current_version = conn.execute("PRAGMA user_version").fetchone()[0]
     if current_version > SCHEMA_VERSION:
@@ -396,12 +485,15 @@ def save_assessment(session_id: str, patient: dict, rule_results: dict,
     model_names = model_names or {}
     conn = get_connection()
     try:
-        cur = conn.execute(
-            """INSERT INTO assessments
+        insert_sql = """INSERT INTO assessments
          (session_id, user_id, created_at, rule_matrix_version, bmi, age_band, gen_hlth, sex,
             phys_hlth, ment_hlth, high_bp, high_chol, smoker, heart_disease, stroke,
             diff_walk, no_doc_cost, diabetes_duration, blurry_vision)
-         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)""",
+         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)"""
+        if DB_BACKEND == "postgres":
+            insert_sql += " RETURNING id"
+        cur = conn.execute(
+            insert_sql,
             (
                 session_id,
              user_id,
@@ -409,13 +501,18 @@ def save_assessment(session_id: str, patient: dict, rule_results: dict,
                 rule_version,
                 patient.get("BMI"), patient.get("Age"), patient.get("GenHlth"), patient.get("Sex"),
                 patient.get("PhysHlth"), patient.get("MentHlth"),
-                patient.get("HighBP", 0), patient.get("HighChol", 0), patient.get("Smoker", 0),
-                patient.get("HeartDiseaseorAttack", 0), patient.get("Stroke", 0),
-                patient.get("DiffWalk", 0), patient.get("NoDocbcCost", 0),
-                patient.get("DiabetesDuration", 0), patient.get("BlurryVision", 0),
+                bool(patient.get("HighBP", 0)) if DB_BACKEND == "postgres" else patient.get("HighBP", 0),
+                bool(patient.get("HighChol", 0)) if DB_BACKEND == "postgres" else patient.get("HighChol", 0),
+                bool(patient.get("Smoker", 0)) if DB_BACKEND == "postgres" else patient.get("Smoker", 0),
+                bool(patient.get("HeartDiseaseorAttack", 0)) if DB_BACKEND == "postgres" else patient.get("HeartDiseaseorAttack", 0),
+                bool(patient.get("Stroke", 0)) if DB_BACKEND == "postgres" else patient.get("Stroke", 0),
+                bool(patient.get("DiffWalk", 0)) if DB_BACKEND == "postgres" else patient.get("DiffWalk", 0),
+                bool(patient.get("NoDocbcCost", 0)) if DB_BACKEND == "postgres" else patient.get("NoDocbcCost", 0),
+                patient.get("DiabetesDuration", 0),
+                bool(patient.get("BlurryVision", 0)) if DB_BACKEND == "postgres" else patient.get("BlurryVision", 0),
             ),
         )
-        assessment_id = cur.lastrowid
+        assessment_id = cur.fetchone()["id"] if DB_BACKEND == "postgres" else cur.lastrowid
 
         for category, result in rule_results.items():
             conf = model_confidences.get(category)
@@ -525,11 +622,30 @@ def get_all_assessments(session_id: str, limit: int = 200, archived: bool = Fals
         ownership_params = (user_id,)
     rows = conn.execute(
         f"SELECT * FROM assessments WHERE {ownership_sql} AND archived = ? ORDER BY id {direction} LIMIT ?",
-        (*ownership_params, int(archived), limit),
+        (*ownership_params, bool(archived) if DB_BACKEND == "postgres" else int(archived), limit),
     ).fetchall()
     result = [_reconstruct(conn, r) for r in rows]
     conn.close()
     return result
+
+
+def get_assessment_history_signature(session_id: str, archived: bool = False, user_id: int = None):
+    """Return a cheap ownership-scoped marker for history refresh checks."""
+    conn = get_connection()
+    if user_id is None:
+        ownership_sql = "session_id = ? AND user_id IS NULL"
+        ownership_params = (session_id,)
+    else:
+        ownership_sql = "user_id = ?"
+        ownership_params = (user_id,)
+    row = conn.execute(
+        f"""SELECT COUNT(*) AS record_count, COALESCE(MAX(id), 0) AS latest_id
+            FROM assessments
+            WHERE {ownership_sql} AND archived = ?""",
+        (*ownership_params, bool(archived)),
+    ).fetchone()
+    conn.close()
+    return {"count": int(row["record_count"]), "latest_id": int(row["latest_id"])}
 
 
 def get_assessment(assessment_id: int, session_id: str = None, user_id: int = None):
@@ -567,7 +683,10 @@ def set_archived(assessment_id: int, session_id: str, archived: bool, user_id: i
     if not owns_record:
         conn.close()
         return False
-    conn.execute("UPDATE assessments SET archived = ? WHERE id = ?", (int(archived), assessment_id))
+    conn.execute(
+        "UPDATE assessments SET archived = ? WHERE id = ?",
+        (bool(archived) if DB_BACKEND == "postgres" else int(archived), assessment_id),
+    )
     conn.commit()
     conn.close()
     return True
@@ -581,10 +700,13 @@ def create_user(email: str, password: str, display_name: str,
     consent_at = consent_at or datetime.now(timezone.utc).isoformat(timespec="seconds")
     conn = get_connection()
     try:
-        cur = conn.execute(
-            """INSERT INTO users
+        insert_sql = """INSERT INTO users
                (email, password_hash, display_name, role, created_at, consent_at, consent_version)
-               VALUES (?, ?, ?, ?, ?, ?, ?)""",
+               VALUES (?, ?, ?, ?, ?, ?, ?)"""
+        if DB_BACKEND == "postgres":
+            insert_sql += " RETURNING id"
+        cur = conn.execute(
+            insert_sql,
             (
                 normalized_email,
                 generate_password_hash(password, method="scrypt"),
@@ -596,7 +718,7 @@ def create_user(email: str, password: str, display_name: str,
             ),
         )
         conn.commit()
-        return cur.lastrowid
+        return cur.fetchone()["id"] if DB_BACKEND == "postgres" else cur.lastrowid
     except Exception:
         conn.rollback()
         raise
@@ -848,7 +970,7 @@ def save_feedback(assessment_id: int, helpful: bool, comment: str = None) -> Non
                VALUES (?, ?, ?, ?)""",
             (
                 assessment_id,
-                int(bool(helpful)),
+                bool(helpful) if DB_BACKEND == "postgres" else int(bool(helpful)),
                 comment.strip()[:2000] if comment else None,
                 datetime.now(timezone.utc).isoformat(timespec="seconds"),
             ),

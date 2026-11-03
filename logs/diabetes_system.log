@@ -621,3 +621,128 @@ sqlcipher3.dbapi2.IntegrityError: FOREIGN KEY constraint failed
 2026-11-02 22:07:34,402 - werkzeug - INFO - 127.0.0.1 - - [02/Nov/2026 22:07:34] "[36mGET /static/fonts/source-sans-3-400.woff2 HTTP/1.1[0m" 304 -
 2026-11-02 22:07:34,406 - werkzeug - INFO - 127.0.0.1 - - [02/Nov/2026 22:07:34] "[36mGET /static/fonts/source-sans-3-600.woff2 HTTP/1.1[0m" 304 -
 2026-11-02 22:07:34,430 - werkzeug - INFO - 127.0.0.1 - - [02/Nov/2026 22:07:34] "[36mGET /static/fonts/source-sans-3-500.woff2 HTTP/1.1[0m" 304 -
+2026-11-04 00:12:32,087 - DiaBeates - INFO - Database initialized successfully with non-destructive WAL mode.
+2026-11-04 00:12:33,115 - DiaBeates - INFO - Loaded clinical models summary: ['cardiovascular', 'general_burden', 'neuropathy_mobility', 'retinopathy']
+2026-11-04 00:12:47,398 - flask_wtf.csrf - INFO - The CSRF token is missing.
+2026-11-04 00:12:47,399 - DiaBeates - WARNING - CSRF validation failed: The CSRF token is missing.
+2026-11-04 00:12:47,413 - DiaBeates - INFO - Rule matrix assessment completed
+2026-11-04 00:13:37,283 - DiaBeates - INFO - Database initialized successfully with non-destructive WAL mode.
+2026-11-04 00:13:39,351 - DiaBeates - INFO - Loaded clinical models summary: ['cardiovascular', 'general_burden', 'neuropathy_mobility', 'retinopathy']
+2026-11-04 00:13:41,628 - werkzeug - INFO - WARNING: This is a development server. Do not use it in a production deployment. Use a production WSGI server instead.
+ * Running on http://127.0.0.1:5000
+2026-11-04 00:13:41,629 - werkzeug - INFO - Press CTRL+C to quit
+2026-11-04 00:14:04,946 - werkzeug - INFO - 127.0.0.1 - - [04/Nov/2026 00:14:04] "GET / HTTP/1.1" 200 -
+2026-11-04 00:14:04,973 - werkzeug - INFO - 127.0.0.1 - - [04/Nov/2026 00:14:04] "GET /assessment HTTP/1.1" 200 -
+2026-11-04 00:14:04,988 - DiaBeates - INFO - Rule matrix assessment completed
+2026-11-04 00:14:04,991 - werkzeug - INFO - 127.0.0.1 - - [04/Nov/2026 00:14:04] "GET /assessment HTTP/1.1" 200 -
+2026-11-04 00:14:05,009 - DiaBeates - INFO - Rule matrix assessment completed
+2026-11-04 00:14:05,422 - werkzeug - INFO - 127.0.0.1 - - [04/Nov/2026 00:14:05] "POST /predict HTTP/1.1" 200 -
+2026-11-04 00:14:05,435 - werkzeug - INFO - 127.0.0.1 - - [04/Nov/2026 00:14:05] "GET /assessment HTTP/1.1" 200 -
+2026-11-04 00:14:05,446 - DiaBeates - INFO - Rule matrix assessment completed
+2026-11-04 00:14:05,582 - werkzeug - INFO - 127.0.0.1 - - [04/Nov/2026 00:14:05] "POST /predict HTTP/1.1" 200 -
+2026-11-04 00:14:06,275 - werkzeug - INFO - 127.0.0.1 - - [04/Nov/2026 00:14:06] "POST /predict HTTP/1.1" 200 -
+2026-11-04 00:14:07,060 - werkzeug - INFO - 127.0.0.1 - - [04/Nov/2026 00:14:07] "GET /history/2/print HTTP/1.1" 200 -
+2026-11-04 00:14:08,094 - werkzeug - INFO - 127.0.0.1 - - [04/Nov/2026 00:14:08] "GET /history HTTP/1.1" 200 -
+2026-11-04 00:38:42,775 - DiaBeates - INFO - Database initialized successfully with non-destructive WAL mode.
+2026-11-04 00:38:43,570 - DiaBeates - INFO - Loaded clinical models summary: ['cardiovascular', 'general_burden', 'neuropathy_mobility', 'retinopathy']
+2026-11-04 00:38:54,384 - flask_wtf.csrf - INFO - The CSRF token is missing.
+2026-11-04 00:38:54,385 - DiaBeates - WARNING - CSRF validation failed: The CSRF token is missing.
+2026-11-04 00:38:54,396 - DiaBeates - INFO - Rule matrix assessment completed
+2026-11-04 00:45:25,538 - DiaBeates - INFO - Database initialized successfully with non-destructive WAL mode.
+2026-11-04 00:45:26,389 - DiaBeates - INFO - Loaded clinical models summary: ['cardiovascular', 'general_burden', 'neuropathy_mobility', 'retinopathy']
+2026-11-04 00:45:40,862 - flask_wtf.csrf - INFO - The CSRF token is missing.
+2026-11-04 00:45:40,862 - DiaBeates - WARNING - CSRF validation failed: The CSRF token is missing.
+2026-11-04 00:45:40,877 - DiaBeates - INFO - Rule matrix assessment completed
+2026-11-04 01:06:31,701 - DiaBeates - INFO - Database initialized successfully with non-destructive WAL mode.
+2026-11-04 01:06:32,726 - DiaBeates - INFO - Loaded clinical models summary: ['cardiovascular', 'general_burden', 'neuropathy_mobility', 'retinopathy']
+2026-11-04 01:06:44,157 - flask_wtf.csrf - INFO - The CSRF token is missing.
+2026-11-04 01:06:44,159 - DiaBeates - WARNING - CSRF validation failed: The CSRF token is missing.
+2026-11-04 01:06:44,168 - DiaBeates - INFO - Rule matrix assessment completed
+2026-11-04 01:08:28,692 - DiaBeates - INFO - Database initialized successfully with non-destructive WAL mode.
+2026-11-04 01:08:29,628 - DiaBeates - INFO - Loaded clinical models summary: ['cardiovascular', 'general_burden', 'neuropathy_mobility', 'retinopathy']
+2026-11-04 01:09:00,664 - DiaBeates - INFO - Database initialized successfully with non-destructive WAL mode.
+2026-11-04 01:09:02,010 - DiaBeates - INFO - Loaded clinical models summary: ['cardiovascular', 'general_burden', 'neuropathy_mobility', 'retinopathy']
+2026-11-04 01:09:03,163 - DiaBeates - INFO - Rule matrix assessment completed
+2026-11-04 01:09:48,904 - DiaBeates - INFO - Database initialized successfully with non-destructive WAL mode.
+2026-11-04 01:09:50,514 - DiaBeates - INFO - Loaded clinical models summary: ['cardiovascular', 'general_burden', 'neuropathy_mobility', 'retinopathy']
+2026-11-04 01:10:05,069 - flask_wtf.csrf - INFO - The CSRF token is missing.
+2026-11-04 01:10:05,070 - DiaBeates - WARNING - CSRF validation failed: The CSRF token is missing.
+2026-11-04 01:10:05,082 - DiaBeates - INFO - Rule matrix assessment completed
+2026-11-04 01:17:13,464 - DiaBeates - INFO - Database initialized successfully with non-destructive WAL mode.
+2026-11-04 01:17:13,646 - DiaBeates - INFO - Loaded clinical models summary: ['cardiovascular', 'general_burden', 'neuropathy_mobility', 'retinopathy']
+2026-11-04 01:17:48,181 - DiaBeates - INFO - Database initialized successfully with non-destructive WAL mode.
+2026-11-04 01:17:49,010 - DiaBeates - INFO - Loaded clinical models summary: ['cardiovascular', 'general_burden', 'neuropathy_mobility', 'retinopathy']
+2026-11-04 01:17:49,797 - werkzeug - INFO - WARNING: This is a development server. Do not use it in a production deployment. Use a production WSGI server instead.
+ * Running on http://127.0.0.1:5000
+2026-11-04 01:17:49,798 - werkzeug - INFO - Press CTRL+C to quit
+2026-11-04 01:17:54,718 - werkzeug - INFO - 127.0.0.1 - - [04/Nov/2026 01:17:54] "GET /assessment HTTP/1.1" 200 -
+2026-11-04 01:17:54,731 - DiaBeates - INFO - Rule matrix assessment completed
+2026-11-04 01:17:55,014 - werkzeug - INFO - 127.0.0.1 - - [04/Nov/2026 01:17:55] "POST /predict HTTP/1.1" 200 -
+2026-11-04 01:17:55,027 - werkzeug - INFO - 127.0.0.1 - - [04/Nov/2026 01:17:55] "GET /assessment HTTP/1.1" 200 -
+2026-11-04 01:17:55,035 - DiaBeates - INFO - Rule matrix assessment completed
+2026-11-04 01:17:55,381 - werkzeug - INFO - 127.0.0.1 - - [04/Nov/2026 01:17:55] "POST /predict HTTP/1.1" 200 -
+2026-11-04 01:24:32,211 - DiaBeates - INFO - Database initialized successfully with non-destructive WAL mode.
+2026-11-04 01:24:32,389 - DiaBeates - INFO - Loaded clinical models summary: ['cardiovascular', 'general_burden', 'neuropathy_mobility', 'retinopathy']
+2026-11-04 01:24:33,701 - DiaBeates - ERROR - Unexpected server error
+Traceback (most recent call last):
+  File "C:\Users\carlo\AppData\Local\Programs\Python\Python311\Lib\site-packages\flask\app.py", line 917, in full_dispatch_request
+    rv = self.dispatch_request()
+         ^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\carlo\AppData\Local\Programs\Python\Python311\Lib\site-packages\flask\app.py", line 902, in dispatch_request
+    return self.ensure_sync(self.view_functions[rule.endpoint])(**view_args)  # type: ignore[no-any-return]
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\carlo\Documents\htdocs\diabetes-check\app.py", line 1442, in history_signature
+    return jsonify(signature)
+           ^^^^^^^
+NameError: name 'jsonify' is not defined
+2026-11-04 01:25:00,426 - DiaBeates - INFO - Database initialized successfully with non-destructive WAL mode.
+2026-11-04 01:25:00,598 - DiaBeates - INFO - Loaded clinical models summary: ['cardiovascular', 'general_burden', 'neuropathy_mobility', 'retinopathy']
+2026-11-04 01:25:16,616 - DiaBeates - INFO - Database initialized successfully with non-destructive WAL mode.
+2026-11-04 01:25:16,809 - DiaBeates - INFO - Loaded clinical models summary: ['cardiovascular', 'general_burden', 'neuropathy_mobility', 'retinopathy']
+2026-11-04 01:25:17,681 - werkzeug - INFO - WARNING: This is a development server. Do not use it in a production deployment. Use a production WSGI server instead.
+ * Running on http://127.0.0.1:5000
+2026-11-04 01:25:17,682 - werkzeug - INFO - Press CTRL+C to quit
+2026-11-04 01:25:26,475 - werkzeug - INFO - 127.0.0.1 - - [04/Nov/2026 01:25:26] "GET /assessment HTTP/1.1" 200 -
+2026-11-04 01:25:26,484 - DiaBeates - INFO - Rule matrix assessment completed
+2026-11-04 01:25:26,789 - werkzeug - INFO - 127.0.0.1 - - [04/Nov/2026 01:25:26] "POST /predict HTTP/1.1" 200 -
+2026-11-04 01:25:26,802 - werkzeug - INFO - 127.0.0.1 - - [04/Nov/2026 01:25:26] "GET /assessment HTTP/1.1" 200 -
+2026-11-04 01:25:26,813 - DiaBeates - INFO - Rule matrix assessment completed
+2026-11-04 01:25:26,949 - werkzeug - INFO - 127.0.0.1 - - [04/Nov/2026 01:25:26] "POST /predict HTTP/1.1" 200 -
+2026-11-04 01:28:02,177 - DiaBeates - INFO - Database initialized successfully with non-destructive WAL mode.
+2026-11-04 01:28:02,363 - DiaBeates - INFO - Loaded clinical models summary: ['cardiovascular', 'general_burden', 'neuropathy_mobility', 'retinopathy']
+2026-11-04 01:28:04,052 - DiaBeates - ERROR - Unexpected server error
+Traceback (most recent call last):
+  File "C:\Users\carlo\AppData\Local\Programs\Python\Python311\Lib\site-packages\flask\app.py", line 917, in full_dispatch_request
+    rv = self.dispatch_request()
+         ^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\carlo\AppData\Local\Programs\Python\Python311\Lib\site-packages\flask\app.py", line 902, in dispatch_request
+    return self.ensure_sync(self.view_functions[rule.endpoint])(**view_args)  # type: ignore[no-any-return]
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\carlo\Documents\htdocs\diabetes-check\app.py", line 1414, in history
+    asc_records = database.get_all_assessments(
+                  ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\carlo\Documents\htdocs\diabetes-check\database.py", line 623, in get_all_assessments
+    rows = conn.execute(
+           ^^^^^^^^^^^^^
+  File "C:\Users\carlo\Documents\htdocs\diabetes-check\database.py", line 88, in execute
+    return self._connection.execute(query.replace("?", "%s"), params)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\carlo\AppData\Local\Programs\Python\Python311\Lib\site-packages\psycopg\connection.py", line 304, in execute
+    raise ex.with_traceback(None)
+psycopg.errors.UndefinedFunction: operator does not exist: boolean = smallint
+LINE 1: ... session_id = $1 AND user_id IS NULL AND archived = $2 ORDER...
+                                                             ^
+HINT:  No operator matches the given name and argument types. You might need to add explicit type casts.
+2026-11-04 01:28:46,116 - DiaBeates - INFO - Database initialized successfully with non-destructive WAL mode.
+2026-11-04 01:28:46,307 - DiaBeates - INFO - Loaded clinical models summary: ['cardiovascular', 'general_burden', 'neuropathy_mobility', 'retinopathy']
+2026-11-04 01:29:01,964 - DiaBeates - INFO - Database initialized successfully with non-destructive WAL mode.
+2026-11-04 01:29:02,145 - DiaBeates - INFO - Loaded clinical models summary: ['cardiovascular', 'general_burden', 'neuropathy_mobility', 'retinopathy']
+2026-11-04 01:29:04,076 - werkzeug - INFO - WARNING: This is a development server. Do not use it in a production deployment. Use a production WSGI server instead.
+ * Running on http://127.0.0.1:5000
+2026-11-04 01:29:04,078 - werkzeug - INFO - Press CTRL+C to quit
+2026-11-04 01:29:12,872 - werkzeug - INFO - 127.0.0.1 - - [04/Nov/2026 01:29:12] "GET /assessment HTTP/1.1" 200 -
+2026-11-04 01:29:12,895 - DiaBeates - INFO - Rule matrix assessment completed
+2026-11-04 01:29:13,282 - werkzeug - INFO - 127.0.0.1 - - [04/Nov/2026 01:29:13] "POST /predict HTTP/1.1" 200 -
+2026-11-04 01:29:13,312 - werkzeug - INFO - 127.0.0.1 - - [04/Nov/2026 01:29:13] "GET /assessment HTTP/1.1" 200 -
+2026-11-04 01:29:13,333 - DiaBeates - INFO - Rule matrix assessment completed
+2026-11-04 01:29:13,532 - werkzeug - INFO - 127.0.0.1 - - [04/Nov/2026 01:29:13] "POST /predict HTTP/1.1" 200 -

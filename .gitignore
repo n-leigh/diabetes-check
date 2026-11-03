@@ -35,6 +35,12 @@ logs/
 *.sqlcipher-migration-*.tmp
 *.restore-*.tmp
 backups/
+supabase/.temp/
+supabase/.branches/
+migration_exports/
+*.dump
+*.dump.gz
+*.sql.gz
 
 # Raw external datasets (auto-downloaded/cached locally)
 data/raw_retinopathy/

@@ -39,7 +39,7 @@ from dotenv import load_dotenv
 import joblib
 import numpy as np
 import pandas as pd
-from flask import Flask, render_template, request, redirect, url_for, session, abort
+from flask import Flask, render_template, request, redirect, url_for, session, abort, jsonify
 from flask_wtf.csrf import CSRFProtect, CSRFError
 from flask_limiter import Limiter
 from flask_limiter.util import get_remote_address
@@ -52,6 +52,7 @@ from rule_matrix import compute_all_risks, compute_lab_assessment, RULE_VERSION
 from recommendations import build_recommendations
 from validation import validate_patient_form
 from field_labels import describe_patient
+load_dotenv(os.path.join(os.path.dirname(os.path.abspath(__file__)), ".env"))
 import database
 
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
@@ -1429,6 +1430,17 @@ def history():
         show_archived=show_archived,
         sort_order=sort_order,
     )
+
+
+@app.get("/history/signature")
+def history_signature():
+    show_archived = request.args.get("view") == "archived"
+    signature = database.get_assessment_history_signature(
+        session_id=session["session_id"],
+        user_id=current_user.id if current_user.is_authenticated else None,
+        archived=show_archived,
+    )
+    return jsonify(signature)
 
 
 @app.route("/history/<int:assessment_id>/archive", methods=["POST"])
