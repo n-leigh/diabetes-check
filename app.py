@@ -456,7 +456,7 @@ def _post_auth_redirect(next_url=None):
         claim_sid = session.get("claim_sid")
         if claim_sid and database.get_unclaimed_assessments(claim_sid):
             return redirect(url_for("claim"))
-        return redirect(_safe_next_url(next_url))
+        return redirect(url_for("history"))
 
 
 @app.before_request
