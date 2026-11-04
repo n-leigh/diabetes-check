@@ -8,7 +8,7 @@
     <div>
       <p class="text-[15px] font-bold uppercase tracking-wide text-[#0b7a85]">Your history</p>
       <h1 class="font-heading text-3xl sm:text-4xl md:text-5xl font-bold text-[#014c5e]">Progress over time</h1>
-      <p class="text-[18px] text-[#4f5b66] mt-2">See how your check results change.</p>
+      <p class="text-[18px] text-[#4f5b66] mt-2">See how your screening results change.</p>
     </div>
     <a href="/history" class="btn-secondary progress-history-link" aria-label="Back to History">
       <span aria-hidden="true">←</span>
@@ -16,16 +16,229 @@
     </a>
   </div>
 
-  {% if check_count < 2 %}
+  <nav class="progress-view-tabs mb-8" aria-label="Progress check scope">
+    <a href="/history/progress" class="{{ 'is-active' if not include_archived else '' }}" {% if not include_archived %}aria-current="page"{% endif %}>Active checks</a>
+    <a href="/history/progress?include_archived=1" class="{{ 'is-active' if include_archived else '' }}" {% if include_archived %}aria-current="page"{% endif %}>Include archived checks</a>
+  </nav>
+
+  {% if empty %}
   <div class="health-card p-8 sm:p-12 text-center max-w-2xl mx-auto">
     <div class="flex justify-center mb-4">{{ icon_companion("w-24 h-24") }}</div>
     <h2 class="font-heading text-2xl sm:text-3xl font-bold text-[#014c5e]">Keep checking to see progress</h2>
-    <p class="text-[18px] text-[#4f5b66] mt-3">You need at least two saved checks.</p>
+    <p class="text-[18px] text-[#4f5b66] mt-3">No saved checks are in this view yet.</p>
     <a href="/assessment" class="btn-primary inline-flex mt-6 text-[18px]">Do a new check</a>
   </div>
+  {% elif baseline %}
+  <article class="health-card p-6 sm:p-8 max-w-3xl mx-auto">
+    <div class="flex flex-wrap items-start justify-between gap-3 border-b border-[#b8dce5] pb-4 mb-5">
+      <div>
+        <p class="text-[15px] font-bold uppercase tracking-wide text-[#0b7a85]">Baseline</p>
+        <h2 class="font-heading text-2xl sm:text-3xl font-bold text-[#014c5e]">Your starting point</h2>
+      </div>
+      <time class="text-[15px] text-[#4f5b66]" datetime="{{ baseline.timestamp_iso }}">
+        {{ baseline.date }} PHT
+        <span class="sr-only">{{ baseline.full_date }} Philippine Time</span>
+      </time>
+    </div>
+    {% if baseline.archived %}<span class="progress-archived-tag mb-4">Archived</span>{% endif %}
+    <div class="progress-baseline-grid" aria-label="Your starting screening results">
+      {% for item in baseline.statuses %}
+      <div class="progress-baseline-item">
+        <span class="progress-status {{ 'progress-status-' ~ item.status.key }}">
+          <span class="progress-status-icon" aria-hidden="true">{{ item.status.icon }}</span>
+          <span>{{ item.status.label }}</span>
+        </span>
+        <span class="font-semibold text-[#014c5e]">{{ item.title }}</span>
+      </div>
+      {% endfor %}
+    </div>
+    <p class="text-[18px] text-[#4f5b66] mt-6">Do another check later to see how your results change.</p>
+    <p class="progress-disclaimer mt-4">This tracks screening results over time. It is not a diagnosis.</p>
+  </article>
   {% else %}
   <div class="space-y-6">
-    {% for item in progress %}
+    {% if is_guest %}
+    <aside class="progress-signin-nudge" role="note">
+      <span class="progress-notice-icon" aria-hidden="true">+</span>
+      <p><strong>Sign in to keep your progress across devices.</strong> Your guest checks stay in this browser session.</p>
+      <a href="/login?next=/history/progress" class="btn-secondary">Sign in</a>
+    </aside>
+    {% endif %}
+
+    <div class="progress-follow-up" role="note">
+      <strong>Time for a new check?</strong>
+      <span>Ask your care team when to repeat this screening.</span>
+      <a href="/assessment" class="btn-secondary">Start a new check</a>
+    </div>
+
+    <article class="health-card p-5 sm:p-7">
+      <div class="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-3 border-b border-[#b8dce5] pb-4 mb-5">
+        <div>
+          <p class="text-[15px] font-bold uppercase tracking-wide text-[#0b7a85]">Latest comparison</p>
+          <h2 class="font-heading text-2xl sm:text-3xl font-bold text-[#014c5e]">Since your last check</h2>
+        </div>
+        <p class="text-[15px] text-[#4f5b66] sm:text-right">Comparing your latest two checks<br>{{ included_phrase }}</p>
+      </div>
+      <p class="progress-disclaimer mb-5">This tracks screening results over time. It is not a diagnosis.</p>
+      <div class="progress-summary-grid">
+        {% for row in summary_rows %}
+        <div class="progress-summary-row">
+          <span class="progress-status {{ 'progress-status-' ~ row.current.key }}">
+            <span class="progress-status-icon" aria-hidden="true">{{ row.current.icon }}</span>
+            <span>{{ row.current.label }}</span>
+          </span>
+          <div>
+            <p class="font-semibold text-[#1f2a33]">{{ row.message }}</p>
+            <p class="text-[15px] text-[#4f5b66]">Previous check: {{ row.previous_date }} PHT</p>
+          </div>
+        </div>
+        {% endfor %}
+      </div>
+    </article>
+
+    {% if short_gap_notice %}
+    <aside class="progress-notice" role="note">
+      <span class="progress-notice-icon" aria-hidden="true">i</span>
+      <p>These latest checks were less than 7 days apart. Changes may reflect different answers rather than a real change over time.</p>
+    </aside>
+    {% endif %}
+
+    {% if comparison %}
+    <article class="health-card p-5 sm:p-7">
+      <div class="flex flex-col sm:flex-row sm:items-end sm:justify-between gap-3 border-b border-[#b8dce5] pb-4 mb-5">
+        <div>
+          <p class="text-[15px] font-bold uppercase tracking-wide text-[#0b7a85]">What changed</p>
+          <h2 class="font-heading text-2xl sm:text-3xl font-bold text-[#014c5e]">Between these two checks</h2>
+        </div>
+        <a href="{{ print_url }}" target="_blank" class="btn-secondary">Print progress summary</a>
+      </div>
+      {% if comparison.scoring_updated %}
+      <p class="progress-notice mb-5"><span class="progress-notice-icon" aria-hidden="true">i</span><span>Scoring was updated between these checks. Changes may reflect the updated scoring method.</span></p>
+      {% endif %}
+      <div class="progress-compare-heading">
+        <div><span class="progress-compare-label">Before</span><time datetime="{{ comparison.before.timestamp_iso }}">{{ comparison.before.date }} PHT<span class="sr-only">{{ comparison.before.full_date }} Philippine Time</span></time></div>
+        <div><span class="progress-compare-label">Now</span><time datetime="{{ comparison.after.timestamp_iso }}">{{ comparison.after.date }} PHT<span class="sr-only">{{ comparison.after.full_date }} Philippine Time</span></time></div>
+      </div>
+      <div class="progress-change-columns">
+        <section>
+          <h3 class="font-heading text-xl font-bold text-[#014c5e]">Answers that changed</h3>
+          {% if comparison.changed_answers %}
+          <ul class="progress-change-list">
+            {% for change in comparison.changed_answers %}
+            <li><strong>{{ change.label }}</strong><span>{{ change.before }} → {{ change.after }}</span></li>
+            {% endfor %}
+          </ul>
+          {% else %}<p class="progress-muted">No tracked answers changed.</p>{% endif %}
+        </section>
+        <section>
+          <h3 class="font-heading text-xl font-bold text-[#014c5e]">Risk drivers</h3>
+          {% if comparison.drivers.appeared %}
+          <h4 class="progress-change-subhead">Appeared</h4>
+          <ul class="progress-change-list">{% for driver in comparison.drivers.appeared %}<li>{{ driver }}</li>{% endfor %}</ul>
+          {% endif %}
+          {% if comparison.drivers.disappeared %}
+          <h4 class="progress-change-subhead">No longer shown</h4>
+          <ul class="progress-change-list">{% for driver in comparison.drivers.disappeared %}<li>{{ driver }}</li>{% endfor %}</ul>
+          {% endif %}
+          {% if not comparison.drivers.appeared and not comparison.drivers.disappeared %}<p class="progress-muted">No risk drivers appeared or disappeared.</p>{% endif %}
+        </section>
+      </div>
+      <p class="progress-disclaimer mt-5">Labels use the rule matrix. Model estimates are shown in the provider details on each result. This is a screening tool, not a diagnosis.</p>
+    </article>
+    {% endif %}
+
+    {% if trends %}
+    <article class="health-card p-5 sm:p-7">
+      <div class="border-b border-[#b8dce5] pb-4 mb-5">
+        <p class="text-[15px] font-bold uppercase tracking-wide text-[#0b7a85]">Numbers over time</p>
+        <h2 class="font-heading text-2xl sm:text-3xl font-bold text-[#014c5e]">Your measured values</h2>
+      </div>
+      <div class="progress-trends-grid">
+        {% for trend in trends %}
+        <section class="progress-trend-card" aria-labelledby="trend-{{ trend.name }}">
+          <h3 id="trend-{{ trend.name }}" class="font-heading text-xl font-bold text-[#014c5e]">{{ trend.label }}</h3>
+          <svg class="progress-trend-chart" viewBox="0 0 100 100" role="img" aria-labelledby="trend-title-{{ trend.name }} trend-desc-{{ trend.name }}">
+            <title id="trend-title-{{ trend.name }}">{{ trend.label }} trend</title>
+            <desc id="trend-desc-{{ trend.name }}">{{ trend.text_equivalent }}</desc>
+            <polyline points="{{ trend.chart_points }}" fill="none" stroke="currentColor" stroke-width="2.5" vector-effect="non-scaling-stroke"></polyline>
+            {% for point in trend.points %}<circle cx="{{ point.chart_x }}" cy="{{ point.chart_y }}" r="2.5" fill="currentColor"><title>{{ point.date }}: {{ point.value }} {{ trend.unit }}{% if point.label %} ({{ point.label }}){% endif %}</title></circle>{% endfor %}
+          </svg>
+          <p class="progress-trend-text">{{ trend.text_equivalent }}</p>
+          <table class="progress-trend-table"><caption class="sr-only">{{ trend.label }} text equivalent</caption><thead><tr><th>Date</th><th>Value</th><th>Interpretation</th></tr></thead><tbody>{% for point in trend.points %}<tr><th scope="row">{{ point.date }}</th><td>{{ point.value }} {{ trend.unit }}</td><td>{{ point.label or 'Not available' }}</td></tr>{% endfor %}</tbody></table>
+        </section>
+        {% endfor %}
+      </div>
+      <p class="progress-disclaimer mt-5">Lab labels and interpretation stay the same as your saved results. Ask a clinician how these numbers apply to you.</p>
+    </article>
+    {% endif %}
+
+    <article class="health-card p-5 sm:p-7">
+      <div class="flex flex-col sm:flex-row sm:items-end sm:justify-between gap-3 border-b border-[#b8dce5] pb-4 mb-5">
+        <div>
+          <p class="text-[15px] font-bold uppercase tracking-wide text-[#0b7a85]">Choose a comparison</p>
+          <h2 class="font-heading text-2xl sm:text-3xl font-bold text-[#014c5e]">Compare any two checks</h2>
+        </div>
+      </div>
+      <form method="get" action="/history/progress" class="progress-compare-form">
+        {% if include_archived %}<input type="hidden" name="include_archived" value="1">{% endif %}
+        <label for="progressBefore">Before
+          <select id="progressBefore" name="before" class="input-field">
+            {% for option in compare_options %}<option value="{{ option.id }}" {% if comparison and option.id == comparison.before.id %}selected{% endif %}>{{ option.date }} PHT</option>{% endfor %}
+          </select>
+        </label>
+        <label for="progressAfter">Now
+          <select id="progressAfter" name="after" class="input-field">
+            {% for option in compare_options %}<option value="{{ option.id }}" {% if comparison and option.id == comparison.after.id %}selected{% endif %}>{{ option.date }} PHT</option>{% endfor %}
+          </select>
+        </label>
+        <button type="submit" class="btn-primary">Compare checks</button>
+      </form>
+    </article>
+
+    <article class="health-card p-5 sm:p-7">
+      <div class="flex flex-col sm:flex-row sm:items-end sm:justify-between gap-2 border-b border-[#b8dce5] pb-4 mb-5">
+        <div>
+          <p class="text-[15px] font-bold uppercase tracking-wide text-[#0b7a85]">Quick view</p>
+          <h2 class="font-heading text-2xl sm:text-3xl font-bold text-[#014c5e]">Results at a glance</h2>
+        </div>
+        <p class="text-[15px] text-[#4f5b66]">Showing your latest {{ grid_start }} of {{ check_count }} checks</p>
+      </div>
+      <div class="progress-grid-scroll">
+        <table class="progress-grid-table">
+          <caption class="sr-only">Screening results for your latest checks, {{ included_phrase }}</caption>
+          <thead>
+            <tr>
+              <th scope="col">Area</th>
+              {% for check in grid %}
+              <th scope="col">
+                <time datetime="{{ check.timestamp_iso }}">{{ check.time_label }}<span class="sr-only">{{ check.full_time_label }} Philippine Time</span></time>
+                {% if check.archived %}<span class="progress-archived-tag">Archived</span>{% endif %}
+              </th>
+              {% endfor %}
+            </tr>
+          </thead>
+          <tbody>
+            {% for domain in domains %}
+            {% set domain_index = loop.index0 %}
+            <tr>
+              <th scope="row">{{ domain.title }}</th>
+              {% for check in grid %}
+              <td>
+                {% set status = check.statuses[domain_index] %}
+                <span class="progress-status {{ 'progress-status-' ~ status.key }}">
+                  <span class="progress-status-icon" aria-hidden="true">{{ status.icon }}</span>
+                  <span>{{ status.label }}</span>
+                </span>
+              </td>
+              {% endfor %}
+            </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    </article>
+
+    {% for item in timelines %}
     <article class="health-card p-5 sm:p-7">
       <div class="flex items-center gap-4 border-b border-[#b8dce5] pb-4 mb-5">
         {% if item.category == 'cardiovascular' %}{{ icon_heart("w-14 h-14") }}
@@ -34,23 +247,31 @@
         {% else %}{{ icon_eye("w-14 h-14") }}{% endif %}
         <h2 class="font-heading text-2xl font-bold text-[#014c5e]">{{ item.title }}</h2>
       </div>
-      {% if item.sentence %}<p class="text-[18px] text-[#1f2a33] mb-5">{{ item.sentence }}</p>{% endif %}
-      {% if item.entries %}
-      <ol class="flex items-start gap-2 overflow-x-auto pb-2" aria-label="{{ item.title }} results over time">
-        {% for entry in item.entries %}
-        <li class="min-w-[110px] flex-1">
-          {% if not loop.first %}<div class="h-0.5 bg-[#b8dce5] relative top-5 -ml-2 -mr-2" aria-hidden="true"></div>{% endif %}
-          <div class="relative">
-            <div class="w-10 h-10 rounded-full border-2 {{ entry.status.background_class }} {{ entry.status.border_class }} {{ entry.status.text_class }} flex items-center justify-center font-bold mx-auto" aria-label="{{ entry.status.label }}">{{ entry.status.icon }}</div>
-            <p class="text-center text-[15px] font-bold {{ entry.status.text_class }} mt-2">{{ entry.status.label }}</p>
-            <p class="text-center text-[14px] text-[#4f5b66]">{{ entry.date|display_time }}</p>
-          </div>
-        </li>
-        {% endfor %}
-      </ol>
-      {% else %}
-      <p class="text-[17px] text-[#4f5b66]">No result recorded yet.</p>
-      {% endif %}
+      <p class="sr-only">{{ item.sequence_description }}</p>
+      <div class="progress-timeline-scroll">
+        <ol class="progress-timeline" aria-label="{{ item.title }} results over time">
+          {% for entry in item.entries %}
+          <li class="progress-timeline-item">
+            {% if not loop.first %}
+            <div class="progress-gap-label {{ 'is-short' if entry.short_gap else '' }}" {% if entry.short_gap %}aria-label="{{ entry.gap_label }}; these checks were less than 7 days apart"{% endif %}>
+              {{ entry.gap_label }}
+            </div>
+            {% else %}
+            <div class="progress-gap-label" aria-hidden="true"></div>
+            {% endif %}
+            <div class="progress-timeline-connector" aria-hidden="true"></div>
+            <div class="progress-timeline-node">
+              <span class="progress-status {{ 'progress-status-' ~ entry.status.key }}">
+                <span class="progress-status-icon" aria-hidden="true">{{ entry.status.icon }}</span>
+                <span>{{ entry.status.label }}</span>
+              </span>
+              {% if entry.archived %}<span class="progress-archived-tag">Archived</span>{% endif %}
+              <time class="progress-time-label" datetime="{{ entry.timestamp_iso }}">{{ entry.time_label }}<span class="sr-only">{{ entry.full_time_label }} Philippine Time</span></time>
+            </div>
+          </li>
+          {% endfor %}
+        </ol>
+      </div>
     </article>
     {% endfor %}
   </div>

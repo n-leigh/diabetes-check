@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>DiaBeates Progress Summary</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/clinical.css') }}">
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/print.css') }}">
+</head>
+<body>
+  <main class="progress-print">
+    <header class="progress-print-header">
+      <h1>DiaBeates Progress Summary</h1>
+      <p>Screening results over time. Generated {{ generated_at|display_time }} PHT.</p>
+    </header>
+    {% if comparison %}
+    <section>
+      <h2>What changed</h2>
+      <p>Before: {{ comparison.before.full_date }} PHT. Now: {{ comparison.after.full_date }} PHT.</p>
+      {% if comparison.scoring_updated %}<p><strong>Scoring updated:</strong> Changes may reflect the updated scoring method.</p>{% endif %}
+      <h3>Answers that changed</h3>
+      {% if comparison.changed_answers %}<ul>{% for change in comparison.changed_answers %}<li><strong>{{ change.label }}:</strong> {{ change.before }} → {{ change.after }}</li>{% endfor %}</ul>{% else %}<p>No tracked answers changed.</p>{% endif %}
+      <h3>Risk drivers</h3>
+      {% if comparison.drivers.appeared %}<p><strong>Appeared:</strong> {{ comparison.drivers.appeared|join(', ') }}</p>{% endif %}
+      {% if comparison.drivers.disappeared %}<p><strong>No longer shown:</strong> {{ comparison.drivers.disappeared|join(', ') }}</p>{% endif %}
+      {% if not comparison.drivers.appeared and not comparison.drivers.disappeared %}<p>No risk drivers appeared or disappeared.</p>{% endif %}
+    </section>
+    {% endif %}
+    {% if trends %}
+    <section>
+      <h2>Number trends</h2>
+      {% for trend in trends %}<h3>{{ trend.label }}</h3><p>{{ trend.text_equivalent }}</p>{% endfor %}
+    </section>
+    {% endif %}
+    <section>
+      <h2>Screening timeline</h2>
+      {% for item in timelines %}<h3>{{ item.title }}</h3><p>{{ item.sequence_description }}</p>{% endfor %}
+    </section>
+    <section>
+      <h2>Questions to ask your doctor</h2>
+      <ul><li>What should I do about the result changes?</li><li>Which numbers should we check again?</li><li>When should I repeat this screening?</li></ul>
+    </section>
+    <footer><strong>Notice:</strong> This tracks screening results. It is not a diagnosis. Labels use the rule matrix; model estimates are separate provider information.</footer>
+  </main>
+</body>
+</html>
