@@ -97,6 +97,10 @@ def test_login_generic_failure_and_open_redirect(client, user):
     response = _login(client, email, next_url="https://example.com")
     assert response.status_code == 302
     assert response.headers["Location"].endswith("/history")
+    client.post("/logout", data={"csrf_token": _csrf(client, "/history")})
+    response = _login(client, email, next_url="/account")
+    assert response.status_code == 302
+    assert response.headers["Location"].endswith("/account")
 
 
 def test_lockout_after_five_failures(client, user):
@@ -223,9 +227,27 @@ def test_admin_routes_and_last_admin_protection(client, admin, user):
     assert _login(client, user_email).status_code == 302
     assert client.get("/admin").status_code == 403
     client.post("/logout", data={"csrf_token": _csrf(client, "/history")})
-    assert _login(client, admin_email).status_code == 302
+    response = _login(client, admin_email)
+    assert response.status_code == 302
+    assert response.headers["Location"].endswith("/admin")
+    client.post("/logout", data={"csrf_token": _csrf(client, "/admin")})
+    response = _login(client, admin_email, next_url="/assessment")
+    assert response.status_code == 302
+    assert response.headers["Location"].endswith("/admin")
     for path in ("/admin", "/admin/users", "/admin/feedback", "/admin/audit", "/admin/system", "/admin/export.csv"):
         assert client.get(path).status_code == 200
+    for path in ("/", "/assessment", "/history", "/history/progress", "/about", "/report"):
+        response = client.get(path)
+        assert response.status_code == 302
+        assert response.headers["Location"].endswith("/admin")
+    response = client.post("/predict", data={"csrf_token": _csrf(client, "/admin")})
+    assert response.status_code == 302
+    assert response.headers["Location"].endswith("/admin")
+    account_page = client.get("/account").get_data(as_text=True)
+    assert "Account" in account_page
+    assert 'href="/admin"' in account_page
+    assert 'href="/assessment"' not in account_page
+    assert 'href="/history"' not in account_page
     dashboard = client.get("/admin").get_data(as_text=True)
     assert "Admin workspace" in dashboard
     assert "Individual health checks are not shown here" in dashboard
