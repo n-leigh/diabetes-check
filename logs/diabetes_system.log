@@ -1647,3 +1647,20 @@ HINT:  No operator matches the given name and argument types. You might need to 
 2026-11-04 12:17:42,429 - werkzeug - INFO - 127.0.0.1 - - [04/Nov/2026 12:17:42] "GET /admin HTTP/1.1" 200 -
 2026-11-04 12:17:51,559 - werkzeug - INFO - 127.0.0.1 - - [04/Nov/2026 12:17:51] "[32mGET /history/signature?view=active HTTP/1.1[0m" 302 -
 2026-11-04 12:17:52,402 - werkzeug - INFO - 127.0.0.1 - - [04/Nov/2026 12:17:52] "GET /admin HTTP/1.1" 200 -
+2026-11-04 19:29:35,241 - DiaBeates - INFO - Database initialized successfully with non-destructive WAL mode.
+2026-11-04 19:29:35,825 - DiaBeates - INFO - Loaded clinical models summary: ['cardiovascular', 'general_burden', 'neuropathy_mobility', 'retinopathy']
+2026-11-04 19:29:37,528 - werkzeug - INFO - [31m[1mWARNING: This is a development server. Do not use it in a production deployment. Use a production WSGI server instead.[0m
+ * Running on http://127.0.0.1:5000
+2026-11-04 19:29:37,528 - werkzeug - INFO - [33mPress CTRL+C to quit[0m
+2026-11-04 19:30:17,907 - DiaBeates - INFO - Rule matrix assessment completed
+2026-11-04 19:30:18,149 - werkzeug - INFO - 127.0.0.1 - - [04/Nov/2026 19:30:18] "POST /predict HTTP/1.1" 200 -
+2026-11-04 19:30:18,876 - werkzeug - INFO - 127.0.0.1 - - [04/Nov/2026 19:30:18] "GET /static/css/clinical.css HTTP/1.1" 200 -
+2026-11-04 19:30:18,924 - werkzeug - INFO - 127.0.0.1 - - [04/Nov/2026 19:30:18] "[36mGET /static/logo.png HTTP/1.1[0m" 304 -
+2026-11-04 19:30:19,011 - werkzeug - INFO - 127.0.0.1 - - [04/Nov/2026 19:30:19] "[36mGET /static/js/result.js HTTP/1.1[0m" 304 -
+2026-11-04 19:30:19,042 - werkzeug - INFO - 127.0.0.1 - - [04/Nov/2026 19:30:19] "[36mGET /static/css/tailwind.min.css HTTP/1.1[0m" 304 -
+2026-11-04 19:30:19,057 - werkzeug - INFO - 127.0.0.1 - - [04/Nov/2026 19:30:19] "[36mGET /static/js/app.js HTTP/1.1[0m" 304 -
+2026-11-04 19:30:19,777 - werkzeug - INFO - 127.0.0.1 - - [04/Nov/2026 19:30:19] "[36mGET /static/fonts/fraunces-700.woff2 HTTP/1.1[0m" 304 -
+2026-11-04 19:30:19,784 - werkzeug - INFO - 127.0.0.1 - - [04/Nov/2026 19:30:19] "[36mGET /static/fonts/source-sans-3-500.woff2 HTTP/1.1[0m" 304 -
+2026-11-04 19:30:19,785 - werkzeug - INFO - 127.0.0.1 - - [04/Nov/2026 19:30:19] "[36mGET /static/fonts/source-sans-3-400.woff2 HTTP/1.1[0m" 304 -
+2026-11-04 19:30:19,797 - werkzeug - INFO - 127.0.0.1 - - [04/Nov/2026 19:30:19] "[36mGET /static/fonts/source-sans-3-600.woff2 HTTP/1.1[0m" 304 -
+2026-11-04 19:30:20,233 - werkzeug - INFO - 127.0.0.1 - - [04/Nov/2026 19:30:20] "[36mGET /static/logo.png HTTP/1.1[0m" 304 -
