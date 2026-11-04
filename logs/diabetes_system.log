@@ -1237,3 +1237,25 @@ HINT:  No operator matches the given name and argument types. You might need to 
 2026-11-04 11:22:14,678 - werkzeug - INFO - 127.0.0.1 - - [04/Nov/2026 11:22:14] "[36mGET /static/fonts/source-sans-3-400.woff2 HTTP/1.1[0m" 304 -
 2026-11-04 11:22:22,111 - werkzeug - INFO - 127.0.0.1 - - [04/Nov/2026 11:22:22] "GET /history/signature?view=active HTTP/1.1" 200 -
 2026-11-04 11:22:32,075 - werkzeug - INFO - 127.0.0.1 - - [04/Nov/2026 11:22:32] "GET /history/signature?view=active HTTP/1.1" 200 -
+2026-11-04 03:28:08,024 - DiaBeates - INFO - Database initialized successfully with non-destructive WAL mode.
+2026-11-04 03:28:08,275 - DiaBeates - INFO - Loaded clinical models summary: ['cardiovascular', 'general_burden', 'neuropathy_mobility', 'retinopathy']
+2026-11-04 03:28:11,797 - flask_wtf.csrf - INFO - The CSRF token is missing.
+2026-11-04 03:28:11,797 - DiaBeates - WARNING - CSRF validation failed: The CSRF token is missing.
+2026-11-04 03:28:11,799 - DiaBeates - INFO - Rule matrix assessment completed
+2026-11-04 03:28:37,204 - DiaBeates - INFO - Database initialized successfully with non-destructive WAL mode.
+2026-11-04 03:28:37,456 - DiaBeates - INFO - Loaded clinical models summary: ['cardiovascular', 'general_burden', 'neuropathy_mobility', 'retinopathy']
+2026-11-04 03:28:37,725 - werkzeug - INFO - [31m[1mWARNING: This is a development server. Do not use it in a production deployment. Use a production WSGI server instead.[0m
+ * Running on http://127.0.0.1:5000
+2026-11-04 03:28:37,725 - werkzeug - INFO - [33mPress CTRL+C to quit[0m
+2026-11-04 03:28:40,186 - werkzeug - INFO - 127.0.0.1 - - [04/Nov/2026 03:28:40] "GET /assessment HTTP/1.1" 200 -
+2026-11-04 03:28:40,189 - DiaBeates - INFO - Rule matrix assessment completed
+2026-11-04 03:28:40,268 - werkzeug - INFO - 127.0.0.1 - - [04/Nov/2026 03:28:40] "POST /predict HTTP/1.1" 200 -
+2026-11-04 03:28:40,271 - werkzeug - INFO - 127.0.0.1 - - [04/Nov/2026 03:28:40] "GET /assessment HTTP/1.1" 200 -
+2026-11-04 03:28:40,272 - DiaBeates - INFO - Rule matrix assessment completed
+2026-11-04 03:28:40,305 - werkzeug - INFO - 127.0.0.1 - - [04/Nov/2026 03:28:40] "POST /predict HTTP/1.1" 200 -
+2026-11-04 03:28:40,389 - werkzeug - INFO - 127.0.0.1 - - [04/Nov/2026 03:28:40] "GET / HTTP/1.1" 200 -
+2026-11-04 03:28:40,392 - werkzeug - INFO - 127.0.0.1 - - [04/Nov/2026 03:28:40] "GET /assessment HTTP/1.1" 200 -
+2026-11-04 03:28:40,394 - DiaBeates - INFO - Rule matrix assessment completed
+2026-11-04 03:28:40,678 - werkzeug - INFO - 127.0.0.1 - - [04/Nov/2026 03:28:40] "POST /predict HTTP/1.1" 200 -
+2026-11-04 03:28:40,946 - werkzeug - INFO - 127.0.0.1 - - [04/Nov/2026 03:28:40] "GET /history/1/print HTTP/1.1" 200 -
+2026-11-04 03:28:41,228 - werkzeug - INFO - 127.0.0.1 - - [04/Nov/2026 03:28:41] "GET /history HTTP/1.1" 200 -

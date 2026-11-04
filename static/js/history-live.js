@@ -6,7 +6,7 @@
   'use strict';
 
   const status = document.getElementById('historyLiveStatus');
-  const view = window.DIABEATES_HISTORY_VIEW || 'active';
+  const view = status?.dataset.historyView || 'active';
   const signatureUrl = `/history/signature?view=${encodeURIComponent(view)}`;
   let lastSignature = null;
   let checking = false;
