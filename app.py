@@ -873,11 +873,10 @@ def admin_export_csv():
 
 
 @app.get("/history/progress")
-@login_required
 def history_progress():
     records = database.get_all_assessments(
         session_id=session["session_id"],
-        user_id=current_user.id,
+        user_id=current_user.id if current_user.is_authenticated else None,
         limit=200,
         sort_order="asc",
     )
@@ -911,12 +910,22 @@ def _progress_sentence(title, entries):
         return None
     first = entries[0]
     latest = entries[-1]
-    first_date = datetime.fromisoformat(first["date"].replace("Z", "+00:00")).astimezone(DISPLAY_ZONE)
-    latest_date = datetime.fromisoformat(latest["date"].replace("Z", "+00:00")).astimezone(DISPLAY_ZONE)
+    first_date = _progress_date(first["date"])
+    latest_date = _progress_date(latest["date"])
     return (
         f"{title}: {first['status']['label']} in {first_date.strftime('%B')}, "
         f"{latest['status']['label']} in {latest_date.strftime('%B')}."
     )
+
+
+def _progress_date(value):
+    if isinstance(value, datetime):
+        timestamp = value
+    else:
+        timestamp = datetime.fromisoformat(str(value).replace("Z", "+00:00"))
+    if timestamp.tzinfo is None:
+        timestamp = timestamp.replace(tzinfo=timezone.utc)
+    return timestamp.astimezone(DISPLAY_ZONE)
 
 
 @app.route("/forgot-password", methods=["GET", "POST"])

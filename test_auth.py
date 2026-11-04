@@ -180,9 +180,9 @@ def test_ownership_returns_404_for_all_assessment_actions(client, user):
         database.delete_user_account(other_id)
 
 
-def test_account_export_is_owner_only_and_progress_is_authenticated(client, user):
+def test_account_export_is_owner_only_and_progress_supports_guest_history(client, user):
     user_id, email = user
-    assert client.get("/history/progress").status_code == 302
+    assert client.get("/history/progress").status_code == 200
     assert _login(client, email).status_code == 302
     with client.session_transaction() as state:
         sid = state["session_id"]
