@@ -23,6 +23,24 @@ STATUS_DETAILS = {
     "Not available": {"icon": "–", "key": "neutral"},
 }
 RULE_STATUS_LABELS = {"Low": "Good", "Moderate": "Check", "High": "See a doctor"}
+ANSWER_LABELS = {
+    "BMI": ("BMI", "number"),
+    "HighBP": ("High blood pressure", "boolean"),
+    "Smoker": ("Smoking history", "boolean"),
+    "LabHbA1c": ("3-month sugar test (HbA1c)", "lab"),
+    "LabSystolicBP": ("Top blood pressure number", "lab"),
+    "LabLDL": ("Bad cholesterol (LDL)", "lab"),
+}
+PATIENT_FIELDS = {
+    "BMI": "BMI",
+    "HighBP": "HighBP",
+    "Smoker": "Smoker",
+}
+LAB_FIELDS = {
+    "LabHbA1c": "hba1c",
+    "LabSystolicBP": "systolic_bp",
+    "LabLDL": "ldl",
+}
 
 
 def to_display_datetime(value, display_zone=DISPLAY_ZONE):
@@ -72,6 +90,10 @@ def _record_view(record, now):
         "full_time_label": timestamp.strftime("%Y-%m-%d %H:%M"),
         "archived": bool(record.get("archived", False)),
         "rule_results": record.get("rule_results") or {},
+        "patient": record.get("patient") or {},
+        "lab_assessment": record.get("lab_assessment"),
+        "rule_matrix_version": record.get("rule_matrix_version"),
+        "risk_drivers": record.get("risk_drivers") or [],
     }
 
 
@@ -130,7 +152,96 @@ def _summary_row(title, previous, current):
     }
 
 
-def build_progress_view(records, include_archived=False, now=None):
+def _value(record, field):
+    if field in PATIENT_FIELDS:
+        return record["patient"].get(PATIENT_FIELDS[field])
+    lab = (record.get("lab_assessment") or {}).get("details") or {}
+    detail = lab.get(LAB_FIELDS[field]) or {}
+    return detail.get("value")
+
+
+def _lab_label(record, field):
+    lab = (record.get("lab_assessment") or {}).get("details") or {}
+    detail = lab.get(LAB_FIELDS.get(field, "")) or {}
+    return detail.get("label")
+
+
+def _display_value(value, kind):
+    if value is None or value == "":
+        return "Not entered"
+    if kind == "boolean":
+        return "Yes" if bool(value) else "No"
+    return str(value)
+
+
+def _changed_answers(previous, current):
+    changes = []
+    for field, (label, kind) in ANSWER_LABELS.items():
+        old_value = _display_value(_value(previous, field), kind)
+        new_value = _display_value(_value(current, field), kind)
+        if old_value != new_value:
+            changes.append({
+                "label": label,
+                "before": old_value,
+                "after": new_value,
+            })
+    return changes
+
+
+def _changed_drivers(previous, current):
+    before = set(previous.get("risk_drivers") or [])
+    after = set(current.get("risk_drivers") or [])
+    return {
+        "appeared": sorted(after - before),
+        "disappeared": sorted(before - after),
+    }
+
+
+def _trend(name, label, unit, ordered):
+    points = []
+    values = []
+    for record in ordered:
+        value = _value(record, name)
+        if value is not None and value != "":
+            try:
+                numeric = float(value)
+            except (TypeError, ValueError):
+                continue
+            values.append(numeric)
+            points.append({
+                "date": record["time_label"],
+                "full_date": record["full_time_label"],
+                "value": value,
+                "unit": unit,
+                "label": _lab_label(record, name),
+            })
+    if not points:
+        return None
+    low, high = min(values), max(values)
+    span = high - low or 1
+    for point in points:
+        point["chart_y"] = round(88 - ((float(point["value"]) - low) / span * 70), 1)
+        point["chart_x"] = round(points.index(point) * (100 / max(1, len(points) - 1)), 1)
+    text_equivalent = []
+    for point in points:
+        interpretation = f" ({point['label']})" if point["label"] else ""
+        text_equivalent.append(
+            f"{point['date']}: {point['value']} {unit}{interpretation}".strip()
+        )
+    return {
+        "name": name,
+        "label": label,
+        "unit": unit,
+        "points": points,
+        "chart_points": " ".join(
+            f"{index * (100 / max(1, len(points) - 1)):.1f},{point['chart_y']}"
+            for index, point in enumerate(points)
+        ),
+        "text_equivalent": "; ".join(text_equivalent),
+    }
+
+
+def build_progress_view(records, include_archived=False, now=None, compare_ids=None):
     """Build all tracker display data without accessing Flask or the database."""
     reference_now = to_display_datetime(now or datetime.now(timezone.utc))
     ordered = sorted(
@@ -174,10 +285,19 @@ def build_progress_view(records, include_archived=False, now=None):
             "sequence_description": _sequence_description(title, entries) if entries else "",
         })
 
+    selected_pair = None
+    if count >= 2:
+        by_id = {str(record["id"]): record for record in ordered}
+        if compare_ids and all(str(item) in by_id for item in compare_ids):
+            selected = [by_id[str(item)] for item in compare_ids]
+            selected_pair = tuple(sorted(selected, key=lambda record: record["timestamp"]))
+        else:
+            selected_pair = tuple(ordered[-2:])
+
     summary_rows = []
     short_gap_notice = False
-    if count >= 2:
-        previous, current = ordered[-2:]
+    if selected_pair:
+        previous, current = selected_pair
         short_gap_notice = current["timestamp"] - previous["timestamp"] < SHORT_GAP_THRESHOLD
         for category, title in DOMAINS:
             summary_rows.append(_summary_row(
@@ -221,6 +341,39 @@ def build_progress_view(records, include_archived=False, now=None):
             ],
         }
 
+    comparison = None
+    if selected_pair:
+        previous, current = selected_pair
+        comparison = {
+            "before": {
+                "id": previous["id"],
+                "date": previous["time_label"],
+                "full_date": previous["full_time_label"],
+                "timestamp_iso": previous["timestamp_iso"],
+                "rule_matrix_version": previous["rule_matrix_version"],
+            },
+            "after": {
+                "id": current["id"],
+                "date": current["time_label"],
+                "full_date": current["full_time_label"],
+                "timestamp_iso": current["timestamp_iso"],
+                "rule_matrix_version": current["rule_matrix_version"],
+            },
+            "changed_answers": _changed_answers(previous, current),
+            "drivers": _changed_drivers(previous, current),
+            "scoring_updated": (
+                previous["rule_matrix_version"]
+                and current["rule_matrix_version"]
+                and previous["rule_matrix_version"] != current["rule_matrix_version"]
+            ),
+        }
+
+    trends = [
+        _trend("BMI", "BMI", "", ordered),
+        _trend("LabHbA1c", "3-month sugar test (HbA1c)", "%", ordered),
+        _trend("LabSystolicBP", "Top blood pressure number", "mmHg", ordered),
+        _trend("LabLDL", "Bad cholesterol (LDL)", "mg/dL", ordered),
+    ]
     return {
         "check_count": count,
         "domains": [{"category": category, "title": title} for category, title in DOMAINS],
@@ -233,4 +386,11 @@ def build_progress_view(records, include_archived=False, now=None):
         "timelines": timelines,
         "baseline": baseline,
         "empty": count == 0,
+        "comparison": comparison,
+        "trends": [trend for trend in trends if trend],
+        "compare_options": [
+            {"id": record["id"], "date": record["time_label"], "full_date": record["full_time_label"]}
+            for record in reversed(ordered)
+        ],
+        "latest_timestamp": ordered[-1]["timestamp_iso"] if ordered else None,
     }

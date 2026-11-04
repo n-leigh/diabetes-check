@@ -4,11 +4,16 @@ from datetime import datetime, timedelta, timezone
 from progress_tracker import SHORT_GAP_THRESHOLD, build_progress_view, to_display_datetime
 
 
-def record(created_at, labels, archived=False):
+def record(created_at, labels, archived=False, patient=None, lab_assessment=None,
+           rule_matrix_version="1.0", risk_drivers=None):
     return {
         "id": created_at,
         "created_at": created_at,
         "archived": archived,
+        "patient": patient or {},
+        "lab_assessment": lab_assessment,
+        "rule_matrix_version": rule_matrix_version,
+        "risk_drivers": risk_drivers or [],
         "rule_results": {
             category: {"label": label}
             for category, label in labels.items()
@@ -102,6 +107,51 @@ class ProgressTrackerViewModelTests(unittest.TestCase):
         self.assertEqual(len(view["grid"]), 6)
         self.assertTrue(any(item["archived"] for item in view["grid"]))
         self.assertIn("including archived", view["included_phrase"])
+
+    def test_changed_answers_drivers_trends_and_version_notice(self):
+        first = record(
+            "2026-10-01T00:00:00+00:00",
+            ALL_DOMAINS,
+            patient={"BMI": 31, "HighBP": 1, "Smoker": 1},
+            lab_assessment={"details": {
+                "hba1c": {"value": 8.1},
+                "systolic_bp": {"value": 145},
+            }},
+            rule_matrix_version="1.0",
+            risk_drivers=["High blood pressure", "Active Smoking History"],
+        )
+        second = record(
+            "2026-11-01T00:00:00+00:00",
+            ALL_DOMAINS,
+            patient={"BMI": 27, "HighBP": 0, "Smoker": 1},
+            lab_assessment={"details": {
+                "hba1c": {"value": 7.4},
+                "systolic_bp": {"value": 132},
+                "ldl": {"value": 110},
+            }},
+            rule_matrix_version="2.0",
+            risk_drivers=["Active Smoking History", "Elevated BMI"],
+        )
+        view = build_progress_view([first, second])
+        comparison = view["comparison"]
+        changes = {item["label"]: item for item in comparison["changed_answers"]}
+        self.assertEqual(changes["BMI"]["before"], "31")
+        self.assertEqual(changes["High blood pressure"]["after"], "No")
+        self.assertEqual(changes["Bad cholesterol (LDL)"]["before"], "Not entered")
+        self.assertEqual(comparison["drivers"]["appeared"], ["Elevated BMI"])
+        self.assertEqual(comparison["drivers"]["disappeared"], ["High blood pressure"])
+        self.assertTrue(comparison["scoring_updated"])
+        self.assertEqual({trend["name"] for trend in view["trends"]},
+                         {"BMI", "LabHbA1c", "LabSystolicBP", "LabLDL"})
+
+    def test_compare_ids_select_any_two_checks(self):
+        records = [
+            record(f"2026-10-{day:02d}T00:00:00+00:00", ALL_DOMAINS)
+            for day in (1, 2, 3)
+        ]
+        view = build_progress_view(records, compare_ids=["2026-10-01T00:00:00+00:00", "2026-10-02T00:00:00+00:00"])
+        self.assertEqual(view["comparison"]["before"]["date"], "Oct 1, 08:00")
+        self.assertEqual(view["comparison"]["after"]["date"], "Oct 2, 08:00")
 
 
 if __name__ == "__main__":

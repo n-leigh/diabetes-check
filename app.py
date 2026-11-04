@@ -885,8 +885,63 @@ def history_progress():
     records = database.get_all_assessments(archived=False, **ownership)
     if include_archived:
         records.extend(database.get_all_assessments(archived=True, **ownership))
-    progress = build_progress_view(records, include_archived=include_archived)
+    for record in records:
+        record["risk_drivers"] = [
+            driver["factor"]
+            for drivers in explain_patient_risk(record["patient"]).values()
+            for driver in drivers
+        ]
+    compare_ids = [value for value in (
+        request.args.get("before"),
+        request.args.get("after"),
+    ) if value]
+    progress = build_progress_view(
+        records,
+        include_archived=include_archived,
+        compare_ids=compare_ids or None,
+    )
+    progress["is_guest"] = not current_user.is_authenticated
+    progress["print_url"] = url_for(
+        "print_progress",
+        include_archived="1" if include_archived else None,
+        before=progress["comparison"]["before"]["id"] if progress["comparison"] else None,
+        after=progress["comparison"]["after"]["id"] if progress["comparison"] else None,
+    )
     return render_template("progress.html", **progress)
+
+
+@app.get("/history/progress/print")
+def print_progress():
+    include_archived = request.args.get("include_archived") == "1"
+    ownership = {
+        "session_id": session["session_id"],
+        "user_id": current_user.id if current_user.is_authenticated else None,
+        "limit": 200,
+        "sort_order": "asc",
+    }
+    records = database.get_all_assessments(archived=False, **ownership)
+    if include_archived:
+        records.extend(database.get_all_assessments(archived=True, **ownership))
+    for record in records:
+        record["risk_drivers"] = [
+            driver["factor"]
+            for drivers in explain_patient_risk(record["patient"]).values()
+            for driver in drivers
+        ]
+    compare_ids = [value for value in (
+        request.args.get("before"),
+        request.args.get("after"),
+    ) if value]
+    progress = build_progress_view(
+        records,
+        include_archived=include_archived,
+        compare_ids=compare_ids or None,
+    )
+    return render_template(
+        "progress_print.html",
+        **progress,
+        generated_at=datetime.now(timezone.utc),
+    )
 
 
 @app.route("/forgot-password", methods=["GET", "POST"])
