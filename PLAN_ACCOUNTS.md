@@ -270,6 +270,8 @@ PLAN_STATUS
 P1 [x] P2 [x] P3 [x] P4 [x] P5 [x] P6 [x] P7 [x] P8 [x]
 
 CHANGELOG
+- 2026-11-04: Isolated active admin sessions to admin tools and account settings; patient check, history, and other patient-facing routes redirect to the admin dashboard.
+- 2026-11-04: Fixed admin post-login routing so History destinations return admins to the admin dashboard; regular users retain safe `?next=` paths and the guest-claim prompt.
 - 2026-11-02: Refined admin dashboard, account support, feedback, audit, and system layouts with clearer hierarchy, plain-language descriptions, warm surfaces, responsive tables, and accessible activity bars that do not rely on CSP-blocked inline styles.
 - 2026-11-02: Replaced the admin header's standalone account/sign-out links with an initial avatar menu. The menu exposes Account and CSRF-protected Sign out on hover, keyboard focus, and touch/click.
 - 2026-11-02: Removed Audit and System links from desktop/mobile admin navigation and admin footer; protected pages and routes remain available as required by the admin plan.

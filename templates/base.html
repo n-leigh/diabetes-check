@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-{% set admin_area = request.path.startswith('/admin') %}
+{% set admin_area = current_user.is_authenticated and current_user.role == 'admin' %}
 <html lang="en">
 <head>
   <meta charset="UTF-8">

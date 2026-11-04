@@ -39,7 +39,7 @@ from dotenv import load_dotenv
 import joblib
 import numpy as np
 import pandas as pd
-from flask import Flask, render_template, request, redirect, url_for, session, abort
+from flask import Flask, render_template, request, redirect, url_for, session, abort, jsonify
 from flask_wtf.csrf import CSRFProtect, CSRFError
 from flask_limiter import Limiter
 from flask_limiter.util import get_remote_address
@@ -52,6 +52,7 @@ from rule_matrix import compute_all_risks, compute_lab_assessment, RULE_VERSION
 from recommendations import build_recommendations
 from validation import validate_patient_form
 from field_labels import describe_patient
+load_dotenv(os.path.join(os.path.dirname(os.path.abspath(__file__)), ".env"))
 import database
 
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
@@ -265,10 +266,10 @@ def _admin_dashboard_data():
         conn.close()
 
 
-def _safe_next_url(value):
+def _safe_next_url(value, fallback=None):
     if value and value.startswith("/") and not value.startswith("//"):
         return value
-    return url_for("history")
+    return fallback or url_for("history")
 
 
 def _password_error(password, email):
@@ -453,10 +454,25 @@ def _reset_link(token):
 
 
 def _post_auth_redirect(next_url=None):
+        is_admin = current_user.is_authenticated and current_user.role == "admin"
+        fallback_url = url_for("admin_dashboard") if is_admin else url_for("history")
+        destination = _safe_next_url(next_url, fallback_url)
+        if is_admin:
+            destination_path = destination.split("?", 1)[0].split("#", 1)[0]
+            admin_url = url_for("admin_dashboard")
+            account_url = url_for("account")
+            if not (
+                destination_path == admin_url
+                or destination_path.startswith(f"{admin_url}/")
+                or destination_path == account_url
+                or destination_path.startswith(f"{account_url}/")
+            ):
+                destination = fallback_url
+            return redirect(destination)
         claim_sid = session.get("claim_sid")
         if claim_sid and database.get_unclaimed_assessments(claim_sid):
             return redirect(url_for("claim"))
-        return redirect(url_for("history"))
+        return redirect(destination)
 
 
 @app.before_request
@@ -467,8 +483,19 @@ def ensure_session_id():
         if last_seen and now - last_seen > 1800:
             logout_user()
             session.pop("admin_last_seen", None)
-            return redirect(url_for("login", next=request.full_path))
+            return redirect(url_for("login", next=url_for("admin_dashboard")))
         session["admin_last_seen"] = now
+        allowed_admin_path = (
+            request.path == url_for("admin_dashboard")
+            or request.path.startswith(f"{url_for('admin_dashboard')}/")
+            or request.path == url_for("account")
+            or request.path.startswith(f"{url_for('account')}/")
+            or request.path == url_for("logout")
+            or request.path == url_for("health")
+            or request.endpoint == "static"
+        )
+        if not allowed_admin_path:
+            return redirect(url_for("admin_dashboard"))
     if "session_id" not in session:
         session["session_id"] = str(uuid.uuid4())
         session.permanent = True
@@ -478,7 +505,7 @@ def ensure_session_id():
 @limiter.limit("10 per hour")
 def register():
     if current_user.is_authenticated:
-        return redirect(url_for("history"))
+        return _post_auth_redirect(request.args.get("next"))
     errors = []
     if request.method == "POST":
         display_name = request.form.get("nickname", "").strip()
@@ -519,7 +546,7 @@ def register():
 @limiter.limit("10 per minute")
 def login():
     if current_user.is_authenticated:
-        return redirect(url_for("history"))
+        return _post_auth_redirect(request.args.get("next"))
     errors = []
     if request.method == "POST":
         email = request.form.get("email", "").strip().lower()
@@ -1429,6 +1456,17 @@ def history():
         show_archived=show_archived,
         sort_order=sort_order,
     )
+
+
+@app.get("/history/signature")
+def history_signature():
+    show_archived = request.args.get("view") == "archived"
+    signature = database.get_assessment_history_signature(
+        session_id=session["session_id"],
+        user_id=current_user.id if current_user.is_authenticated else None,
+        archived=show_archived,
+    )
+    return jsonify(signature)
 
 
 @app.route("/history/<int:assessment_id>/archive", methods=["POST"])

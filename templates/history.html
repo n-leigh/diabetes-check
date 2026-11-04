@@ -50,6 +50,7 @@
         Archived
       </a>
     </div>
+    <p id="historyLiveStatus" class="sr-only" aria-live="polite" data-history-view="{{ 'archived' if show_archived else 'active' }}"></p>
 
     <!-- Sort Toggle Buttons (Keeps "Newest" and "Oldest" for tests) -->
     {% if records %}
@@ -314,4 +315,5 @@
 
 {% block extra_scripts %}
 <script src="{{ url_for('static', filename='js/history.js') }}"></script>
+<script src="{{ url_for('static', filename='js/history-live.js') }}"></script>
 {% endblock %}
