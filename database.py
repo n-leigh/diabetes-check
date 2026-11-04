@@ -428,6 +428,14 @@ def init_db():
         )
     """)
     conn.execute("""
+        CREATE TABLE IF NOT EXISTS feedback_submissions (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            name TEXT,
+            message TEXT NOT NULL,
+            created_at TEXT NOT NULL
+        )
+    """)
+    conn.execute("""
         CREATE TABLE IF NOT EXISTS users (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
             email TEXT UNIQUE NOT NULL,
@@ -972,6 +980,29 @@ def save_feedback(assessment_id: int, helpful: bool, comment: str = None) -> Non
                 assessment_id,
                 bool(helpful) if DB_BACKEND == "postgres" else int(bool(helpful)),
                 comment.strip()[:2000] if comment else None,
+                datetime.now(timezone.utc).isoformat(timespec="seconds"),
+            ),
+        )
+        conn.commit()
+    except Exception:
+        conn.rollback()
+        raise
+    finally:
+        conn.close()
+
+
+def save_feedback_submission(name: str, message: str) -> None:
+    conn = get_connection()
+    try:
+        insert_sql = """
+            INSERT INTO feedback_submissions (name, message, created_at)
+            VALUES (?, ?, ?)
+        """
+        conn.execute(
+            insert_sql,
+            (
+                name.strip()[:100] if name else None,
+                message.strip()[:4000],
                 datetime.now(timezone.utc).isoformat(timespec="seconds"),
             ),
         )

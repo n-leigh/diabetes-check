@@ -387,6 +387,10 @@
         Save or print
       </a>
       {% endif %}
+      <button type="button" id="openFeedbackBtn" class="btn-secondary text-[18px] px-6 py-3.5 w-full sm:w-auto text-center">
+        <svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 11.5a8.4 8.4 0 0 1-9 8.4 8.5 8.5 0 0 1-4.1-1L3 20l1.1-4.1A8.4 8.4 0 1 1 21 11.5z"></path><path d="M8 11h.01M12 11h.01M16 11h.01"></path></svg>
+        Feedback
+      </button>
     </div>
     <div>
       <a href="/history" class="text-[18px] font-bold text-[#2e7283] hover:underline">
@@ -395,6 +399,32 @@
     </div>
   </div>
 
+</div>
+
+<div id="feedbackModal" class="feedback-modal-backdrop fixed inset-0 z-50 hidden items-center justify-center p-4" role="dialog" aria-modal="true" aria-labelledby="feedback-modal-title">
+  <div class="w-full max-w-lg rounded-2xl bg-white p-6 shadow-2xl sm:p-8" role="document">
+    <div class="flex items-start justify-between gap-4">
+      <h2 id="feedback-modal-title" class="font-heading text-2xl font-bold text-[#014c5e]">Share Your Feedback</h2>
+      <button type="button" id="closeFeedbackBtn" class="min-h-[48px] min-w-[48px] rounded-lg text-2xl text-[#4f5b66] hover:bg-[#f1fafb]" aria-label="Close feedback dialog">&times;</button>
+    </div>
+    <p id="feedbackSuccess" class="mt-4 hidden rounded-lg border border-[#bce0c6] bg-[#e4f2e7] p-3 text-[#2f7d4a]" role="status">Thank you for your feedback!</p>
+    <p id="feedbackError" class="mt-4 hidden rounded-lg border border-[#f1b8af] bg-[#f9e1dc] p-3 text-[#b03a2e]" role="alert"></p>
+    <form id="feedbackForm" class="mt-6 space-y-5">
+      <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+      <label class="block text-[17px] font-semibold text-[#1f2a33]" for="feedbackName">
+        Your Name (Optional)
+        <input id="feedbackName" name="name" type="text" maxlength="100" placeholder="e.g., Maria Santos or leave blank" class="input-field mt-2 w-full">
+      </label>
+      <label class="block text-[17px] font-semibold text-[#1f2a33]" for="feedbackMessage">
+        Your Feedback or Suggestions *
+        <textarea id="feedbackMessage" name="message" rows="4" maxlength="4000" required placeholder="Tell us about your experience or how we can improve DiaBeates..." class="input-field mt-2 w-full"></textarea>
+      </label>
+      <div class="flex flex-col-reverse gap-3 sm:flex-row sm:justify-end">
+        <button type="button" id="cancelFeedbackBtn" class="btn-secondary text-[17px]">Cancel</button>
+        <button type="submit" id="submitFeedbackBtn" class="btn-primary text-[17px]">Submit Feedback</button>
+      </div>
+    </form>
+  </div>
 </div>
 {% endblock %}
 

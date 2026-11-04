@@ -9,16 +9,17 @@
   </div>
   <div class="admin-table-wrap">
     <table class="admin-table">
-      <thead><tr><th scope="col">Helpful</th><th scope="col">Comment</th><th scope="col">Date</th></tr></thead>
+      <thead><tr><th scope="col">Helpful</th><th scope="col">Name</th><th scope="col">Comment</th><th scope="col">Date</th></tr></thead>
       <tbody>
       {% for item in feedback %}
       <tr>
         <td data-label="Helpful"><span class="admin-role-chip">{{ 'Yes' if item.helpful else 'No' }}</span></td>
+        <td data-label="Name">{{ item.name or 'Not provided' }}</td>
         <td data-label="Comment" class="admin-feedback-comment">{{ item.comment or 'No comment' }}</td>
         <td data-label="Date">{{ item.created_at|display_time }}</td>
       </tr>
       {% else %}
-      <tr><td class="admin-empty-state" colspan="3">No feedback has been submitted.</td></tr>
+      <tr><td class="admin-empty-state" colspan="4">No feedback has been submitted.</td></tr>
       {% endfor %}
       </tbody>
     </table>
