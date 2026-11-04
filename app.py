@@ -779,7 +779,11 @@ def admin_feedback():
     conn = database.get_connection()
     try:
         feedback = [dict(row) for row in conn.execute(
-            "SELECT helpful, comment, created_at FROM feedback ORDER BY created_at DESC LIMIT 200"
+            """SELECT helpful, comment, created_at, NULL AS name FROM feedback
+               UNION ALL
+               SELECT NULL AS helpful, message AS comment, created_at, name
+               FROM feedback_submissions
+               ORDER BY created_at DESC LIMIT 200"""
         ).fetchall()]
     finally:
         conn.close()
@@ -1604,6 +1608,27 @@ def feedback(assessment_id):
     helpful = request.form.get("helpful") == "1"
     database.save_feedback(assessment_id, helpful, request.form.get("comment"))
     return redirect(url_for("history_detail", assessment_id=assessment_id))
+
+
+@app.post("/api/feedback")
+def feedback_submission():
+    name = request.form.get("name", "").strip()
+    message = request.form.get("message", "").strip()
+    errors = []
+    if len(name) > 100:
+        errors.append("Your name must be 100 characters or fewer.")
+    if not message:
+        errors.append("Please write a feedback message.")
+    elif len(message) > 4000:
+        errors.append("Your feedback must be 4000 characters or fewer.")
+    if errors:
+        return jsonify({"error": errors[0]}), 400
+    try:
+        database.save_feedback_submission(name, message)
+    except Exception:
+        logger.exception("Feedback submission could not be saved")
+        return jsonify({"error": "We could not save your feedback. Please try again."}), 500
+    return jsonify({"message": "Thank you for your feedback!"}), 201
 
 
 @app.errorhandler(CSRFError)
