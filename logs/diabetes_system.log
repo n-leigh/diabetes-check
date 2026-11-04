@@ -1703,3 +1703,4 @@ HINT:  No operator matches the given name and argument types. You might need to 
 2026-11-04 22:10:27,549 - werkzeug - INFO - 127.0.0.1 - - [04/Nov/2026 22:10:27] "GET /static/css/clinical.css HTTP/1.1" 304 -
 2026-11-04 22:10:27,569 - werkzeug - INFO - 127.0.0.1 - - [04/Nov/2026 22:10:27] "GET /static/js/app.js HTTP/1.1" 304 -
 2026-11-04 22:10:27,616 - werkzeug - INFO - 127.0.0.1 - - [04/Nov/2026 22:10:27] "GET /static/logo.png HTTP/1.1" 304 -
+2026-11-04 22:49:58,758 - werkzeug - INFO - 127.0.0.1 - - [04/Nov/2026 22:49:58] "GET /history/signature?view=active HTTP/1.1" 200 -
