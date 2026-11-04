@@ -52,6 +52,7 @@ from rule_matrix import compute_all_risks, compute_lab_assessment, RULE_VERSION
 from recommendations import build_recommendations
 from validation import validate_patient_form
 from field_labels import describe_patient
+from progress_tracker import build_progress_view
 load_dotenv(os.path.join(os.path.dirname(os.path.abspath(__file__)), ".env"))
 import database
 
@@ -874,58 +875,18 @@ def admin_export_csv():
 
 @app.get("/history/progress")
 def history_progress():
-    records = database.get_all_assessments(
-        session_id=session["session_id"],
-        user_id=current_user.id if current_user.is_authenticated else None,
-        limit=200,
-        sort_order="asc",
-    )
-    domains = [
-        ("cardiovascular", "Heart"),
-        ("general_burden", "Kidneys"),
-        ("neuropathy_mobility", "Nerves and feet"),
-        ("retinopathy", "Eyes"),
-    ]
-    progress = []
-    for category, title in domains:
-        entries = []
-        for record in records:
-            result = record["rule_results"].get(category)
-            if result:
-                entries.append({
-                    "date": record["created_at"],
-                    "status": get_status_presentation(result.get("label")),
-                })
-        progress.append({
-            "category": category,
-            "title": title,
-            "entries": entries,
-            "sentence": _progress_sentence(title, entries),
-        })
-    return render_template("progress.html", progress=progress, check_count=len(records))
-
-
-def _progress_sentence(title, entries):
-    if len(entries) < 2:
-        return None
-    first = entries[0]
-    latest = entries[-1]
-    first_date = _progress_date(first["date"])
-    latest_date = _progress_date(latest["date"])
-    return (
-        f"{title}: {first['status']['label']} in {first_date.strftime('%B')}, "
-        f"{latest['status']['label']} in {latest_date.strftime('%B')}."
-    )
-
-
-def _progress_date(value):
-    if isinstance(value, datetime):
-        timestamp = value
-    else:
-        timestamp = datetime.fromisoformat(str(value).replace("Z", "+00:00"))
-    if timestamp.tzinfo is None:
-        timestamp = timestamp.replace(tzinfo=timezone.utc)
-    return timestamp.astimezone(DISPLAY_ZONE)
+    include_archived = request.args.get("include_archived") == "1"
+    ownership = {
+        "session_id": session["session_id"],
+        "user_id": current_user.id if current_user.is_authenticated else None,
+        "limit": 200,
+        "sort_order": "asc",
+    }
+    records = database.get_all_assessments(archived=False, **ownership)
+    if include_archived:
+        records.extend(database.get_all_assessments(archived=True, **ownership))
+    progress = build_progress_view(records, include_archived=include_archived)
+    return render_template("progress.html", **progress)
 
 
 @app.route("/forgot-password", methods=["GET", "POST"])
