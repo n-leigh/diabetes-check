@@ -1767,3 +1767,7 @@ HINT:  No operator matches the given name and argument types. You might need to 
 2026-11-04 23:12:39,244 - werkzeug - INFO - 127.0.0.1 - - [04/Nov/2026 23:12:39] "GET /static/fonts/fraunces-700.woff2 HTTP/1.1" 304 -
 2026-11-04 23:12:39,247 - werkzeug - INFO - 127.0.0.1 - - [04/Nov/2026 23:12:39] "GET /static/fonts/source-sans-3-600.woff2 HTTP/1.1" 304 -
 2026-11-04 23:12:39,264 - werkzeug - INFO - 127.0.0.1 - - [04/Nov/2026 23:12:39] "GET /static/fonts/source-sans-3-400.woff2 HTTP/1.1" 304 -
+2026-11-04 23:32:52,159 - DiaBeates - INFO - Database initialized successfully with non-destructive WAL mode.
+2026-11-04 23:32:52,321 - DiaBeates - INFO - Loaded clinical models summary: ['cardiovascular', 'general_burden', 'neuropathy_mobility', 'retinopathy']
+2026-11-04 23:33:11,274 - DiaBeates - INFO - Database initialized successfully with non-destructive WAL mode.
+2026-11-04 23:33:11,455 - DiaBeates - INFO - Loaded clinical models summary: ['cardiovascular', 'general_burden', 'neuropathy_mobility', 'retinopathy']
