@@ -69,9 +69,18 @@
             About
           </a>
           {% if current_user.is_authenticated %}
-          <a href="/account" class="account-avatar-link" aria-label="Account for {{ current_user.display_name }}" title="{{ current_user.display_name }}">
-            <span class="account-avatar" aria-hidden="true">{{ current_user.display_name[:1]|upper }}</span>
-          </a>
+          <details class="admin-account-menu">
+            <summary class="account-avatar-link" aria-label="Account menu for {{ current_user.display_name }}" title="{{ current_user.display_name }}">
+              <span class="account-avatar" aria-hidden="true">{{ current_user.display_name[:1]|upper }}</span>
+            </summary>
+            <div class="admin-account-popover">
+              <a href="/account">Profile</a>
+              <form action="/logout" method="post">
+                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                <button type="submit">Sign out</button>
+              </form>
+            </div>
+          </details>
           {% if current_user.role == 'admin' %}<a href="/admin" class="text-[19px] font-semibold text-[#0b7a85]">Admin</a>{% endif %}
           {% else %}
           <a href="/login" class="text-[19px] font-semibold text-[#0b7a85] hover:text-[#08616a]">Sign in</a>

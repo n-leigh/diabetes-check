@@ -595,7 +595,10 @@ def login():
 def logout():
     user_id = current_user.id
     logout_user()
+    remember_action = session.pop("_remember", None)
     session.clear()
+    if remember_action:
+        session["_remember"] = remember_action
     database.log_audit("logout", str(user_id), user_id, get_remote_address())
     return redirect(url_for("index"))
 
