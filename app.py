@@ -52,6 +52,7 @@ from rule_matrix import compute_all_risks, compute_lab_assessment, RULE_VERSION
 from recommendations import build_recommendations
 from validation import validate_patient_form
 from field_labels import describe_patient
+from progress_tracker import build_progress_view
 load_dotenv(os.path.join(os.path.dirname(os.path.abspath(__file__)), ".env"))
 import database
 
@@ -873,49 +874,73 @@ def admin_export_csv():
 
 
 @app.get("/history/progress")
-@login_required
 def history_progress():
-    records = database.get_all_assessments(
-        session_id=session["session_id"],
-        user_id=current_user.id,
-        limit=200,
-        sort_order="asc",
+    include_archived = request.args.get("include_archived") == "1"
+    ownership = {
+        "session_id": session["session_id"],
+        "user_id": current_user.id if current_user.is_authenticated else None,
+        "limit": 200,
+        "sort_order": "asc",
+    }
+    records = database.get_all_assessments(archived=False, **ownership)
+    if include_archived:
+        records.extend(database.get_all_assessments(archived=True, **ownership))
+    for record in records:
+        record["risk_drivers"] = [
+            driver["factor"]
+            for drivers in explain_patient_risk(record["patient"]).values()
+            for driver in drivers
+        ]
+    compare_ids = [value for value in (
+        request.args.get("before"),
+        request.args.get("after"),
+    ) if value]
+    progress = build_progress_view(
+        records,
+        include_archived=include_archived,
+        compare_ids=compare_ids or None,
     )
-    domains = [
-        ("cardiovascular", "Heart"),
-        ("general_burden", "Kidneys"),
-        ("neuropathy_mobility", "Nerves and feet"),
-        ("retinopathy", "Eyes"),
-    ]
-    progress = []
-    for category, title in domains:
-        entries = []
-        for record in records:
-            result = record["rule_results"].get(category)
-            if result:
-                entries.append({
-                    "date": record["created_at"],
-                    "status": get_status_presentation(result.get("label")),
-                })
-        progress.append({
-            "category": category,
-            "title": title,
-            "entries": entries,
-            "sentence": _progress_sentence(title, entries),
-        })
-    return render_template("progress.html", progress=progress, check_count=len(records))
+    progress["is_guest"] = not current_user.is_authenticated
+    progress["print_url"] = url_for(
+        "print_progress",
+        include_archived="1" if include_archived else None,
+        before=progress["comparison"]["before"]["id"] if progress["comparison"] else None,
+        after=progress["comparison"]["after"]["id"] if progress["comparison"] else None,
+    )
+    return render_template("progress.html", **progress)
 
 
-def _progress_sentence(title, entries):
-    if len(entries) < 2:
-        return None
-    first = entries[0]
-    latest = entries[-1]
-    first_date = datetime.fromisoformat(first["date"].replace("Z", "+00:00")).astimezone(DISPLAY_ZONE)
-    latest_date = datetime.fromisoformat(latest["date"].replace("Z", "+00:00")).astimezone(DISPLAY_ZONE)
-    return (
-        f"{title}: {first['status']['label']} in {first_date.strftime('%B')}, "
-        f"{latest['status']['label']} in {latest_date.strftime('%B')}."
+@app.get("/history/progress/print")
+def print_progress():
+    include_archived = request.args.get("include_archived") == "1"
+    ownership = {
+        "session_id": session["session_id"],
+        "user_id": current_user.id if current_user.is_authenticated else None,
+        "limit": 200,
+        "sort_order": "asc",
+    }
+    records = database.get_all_assessments(archived=False, **ownership)
+    if include_archived:
+        records.extend(database.get_all_assessments(archived=True, **ownership))
+    for record in records:
+        record["risk_drivers"] = [
+            driver["factor"]
+            for drivers in explain_patient_risk(record["patient"]).values()
+            for driver in drivers
+        ]
+    compare_ids = [value for value in (
+        request.args.get("before"),
+        request.args.get("after"),
+    ) if value]
+    progress = build_progress_view(
+        records,
+        include_archived=include_archived,
+        compare_ids=compare_ids or None,
+    )
+    return render_template(
+        "progress_print.html",
+        **progress,
+        generated_at=datetime.now(timezone.utc),
     )
 
 
