@@ -1,5 +1,16 @@
 # Methodology
 
+## Study Objective 5
+
+To evaluate the predictive performance of the four diabetes-complication models
+using Weka and report their accuracy, precision, recall, F1-score, ROC area,
+confusion matrices, and calibration-related results. The Weka evaluation will
+use the same held-out test data and target definitions described below, with
+the preprocessing steps and random seed recorded so the results are
+reproducible. Weka results will support model comparison and reporting; they
+will not be presented as diagnostic accuracy or as a replacement for clinical
+assessment.
+
 ## Intended Use
 
 DiaBeates provides screening-oriented estimates and educational guidance. It does not diagnose disease or predict validated 5- or 10-year event risk. All four domain models have undergone cross-validation and holdout evaluation.
