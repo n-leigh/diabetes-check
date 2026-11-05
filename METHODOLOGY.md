@@ -5,6 +5,10 @@
 1.3.2.5 To evaluate the performance of the machine-learning models using Weka
 and report their accuracy and other relevant evaluation results.
 
+### Aligned Statement of the Problem
+
+5. How accurate are the machine-learning models when evaluated using Weka?
+
 ## Intended Use
 
 DiaBeates provides screening-oriented estimates and educational guidance. It does not diagnose disease or predict validated 5- or 10-year event risk. All four domain models have undergone cross-validation and holdout evaluation.
