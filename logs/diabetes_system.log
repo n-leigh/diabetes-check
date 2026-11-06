@@ -3091,3 +3091,14 @@ HINT:  No operator matches the given name and argument types. You might need to 
 2026-11-06 16:55:58,499 - werkzeug - INFO - 127.0.0.1 - - [06/Nov/2026 16:55:58] "[36mGET /static/css/tailwind.min.css HTTP/1.1[0m" 304 -
 2026-11-06 16:56:57,768 - DiaBeates - INFO - Database initialized successfully with non-destructive WAL mode.
 2026-11-06 16:56:58,125 - DiaBeates - INFO - Loaded clinical models summary: ['cardiovascular', 'general_burden', 'neuropathy_mobility', 'retinopathy']
+2026-11-06 17:12:29,285 - DiaBeates - INFO - Database initialized successfully with non-destructive WAL mode.
+2026-11-06 17:12:30,501 - DiaBeates - INFO - Loaded clinical models summary: ['cardiovascular', 'general_burden', 'neuropathy_mobility', 'retinopathy']
+2026-11-06 17:12:46,459 - flask_wtf.csrf - INFO - The CSRF token is missing.
+2026-11-06 17:12:46,460 - DiaBeates - WARNING - CSRF validation failed: The CSRF token is missing.
+2026-11-06 17:12:46,482 - DiaBeates - INFO - Rule matrix assessment completed
+2026-11-06 17:13:13,157 - werkzeug - INFO - 127.0.0.1 - - [06/Nov/2026 17:13:13] "GET /assessment HTTP/1.1" 200 -
+2026-11-06 17:13:13,214 - DiaBeates - INFO - Rule matrix assessment completed
+2026-11-06 17:13:13,749 - werkzeug - INFO - 127.0.0.1 - - [06/Nov/2026 17:13:13] "POST /predict HTTP/1.1" 200 -
+2026-11-06 17:13:13,776 - werkzeug - INFO - 127.0.0.1 - - [06/Nov/2026 17:13:13] "GET /assessment HTTP/1.1" 200 -
+2026-11-06 17:13:13,795 - DiaBeates - INFO - Rule matrix assessment completed
+2026-11-06 17:13:13,976 - werkzeug - INFO - 127.0.0.1 - - [06/Nov/2026 17:13:13] "POST /predict HTTP/1.1" 200 -
