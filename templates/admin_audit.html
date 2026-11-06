@@ -2,33 +2,182 @@
 {% block title %}DiaBeates - Admin audit{% endblock %}
 {% block content %}
 <section class="admin-page max-w-6xl mx-auto px-4 py-10">
-  <div class="admin-page-heading">
-    <p class="admin-eyebrow">Service security</p>
-    <h1 class="font-heading text-3xl sm:text-4xl font-bold text-[#063154]">Audit log</h1>
-    <p class="admin-intro">Review account and admin actions. Network addresses are hidden here.</p>
+  <div class="admin-page-heading admin-page-heading-row">
+    <div>
+      <p class="admin-eyebrow"><span class="admin-eyebrow-dot" aria-hidden="true"></span> Service security</p>
+      <h1 class="font-heading text-3xl sm:text-4xl font-bold text-[#063154]">Audit log</h1>
+      <p class="admin-intro">Review account and admin actions. Network addresses are hidden here.</p>
+      <div class="admin-security-badges" role="region" aria-label="Security and privacy guarantees">
+        <span class="admin-security-pill">
+          <svg class="w-4 h-4 text-[#0b7a85]" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"></path>
+          </svg>
+          <span>Immutable append-only log</span>
+        </span>
+        <span class="admin-security-pill">
+          <svg class="w-4 h-4 text-[#0b7a85]" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"></path>
+          </svg>
+          <span>IP anonymized for privacy</span>
+        </span>
+      </div>
+    </div>
+    <a class="admin-back-link" href="/admin">
+      <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M15 19l-7-7 7-7"></path>
+      </svg>
+      <span>Back to dashboard</span>
+    </a>
   </div>
-  <form class="admin-filter-form">
-    <label for="auditAction">Action</label>
-    <input id="auditAction" name="action" value="{{ action }}" placeholder="For example, login_success" class="input-field">
-    <button class="btn-secondary" type="submit">Filter log</button>
-  </form>
+
+  <div class="admin-filter-bar">
+    <form class="admin-filter-form" method="get" action="/admin/audit">
+      <label for="auditAction">
+        <svg class="w-4 h-4 text-[#0b7a85]" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+            d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2.586a1 1 0 01-.293.707l-6.414 6.414a1 1 0 00-.293.707V17l-4 4v-6.586a1 1 0 00-.293-.707L3.293 7.293A1 1 0 013 6.586V4z">
+          </path>
+        </svg>
+        Action
+      </label>
+      <select id="auditAction" name="action" class="input-field" aria-label="Filter audit log by action type">
+        <option value="">All actions</option>
+        {% for act in known_actions %}
+        <option value="{{ act }}" {% if action==act %}selected{% endif %}>{{ act }}</option>
+        {% endfor %}
+      </select>
+      <button class="btn-secondary admin-filter-submit" type="submit">Filter log</button>
+    </form>
+    {% if action %}
+    <div class="admin-active-filter-badge" role="status">
+      <span>Filtered by: <code>{{ action }}</code></span>
+      <a class="admin-clear-filter-btn" href="/admin/audit" aria-label="Clear action filter">✕ Clear</a>
+    </div>
+    {% endif %}
+  </div>
+
   <div class="admin-table-wrap">
     <table class="admin-table">
-      <thead><tr><th scope="col">Date</th><th scope="col">Action</th><th scope="col">Actor ID</th><th scope="col">Target</th></tr></thead>
+      <caption class="sr-only">Security and account audit event log</caption>
+      <thead>
+        <tr>
+          <th scope="col" id="col-date">Date</th>
+          <th scope="col" id="col-action">Action</th>
+          <th scope="col" id="col-actor">Actor ID</th>
+          <th scope="col" id="col-target">Target</th>
+        </tr>
+      </thead>
       <tbody>
-      {% for item in audit %}
-      <tr>
-        <td data-label="Date">{{ item.created_at|display_time }}</td>
-        <td data-label="Action"><span class="admin-role-chip">{{ item.action }}</span></td>
-        <td data-label="Actor ID">{{ item.actor_user_id or 'System' }}</td>
-        <td data-label="Target">{{ item.target or '—' }}</td>
-      </tr>
-      {% else %}
-      <tr><td class="admin-empty-state" colspan="4">No matching audit entries.</td></tr>
-      {% endfor %}
+        {% for item in audit %}
+        {% set act_lower = item.action|lower %}
+        {% if 'failed' in act_lower or 'lockout' in act_lower or 'deactivate' in act_lower or 'delete' in act_lower or 'revoke' in act_lower %}
+          {% set chip_class = 'is-negative' %}
+          {% set chip_dot_class = 'bg-[#b03a2e]' %}
+        {% elif 'reset_completed' in act_lower or 'reactivate' in act_lower or 'login_success' in act_lower %}
+          {% set chip_class = 'is-positive' %}
+          {% set chip_dot_class = 'bg-[#2f7d4a]' %}
+        {% elif 'reset' in act_lower or 'backup' in act_lower or 'promote' in act_lower or 'password_changed' in act_lower %}
+          {% set chip_class = 'is-warning' %}
+          {% set chip_dot_class = 'bg-[#a86a0a]' %}
+        {% elif 'logout' in act_lower %}
+          {% set chip_class = 'is-neutral' %}
+          {% set chip_dot_class = 'bg-[#4f5b66]' %}
+        {% else %}
+          {% set chip_class = 'is-default' %}
+          {% set chip_dot_class = 'bg-[#0b7a85]' %}
+        {% endif %}
+        <tr>
+          <td data-label="Date" headers="col-date">
+            <div class="flex items-center gap-2">
+              <svg class="w-4 h-4 text-[#0b7a85] flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+              </svg>
+              <time class="font-mono text-sm text-[#1f2a33] font-medium" datetime="{{ item.created_at }}">{{ item.created_at|display_time }}</time>
+            </div>
+          </td>
+          <td data-label="Action" headers="col-action">
+            <span class="admin-role-chip {{ chip_class }}">
+              <span class="admin-chip-dot {{ chip_dot_class }}" aria-hidden="true"></span>
+              <span>{{ item.action }}</span>
+            </span>
+          </td>
+          <td data-label="Actor ID" headers="col-actor">
+            {% if item.actor_user_id %}
+            <span class="admin-actor-badge is-user">
+              <svg class="w-4 h-4 text-[#0b7a85]" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"></path>
+              </svg>
+              <span class="font-mono text-xs font-semibold">User #{{ item.actor_user_id }}</span>
+            </span>
+            {% else %}
+            <span class="admin-actor-badge is-system">
+              <svg class="w-4 h-4 text-[#4f5b66]" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37.996.608 2.296.07 2.572-1.065z"></path>
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path>
+              </svg>
+              <span class="font-mono text-xs font-semibold">System</span>
+            </span>
+            {% endif %}
+          </td>
+          <td data-label="Target" headers="col-target">
+            {% if item.target %}
+            <span class="admin-target-pill font-mono text-xs">{{ item.target }}</span>
+            {% else %}
+            <span class="admin-target-none" aria-label="No target specified">—</span>
+            {% endif %}
+          </td>
+        </tr>
+        {% else %}
+        <tr>
+          <td class="admin-empty-state" colspan="4">
+            <div class="flex flex-col items-center justify-center py-4">
+              <span class="admin-empty-state-icon" aria-hidden="true">
+                <svg class="w-7 h-7" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.75"
+                    d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z">
+                  </path>
+                </svg>
+              </span>
+              <p class="font-bold text-[#063154] text-base mb-1">No matching audit entries.</p>
+              <p class="text-sm text-[#4f5b66]">Try selecting a different action filter or clear the current filter.</p>
+              {% if action %}
+              <a href="/admin/audit" class="admin-action-button mt-4">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+                </svg>
+                Reset filter to view all
+              </a>
+              {% endif %}
+            </div>
+          </td>
+        </tr>
+        {% endfor %}
       </tbody>
     </table>
   </div>
-  <div class="admin-pagination"><a class="admin-action-button" href="?page={{ page + 1 }}{% if action %}&action={{ action }}{% endif %}">Next page</a></div>
+
+  <nav class="admin-pagination" aria-label="Audit log pagination">
+    <span class="admin-page-indicator">Page {{ page }}</span>
+    <div class="admin-pagination-actions">
+      {% if has_prev %}
+      <a class="admin-action-button"
+        href="?page={{ page - 1 }}{% if action %}&action={{ action|urlencode }}{% endif %}">
+        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"></path>
+        </svg>
+        Previous page
+      </a>
+      {% endif %}
+      {% if has_next %}
+      <a class="admin-action-button"
+        href="?page={{ page + 1 }}{% if action %}&action={{ action|urlencode }}{% endif %}">
+        Next page
+        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path>
+        </svg>
+      </a>
+      {% endif %}
+    </div>
+  </nav>
 </section>
 {% endblock %}

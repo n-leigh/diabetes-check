@@ -2,27 +2,99 @@
 {% block title %}DiaBeates - Admin feedback{% endblock %}
 {% block content %}
 <section class="admin-page max-w-5xl mx-auto px-4 py-10">
-  <div class="admin-page-heading">
-    <p class="admin-eyebrow">Service improvement</p>
-    <h1 class="font-heading text-3xl sm:text-4xl font-bold text-[#063154]">Feedback</h1>
-    <p class="admin-intro">Comments are not linked to accounts or checks. They may still include personal details.</p>
+  <div class="admin-page-heading admin-page-heading-row">
+    <div>
+      <p class="admin-eyebrow"><span class="admin-eyebrow-dot" aria-hidden="true"></span> Service improvement</p>
+      <h1 class="font-heading text-3xl sm:text-4xl font-bold text-[#063154]">Feedback</h1>
+      <p class="admin-intro">Comments are not linked to accounts or checks. Comments may contain personal details.</p>
+    </div>
+    <a class="admin-back-link" href="/admin">
+      <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M15 19l-7-7 7-7"></path>
+      </svg>
+      <span>Back to dashboard</span>
+    </a>
   </div>
+  {% if tally %}
+  <div class="admin-feedback-tally-bar" role="status" aria-label="Feedback ratings summary">
+    <svg class="w-5 h-5 text-[#0b7a85]" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+        d="M11.049 2.927c.3-.921 1.603-.921 1.902 0l1.519 4.674a1 1 0 00.95.69h4.915c.969 0 1.371 1.24.588 1.81l-3.976 2.888a1 1 0 00-.363 1.118l1.518 4.674c.3.922-.755 1.688-1.538 1.118l-3.976-2.888a1 1 0 00-1.176 0l-3.976 2.888c-.783.57-1.838-.197-1.538-1.118l1.518-4.674a1 1 0 00-.363-1.118l-3.976-2.888c-.784-.57-.38-1.81.588-1.81h4.914a1 1 0 00.951-.69l1.519-4.674z">
+      </path>
+    </svg>
+    <span>{{ tally.text }}</span>
+  </div>
+  {% endif %}
   <div class="admin-table-wrap">
     <table class="admin-table">
-      <thead><tr><th scope="col">Helpful</th><th scope="col">Name</th><th scope="col">Comment</th><th scope="col">Date</th></tr></thead>
+      <caption class="sr-only">Patient and user service feedback comments</caption>
+      <thead>
+        <tr>
+          <th scope="col">Helpful</th>
+          <th scope="col">Name</th>
+          <th scope="col">Comment</th>
+          <th scope="col">Date</th>
+        </tr>
+      </thead>
       <tbody>
-      {% for item in feedback %}
-      <tr>
-        <td data-label="Helpful"><span class="admin-role-chip">{{ 'Yes' if item.helpful else 'No' }}</span></td>
-        <td data-label="Name">{{ item.name or 'Not provided' }}</td>
-        <td data-label="Comment" class="admin-feedback-comment">{{ item.comment or 'No comment' }}</td>
-        <td data-label="Date">{{ item.created_at|display_time }}</td>
-      </tr>
-      {% else %}
-      <tr><td class="admin-empty-state" colspan="4">No feedback has been submitted.</td></tr>
-      {% endfor %}
+        {% for item in feedback %}
+        <tr>
+          <td data-label="Helpful">
+            {% if item.helpful is none %}
+            <span class="admin-role-chip is-neutral">Not rated</span>
+            {% elif item.helpful %}
+            <span class="admin-role-chip is-positive">Yes</span>
+            {% else %}
+            <span class="admin-role-chip is-negative">No</span>
+            {% endif %}
+          </td>
+          <td data-label="Name">
+            <span class="font-semibold text-[#063154]">{{ item.name or 'Not provided' }}</span>
+          </td>
+          <td data-label="Comment" class="admin-feedback-comment text-sm leading-relaxed text-[#1f2a33]">{{ item.comment
+            or 'No comment' }}</td>
+          <td data-label="Date"><span class="font-mono text-sm text-[#4f5b66]">{{ item.created_at|display_time }}</span>
+          </td>
+        </tr>
+        {% else %}
+        <tr>
+          <td class="admin-empty-state" colspan="4">
+            <div class="flex flex-col items-center justify-center py-4">
+              <span class="admin-empty-state-icon" aria-hidden="true">
+                <svg class="w-7 h-7" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.75"
+                    d="M8 10h.01M12 10h.01M16 10h.01M9 16H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-5l-5 5v-5z">
+                  </path>
+                </svg>
+              </span>
+              <p class="font-bold text-[#063154] text-base mb-1">No feedback has been submitted.</p>
+            </div>
+          </td>
+        </tr>
+        {% endfor %}
       </tbody>
     </table>
   </div>
+  <nav class="admin-pagination" aria-label="Feedback pagination">
+    <span class="admin-page-indicator">Page {{ page }}</span>
+    <div class="admin-pagination-actions">
+      {% if has_prev %}
+      <a class="admin-action-button" href="?page={{ page - 1 }}">
+        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"></path>
+        </svg>
+        Previous page
+      </a>
+      {% endif %}
+      {% if has_next %}
+      <a class="admin-action-button" href="?page={{ page + 1 }}">
+        Next page
+        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path>
+        </svg>
+      </a>
+      {% endif %}
+    </div>
+  </nav>
 </section>
 {% endblock %}

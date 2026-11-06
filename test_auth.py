@@ -1,6 +1,9 @@
+import contextlib
 import hashlib
+import os
 import re
 import secrets
+import tempfile
 import uuid
 from datetime import datetime, timedelta, timezone
 
@@ -9,9 +12,40 @@ from werkzeug.security import check_password_hash
 
 import app
 import database
+from rule_matrix import compute_lab_assessment
 
 
 PASSWORD = "StrongTestPass9!"
+
+
+@contextlib.contextmanager
+def isolated_database_environment():
+    with tempfile.TemporaryDirectory() as directory:
+        original_db_path = database.DB_PATH
+        original_key_path = database.KEY_PATH
+        original_protected_key_path = database.PROTECTED_KEY_PATH
+        original_key_env = os.environ.get("DIABEATES_DB_KEY")
+        database.DB_PATH = os.path.join(directory, "diabetes_system.db")
+        database.KEY_PATH = os.path.join(directory, ".db.key")
+        database.PROTECTED_KEY_PATH = os.path.join(directory, ".db.key.dpapi")
+        os.environ["DIABEATES_DB_KEY"] = "0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef"
+        try:
+            database.init_db()
+            yield directory
+        finally:
+            database.DB_PATH = original_db_path
+            database.KEY_PATH = original_key_path
+            database.PROTECTED_KEY_PATH = original_protected_key_path
+            if original_key_env is not None:
+                os.environ["DIABEATES_DB_KEY"] = original_key_env
+            else:
+                os.environ.pop("DIABEATES_DB_KEY", None)
+
+
+@pytest.fixture(autouse=True)
+def isolated_db():
+    with isolated_database_environment():
+        yield
 
 
 def _csrf(client, path):
@@ -253,9 +287,10 @@ def test_admin_routes_and_last_admin_protection(client, admin, user):
     assert "Individual health checks are not shown here" in dashboard
     assert 'href="/assessment"' not in dashboard
     assert 'href="/history"' not in dashboard
-    assert 'href="/admin/export.csv"' not in dashboard
-    assert 'href="/admin/audit"' not in dashboard
-    assert 'href="/admin/system"' not in dashboard
+    # More tools links appear exactly once in the dashboard HTML (More tools card only, not nav/footer)
+    assert dashboard.count('href="/admin/export.csv"') == 1
+    assert dashboard.count('href="/admin/audit"') == 1
+    assert dashboard.count('href="/admin/system"') == 1
     assert "Admin account menu for Test Admin" in dashboard
     assert "Sign out" in dashboard
     assert 'class="admin-account-menu"' in dashboard
@@ -279,3 +314,268 @@ def test_status_helper_and_csrf():
     assert app.get_status_presentation("High")["label"] == "See a doctor"
     assert app._admin_count(4) == "<5"
     assert app._admin_count(5) == "5"
+
+
+def test_admin_small_cell_and_secondary_suppression(client, admin):
+    _, admin_email = admin
+    assert _login(client, admin_email).status_code == 302
+
+    conn = database.get_connection()
+    try:
+        cur = conn.execute(
+            """INSERT INTO assessments (session_id, created_at, rule_matrix_version, bmi, age_band, gen_hlth, sex)
+               VALUES ('test-suppression-sid', datetime('now'), '1.0', 22.0, 1, 1, 1)"""
+        )
+        asmt_id = cur.lastrowid
+
+        # Domain 1 (Heart / cardiovascular): all 3 statuses >= 5 (all displayed)
+        for _ in range(5):
+            conn.execute("INSERT INTO risk_results (assessment_id, category, rule_label) VALUES (?, 'cardiovascular', 'Low')", (asmt_id,))
+        for _ in range(6):
+            conn.execute("INSERT INTO risk_results (assessment_id, category, rule_label) VALUES (?, 'cardiovascular', 'Moderate')", (asmt_id,))
+        for _ in range(7):
+            conn.execute("INSERT INTO risk_results (assessment_id, category, rule_label) VALUES (?, 'cardiovascular', 'High')", (asmt_id,))
+
+        # Domain 2 (Kidneys / general_burden): one status = 4 (<5), others >= 5 -> all 3 show "<5"
+        for _ in range(4):
+            conn.execute("INSERT INTO risk_results (assessment_id, category, rule_label) VALUES (?, 'general_burden', 'Low')", (asmt_id,))
+        for _ in range(5):
+            conn.execute("INSERT INTO risk_results (assessment_id, category, rule_label) VALUES (?, 'general_burden', 'Moderate')", (asmt_id,))
+        for _ in range(5):
+            conn.execute("INSERT INTO risk_results (assessment_id, category, rule_label) VALUES (?, 'general_burden', 'High')", (asmt_id,))
+
+        # Seeded feedback case 1: 4 yes / 6 no -> both "<5"
+        for _ in range(4):
+            conn.execute("INSERT INTO feedback (assessment_id, helpful, comment, created_at) VALUES (?, 1, 'yes', datetime('now'))", (asmt_id,))
+        for _ in range(6):
+            conn.execute("INSERT INTO feedback (assessment_id, helpful, comment, created_at) VALUES (?, 0, 'no', datetime('now'))", (asmt_id,))
+        conn.commit()
+    finally:
+        conn.close()
+
+    # Feedback tally: 4 yes / 6 no -> both suppressed (<5)
+    tally_suppressed = app._admin_feedback_tally()
+    assert tally_suppressed["yes"] == "<5"
+    assert tally_suppressed["no"] == "<5"
+    assert tally_suppressed["text"] == "Helpful: <5 yes / <5 no"
+
+    # Seeded feedback case 2: add 2 yes (now 6 yes / 6 no) -> both shown
+    conn = database.get_connection()
+    try:
+        for _ in range(2):
+            conn.execute("INSERT INTO feedback (assessment_id, helpful, comment, created_at) VALUES (?, 1, 'yes', datetime('now'))", (asmt_id,))
+        conn.commit()
+    finally:
+        conn.close()
+
+    tally_shown = app._admin_feedback_tally()
+    assert tally_shown["yes"] == "6"
+    assert tally_shown["no"] == "6"
+    assert tally_shown["text"] == "Helpful: 6 yes / 6 no"
+
+    # Assert both domain status cases on /admin HTML
+    dash_resp = client.get("/admin")
+    assert dash_resp.status_code == 200
+    dash_html = dash_resp.get_data(as_text=True)
+    # Heart: all three statuses displayed
+    assert ">5</strong>" in dash_html
+    assert ">6</strong>" in dash_html
+    assert ">7</strong>" in dash_html
+    # Kidneys: one status is 4 (<5), so all three are suppressed to "<5"
+    dash_data = app._admin_dashboard_data()
+    assert dash_data["status_counts"]["Heart"] == {"Good": "5", "Check": "6", "See a doctor": "7"}
+    assert dash_data["status_counts"]["Kidneys"] == {"Good": "<5", "Check": "<5", "See a doctor": "<5"}
+
+    # Assert both domain status cases on /admin/export.csv
+    csv_resp = client.get("/admin/export.csv")
+    assert csv_resp.status_code == 200
+    csv_text = csv_resp.get_data(as_text=True)
+    assert "generated_at," in csv_text
+    assert "suppression_note,Counts below 5 are shown as <5" in csv_text
+    assert "heart_good,5" in csv_text
+    assert "heart_check,6" in csv_text
+    assert "heart_see_a_doctor,7" in csv_text
+    assert "kidneys_good,<5" in csv_text
+    assert "kidneys_check,<5" in csv_text
+    assert "kidneys_see_a_doctor,<5" in csv_text
+
+    # Cell starting with = should be neutralized
+    assert app._sanitize_csv_cell("=SUM(1,2)") == "'=SUM(1,2)"
+    assert app._sanitize_csv_cell("+100") == "'+100"
+    assert app._sanitize_csv_cell("@alert") == "'@alert"
+
+
+def test_admin_feedback_submissions_render_not_rated(client, admin):
+    _, admin_email = admin
+    unique_msg = f"Feedback-Test-{uuid.uuid4().hex}"
+    database.save_feedback_submission("Test Patient", unique_msg)
+
+    assert _login(client, admin_email).status_code == 302
+    resp = client.get("/admin/feedback")
+    assert resp.status_code == 200
+    html = resp.get_data(as_text=True)
+    assert unique_msg in html
+    assert "Not rated" in html
+    assert "Helpful:" in html
+
+
+def test_admin_actions_confirmation_and_button_visibility(client, admin, user):
+    admin_id, admin_email = admin
+    user_id, user_email = user
+    assert _login(client, admin_email).status_code == 302
+
+    # Verify users table with single active admin
+    resp = client.get("/admin/users")
+    assert resp.status_code == 200
+    html = resp.get_data(as_text=True)
+
+    # For admin self: Deactivate form must NOT render
+    assert f'action="/admin/users/{admin_id}/deactivate"' not in html
+    # For admin self (as last active admin): Delete must NOT render, note must render
+    assert f'action="/admin/users/{admin_id}/delete"' not in html
+    assert "Last active admin" in html
+
+    # Data confirm message checks
+    assert 'data-confirm-message="Create a 60-minute password reset link for this user?"' in html
+    # Deactivate other user first to check reactivate form
+    csrf = _csrf(client, "/admin/users")
+    client.post(f"/admin/users/{user_id}/deactivate", data={"csrf_token": csrf})
+    resp_inactive = client.get("/admin/users")
+    html_inactive = resp_inactive.get_data(as_text=True)
+    assert f'action="/admin/users/{user_id}/reactivate"' in html_inactive
+    assert 'data-confirm-message="Reactivate this user?"' in html_inactive
+
+    # Create backup confirmation on system page
+    sys_resp = client.get("/admin/system")
+    assert sys_resp.status_code == 200
+    sys_html = sys_resp.get_data(as_text=True)
+    assert 'data-confirm-message="Create a new encrypted database backup?"' in sys_html
+
+
+def test_admin_audit_pagination_and_filter(client, admin):
+    admin_id, admin_email = admin
+    assert _login(client, admin_email).status_code == 302
+
+    conn = database.get_connection()
+    try:
+        for _ in range(60):
+            conn.execute(
+                """INSERT INTO audit_log (actor_user_id, action, target, ip, created_at)
+                   VALUES (?, 'admin_backup_created', NULL, '127.0.0.1', datetime('now'))""",
+                (admin_id,),
+            )
+        conn.commit()
+    finally:
+        conn.close()
+
+    # Page 1: has Next, no Previous, link keeps action=admin_backup_created
+    resp_p1 = client.get("/admin/audit?action=admin_backup_created")
+    assert resp_p1.status_code == 200
+    html_p1 = resp_p1.get_data(as_text=True)
+    assert "admin_backup_created" in html_p1
+    assert '<select id="auditAction" name="action"' in html_p1
+    assert 'value="admin_backup_created" selected' in html_p1
+    assert "Next page" in html_p1
+    assert "Previous page" not in html_p1
+    assert "action=admin_backup_created" in html_p1
+
+    # Page 2: has Previous, no Next, link keeps action=admin_backup_created
+    resp_p2 = client.get("/admin/audit?page=2&action=admin_backup_created")
+    assert resp_p2.status_code == 200
+    html_p2 = resp_p2.get_data(as_text=True)
+    assert "Previous page" in html_p2
+    assert "Next page" not in html_p2
+    assert "action=admin_backup_created" in html_p2
+
+
+def test_admin_system_page_metrics_and_chips(client, admin):
+    _, admin_email = admin
+    assert _login(client, admin_email).status_code == 302
+
+    resp = client.get("/admin/system")
+    assert resp.status_code == 200
+    html = resp.get_data(as_text=True)
+
+    assert "Database status" in html
+    assert "Connected" in html
+    assert "4 of 4 loaded" in html
+    assert "Running for" in html
+    assert ("MB" in html or "KB" in html or "bytes" in html)
+    assert "Guest checks are deleted after 90 days. Accounts are kept until deleted." in html
+    assert "Loaded" in html
+    # Model titles from shared mapping
+    assert "Heart" in html
+    assert "Kidneys" in html
+    assert "Nerves and feet" in html
+    assert "Eyes" in html
+
+
+def test_admin_never_exposes_individual_health_data(client, admin):
+    _, admin_email = admin
+    unique_bmi = 77.3
+    unique_hba1c = 14.89
+    lab_assessment = compute_lab_assessment(hba1c=unique_hba1c)
+    sid = f"privacy-test-{uuid.uuid4().hex}"
+    results = {
+        category: {"score": 2, "percentage": 85, "label": "High"}
+        for category in ("cardiovascular", "general_burden", "neuropathy_mobility", "retinopathy")
+    }
+    assessment_id = database.save_assessment(
+        sid,
+        {"BMI": unique_bmi, "Age": 5, "GenHlth": 4, "Sex": 1},
+        results,
+        model_results={},
+        lab_assessment=lab_assessment,
+    )
+
+    conn = database.get_connection()
+    try:
+        lab_row_count = conn.execute(
+            "SELECT COUNT(*) FROM lab_assessments WHERE assessment_id = ?",
+            (assessment_id,),
+        ).fetchone()[0]
+        assert lab_row_count == 1, "Lab assessment row was not inserted"
+    finally:
+        conn.close()
+
+    assert _login(client, admin_email).status_code == 302
+
+    admin_endpoints = [
+        "/admin",
+        "/admin/users",
+        "/admin/feedback",
+        "/admin/audit",
+        "/admin/system",
+        "/admin/export.csv",
+    ]
+    for endpoint in admin_endpoints:
+        res = client.get(endpoint)
+        assert res.status_code == 200
+        body = res.get_data(as_text=True)
+        assert str(unique_bmi) not in body, f"Leaked BMI on {endpoint}"
+        assert str(unique_hba1c) not in body, f"Leaked HbA1c on {endpoint}"
+        assert "77.3" not in body
+        assert "14.89" not in body
+        assert "no-store" in res.headers.get("Cache-Control", ""), f"Missing no-store on {endpoint}"
+
+
+def test_admin_route_authorization_boundaries(client, user):
+    _, user_email = user
+    admin_endpoints = [
+        "/admin",
+        "/admin/users",
+        "/admin/feedback",
+        "/admin/audit",
+        "/admin/system",
+        "/admin/export.csv",
+    ]
+
+    for endpoint in admin_endpoints:
+        res = client.get(endpoint)
+        assert res.status_code == 302, f"Anonymous should redirect on {endpoint}"
+        assert "/login" in res.headers["Location"]
+
+    assert _login(client, user_email).status_code == 302
+    for endpoint in admin_endpoints:
+        res = client.get(endpoint)
+        assert res.status_code == 403, f"Non-admin should get 403 on {endpoint}"
