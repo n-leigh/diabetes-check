@@ -3058,3 +3058,72 @@ TypeError: fromisoformat: argument must be str
 2026-11-08 19:46:02,907 - werkzeug - INFO - 127.0.0.1 - - [08/Nov/2026 19:46:02] "GET /static/fonts/source-sans-3-400.woff2 HTTP/1.1" 304 -
 2026-11-08 19:46:02,908 - werkzeug - INFO - 127.0.0.1 - - [08/Nov/2026 19:46:02] "GET /static/fonts/source-sans-3-600.woff2 HTTP/1.1" 304 -
 2026-11-08 19:46:02,916 - werkzeug - INFO - 127.0.0.1 - - [08/Nov/2026 19:46:02] "GET /static/fonts/ibm_plex_mono-600-normal.woff2 HTTP/1.1" 304 -
+2026-11-08 19:50:33,147 - DiaBeates - ERROR - Unexpected server error
+Traceback (most recent call last):
+  File "C:\Users\carlo\AppData\Local\Programs\Python\Python311\Lib\site-packages\flask\app.py", line 917, in full_dispatch_request
+    rv = self.dispatch_request()
+         ^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\carlo\AppData\Local\Programs\Python\Python311\Lib\site-packages\flask\app.py", line 902, in dispatch_request
+    return self.ensure_sync(self.view_functions[rule.endpoint])(**view_args)  # type: ignore[no-any-return]
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\carlo\Documents\htdocs\diabetes-check\app.py", line 987, in reset_password
+    @admin_required
+                    
+  File "C:\Users\carlo\Documents\htdocs\diabetes-check\database.py", line 785, in get_valid_password_reset_token
+    conn.commit()
+                 ^
+TypeError: fromisoformat: argument must be str
+2026-11-08 19:50:33,162 - werkzeug - INFO - 127.0.0.1 - - [08/Nov/2026 19:50:33] "GET /reset-password/eb1eXfqoSqwwUr9I5zsYgKVStjrASqXE3iJQiyKuyl8 HTTP/1.1" 500 -
+2026-11-08 19:50:33,204 - werkzeug - INFO - 127.0.0.1 - - [08/Nov/2026 19:50:33] "GET /static/css/tailwind.min.css HTTP/1.1" 304 -
+2026-11-08 19:50:33,226 - werkzeug - INFO - 127.0.0.1 - - [08/Nov/2026 19:50:33] "GET /static/js/assessment.js HTTP/1.1" 304 -
+2026-11-08 19:50:33,246 - werkzeug - INFO - 127.0.0.1 - - [08/Nov/2026 19:50:33] "GET /static/js/app.js HTTP/1.1" 304 -
+2026-11-08 19:50:33,250 - werkzeug - INFO - 127.0.0.1 - - [08/Nov/2026 19:50:33] "GET /static/css/clinical.css HTTP/1.1" 304 -
+2026-11-08 19:50:33,256 - werkzeug - INFO - 127.0.0.1 - - [08/Nov/2026 19:50:33] "GET /static/logo.png HTTP/1.1" 304 -
+2026-11-08 19:50:33,302 - werkzeug - INFO - 127.0.0.1 - - [08/Nov/2026 19:50:33] "GET /static/fonts/fraunces-700.woff2 HTTP/1.1" 304 -
+2026-11-08 19:50:33,306 - werkzeug - INFO - 127.0.0.1 - - [08/Nov/2026 19:50:33] "GET /static/fonts/source-sans-3-500.woff2 HTTP/1.1" 304 -
+2026-11-08 19:50:33,332 - werkzeug - INFO - 127.0.0.1 - - [08/Nov/2026 19:50:33] "GET /static/fonts/source-sans-3-400.woff2 HTTP/1.1" 304 -
+2026-11-08 19:50:33,318 - werkzeug - INFO - 127.0.0.1 - - [08/Nov/2026 19:50:33] "GET /static/fonts/source-sans-3-600.woff2 HTTP/1.1" 304 -
+2026-11-08 19:50:33,358 - werkzeug - INFO - 127.0.0.1 - - [08/Nov/2026 19:50:33] "GET /static/fonts/ibm_plex_mono-600-normal.woff2 HTTP/1.1" 304 -
+2026-11-08 19:50:33,384 - werkzeug - INFO - 127.0.0.1 - - [08/Nov/2026 19:50:33] "GET /static/logo.png HTTP/1.1" 304 -
+2026-11-08 19:50:35,468 - werkzeug - INFO - 127.0.0.1 - - [08/Nov/2026 19:50:35] "GET /login HTTP/1.1" 200 -
+2026-11-08 19:50:35,512 - werkzeug - INFO - 127.0.0.1 - - [08/Nov/2026 19:50:35] "GET /static/css/tailwind.min.css HTTP/1.1" 304 -
+2026-11-08 19:50:35,530 - werkzeug - INFO - 127.0.0.1 - - [08/Nov/2026 19:50:35] "GET /static/css/clinical.css HTTP/1.1" 304 -
+2026-11-08 19:50:35,534 - werkzeug - INFO - 127.0.0.1 - - [08/Nov/2026 19:50:35] "GET /static/js/app.js HTTP/1.1" 304 -
+2026-11-08 19:50:35,545 - werkzeug - INFO - 127.0.0.1 - - [08/Nov/2026 19:50:35] "GET /static/logo.png HTTP/1.1" 304 -
+2026-11-08 19:50:35,571 - werkzeug - INFO - 127.0.0.1 - - [08/Nov/2026 19:50:35] "GET /static/fonts/fraunces-700.woff2 HTTP/1.1" 304 -
+2026-11-08 19:50:35,574 - werkzeug - INFO - 127.0.0.1 - - [08/Nov/2026 19:50:35] "GET /static/fonts/source-sans-3-500.woff2 HTTP/1.1" 304 -
+2026-11-08 19:50:35,578 - werkzeug - INFO - 127.0.0.1 - - [08/Nov/2026 19:50:35] "GET /static/fonts/source-sans-3-600.woff2 HTTP/1.1" 304 -
+2026-11-08 19:50:35,582 - werkzeug - INFO - 127.0.0.1 - - [08/Nov/2026 19:50:35] "GET /static/fonts/source-sans-3-400.woff2 HTTP/1.1" 304 -
+2026-11-08 19:50:39,900 - werkzeug - INFO - 127.0.0.1 - - [08/Nov/2026 19:50:39] "GET /forgot-password HTTP/1.1" 200 -
+2026-11-08 19:50:39,951 - werkzeug - INFO - 127.0.0.1 - - [08/Nov/2026 19:50:39] "GET /static/css/tailwind.min.css HTTP/1.1" 304 -
+2026-11-08 19:50:39,973 - werkzeug - INFO - 127.0.0.1 - - [08/Nov/2026 19:50:39] "GET /static/logo.png HTTP/1.1" 304 -
+2026-11-08 19:50:39,975 - werkzeug - INFO - 127.0.0.1 - - [08/Nov/2026 19:50:39] "GET /static/js/app.js HTTP/1.1" 304 -
+2026-11-08 19:50:39,976 - werkzeug - INFO - 127.0.0.1 - - [08/Nov/2026 19:50:39] "GET /static/css/clinical.css HTTP/1.1" 304 -
+2026-11-08 19:50:40,011 - werkzeug - INFO - 127.0.0.1 - - [08/Nov/2026 19:50:40] "GET /static/fonts/source-sans-3-500.woff2 HTTP/1.1" 304 -
+2026-11-08 19:50:40,012 - werkzeug - INFO - 127.0.0.1 - - [08/Nov/2026 19:50:40] "GET /static/fonts/fraunces-700.woff2 HTTP/1.1" 304 -
+2026-11-08 19:50:40,018 - werkzeug - INFO - 127.0.0.1 - - [08/Nov/2026 19:50:40] "GET /static/fonts/source-sans-3-600.woff2 HTTP/1.1" 304 -
+2026-11-08 19:50:40,050 - werkzeug - INFO - 127.0.0.1 - - [08/Nov/2026 19:50:40] "GET /static/fonts/source-sans-3-400.woff2 HTTP/1.1" 304 -
+2026-11-08 19:50:43,094 - flask-limiter - INFO - ratelimit 5 per 1 hour (127.0.0.1) exceeded at endpoint: forgot_password
+2026-11-08 19:50:43,113 - werkzeug - INFO - 127.0.0.1 - - [08/Nov/2026 19:50:43] "POST /forgot-password HTTP/1.1" 429 -
+2026-11-08 19:50:50,821 - werkzeug - INFO - 127.0.0.1 - - [08/Nov/2026 19:50:50] "GET /login HTTP/1.1" 200 -
+2026-11-08 19:50:50,876 - werkzeug - INFO - 127.0.0.1 - - [08/Nov/2026 19:50:50] "GET /static/css/tailwind.min.css HTTP/1.1" 304 -
+2026-11-08 19:50:50,912 - werkzeug - INFO - 127.0.0.1 - - [08/Nov/2026 19:50:50] "GET /static/js/app.js HTTP/1.1" 304 -
+2026-11-08 19:50:50,913 - werkzeug - INFO - 127.0.0.1 - - [08/Nov/2026 19:50:50] "GET /static/logo.png HTTP/1.1" 304 -
+2026-11-08 19:50:50,914 - werkzeug - INFO - 127.0.0.1 - - [08/Nov/2026 19:50:50] "GET /static/css/clinical.css HTTP/1.1" 304 -
+2026-11-08 19:50:50,945 - werkzeug - INFO - 127.0.0.1 - - [08/Nov/2026 19:50:50] "GET /static/fonts/fraunces-700.woff2 HTTP/1.1" 304 -
+2026-11-08 19:50:50,954 - werkzeug - INFO - 127.0.0.1 - - [08/Nov/2026 19:50:50] "GET /static/fonts/source-sans-3-600.woff2 HTTP/1.1" 304 -
+2026-11-08 19:50:50,961 - werkzeug - INFO - 127.0.0.1 - - [08/Nov/2026 19:50:50] "GET /static/fonts/source-sans-3-500.woff2 HTTP/1.1" 304 -
+2026-11-08 19:50:50,963 - werkzeug - INFO - 127.0.0.1 - - [08/Nov/2026 19:50:50] "GET /static/fonts/source-sans-3-400.woff2 HTTP/1.1" 304 -
+2026-11-08 19:50:53,264 - flask-limiter - INFO - ratelimit 5 per 1 hour (127.0.0.1) exceeded at endpoint: forgot_password
+2026-11-08 19:50:53,266 - werkzeug - INFO - 127.0.0.1 - - [08/Nov/2026 19:50:53] "GET /forgot-password HTTP/1.1" 429 -
+2026-11-08 19:51:01,020 - werkzeug - INFO - 127.0.0.1 - - [08/Nov/2026 19:51:01] "GET /login HTTP/1.1" 200 -
+2026-11-08 19:51:01,054 - werkzeug - INFO - 127.0.0.1 - - [08/Nov/2026 19:51:01] "GET /static/css/tailwind.min.css HTTP/1.1" 304 -
+2026-11-08 19:51:01,070 - werkzeug - INFO - 127.0.0.1 - - [08/Nov/2026 19:51:01] "GET /static/css/clinical.css HTTP/1.1" 304 -
+2026-11-08 19:51:01,078 - werkzeug - INFO - 127.0.0.1 - - [08/Nov/2026 19:51:01] "GET /static/js/app.js HTTP/1.1" 304 -
+2026-11-08 19:51:01,082 - werkzeug - INFO - 127.0.0.1 - - [08/Nov/2026 19:51:01] "GET /static/logo.png HTTP/1.1" 304 -
+2026-11-08 19:51:01,127 - werkzeug - INFO - 127.0.0.1 - - [08/Nov/2026 19:51:01] "GET /static/fonts/fraunces-700.woff2 HTTP/1.1" 304 -
+2026-11-08 19:51:01,133 - werkzeug - INFO - 127.0.0.1 - - [08/Nov/2026 19:51:01] "GET /static/fonts/source-sans-3-500.woff2 HTTP/1.1" 304 -
+2026-11-08 19:51:01,134 - werkzeug - INFO - 127.0.0.1 - - [08/Nov/2026 19:51:01] "GET /static/fonts/source-sans-3-600.woff2 HTTP/1.1" 304 -
+2026-11-08 19:51:01,139 - werkzeug - INFO - 127.0.0.1 - - [08/Nov/2026 19:51:01] "GET /static/fonts/source-sans-3-400.woff2 HTTP/1.1" 304 -
+2026-11-08 19:51:03,030 - flask-limiter - INFO - ratelimit 5 per 1 hour (127.0.0.1) exceeded at endpoint: forgot_password
+2026-11-08 19:51:03,032 - werkzeug - INFO - 127.0.0.1 - - [08/Nov/2026 19:51:03] "GET /forgot-password HTTP/1.1" 429 -
