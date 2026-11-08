@@ -27,7 +27,10 @@
       <tr>
         <td data-label="Account"><strong>{{ user.display_name }}</strong><span>{{ user.email }}</span></td>
         <td data-label="Role"><span class="admin-role-chip">{{ user.role }}</span></td>
-        <td data-label="Status"><span class="admin-account-status {{ 'is-active' if user.is_active else 'is-inactive' }}">{{ 'Active' if user.is_active else 'Inactive' }}</span></td>
+        <td data-label="Status">
+          <span class="admin-account-status {{ 'is-active' if user.is_active else 'is-inactive' }}">{{ 'Active' if user.is_active else 'Inactive' }}</span>
+          <span class="admin-account-status {{ 'is-active' if user.email_verified_at else 'is-inactive' }}">{{ 'Verified' if user.email_verified_at else 'Unverified' }}</span>
+        </td>
         <td data-label="Created">{{ user.created_at|display_time }}</td>
         <td data-label="Last login">{{ user.last_login_at|display_time if user.last_login_at else 'Not yet' }}</td>
         <td data-label="Actions">

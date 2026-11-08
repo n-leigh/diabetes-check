@@ -49,7 +49,7 @@ DB_PATH = os.path.join(os.path.dirname(os.path.abspath(__file__)), "diabetes_sys
 KEY_PATH = os.path.join(os.path.dirname(os.path.abspath(__file__)), ".db.key")
 PROTECTED_KEY_PATH = os.path.join(os.path.dirname(os.path.abspath(__file__)), ".db.key.dpapi")
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
-SCHEMA_VERSION = 5
+SCHEMA_VERSION = 6
 _KEY_ENVIRONMENT_VARIABLE = "DIABEATES_DB_KEY"
 DB_BACKEND = os.getenv("DB_BACKEND", "sqlite").strip().lower()
 SUPABASE_DB_URL = os.getenv("SUPABASE_DB_URL", "").strip()
@@ -448,11 +448,28 @@ def init_db():
             failed_attempts INTEGER NOT NULL DEFAULT 0,
             locked_until TEXT,
             consent_at TEXT NOT NULL,
-            consent_version TEXT NOT NULL
+            consent_version TEXT NOT NULL,
+            email_verified_at TEXT
         )
     """)
     conn.execute("""
         CREATE TABLE IF NOT EXISTS password_reset_tokens (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            user_id INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+            token_hash TEXT NOT NULL,
+            expires_at TEXT NOT NULL,
+            used_at TEXT
+        )
+    """)
+    existing_user_cols = [r[1] for r in conn.execute("PRAGMA table_info(users)").fetchall()]
+    if "email_verified_at" not in existing_user_cols:
+        conn.execute("ALTER TABLE users ADD COLUMN email_verified_at TEXT")
+    conn.execute(
+        "UPDATE users SET email_verified_at = COALESCE(email_verified_at, created_at) "
+        "WHERE email_verified_at IS NULL"
+    )
+    conn.execute("""
+        CREATE TABLE IF NOT EXISTS email_verification_tokens (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
             user_id INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE,
             token_hash TEXT NOT NULL,
@@ -477,6 +494,7 @@ def init_db():
     conn.execute("CREATE INDEX IF NOT EXISTS idx_users_email ON users(email)")
     conn.execute("CREATE INDEX IF NOT EXISTS idx_assessments_user_archived_id ON assessments(user_id, archived, id)")
     conn.execute("CREATE INDEX IF NOT EXISTS idx_password_reset_tokens_hash ON password_reset_tokens(token_hash)")
+    conn.execute("CREATE INDEX IF NOT EXISTS idx_email_verification_tokens_hash ON email_verification_tokens(token_hash)")
     conn.execute("CREATE INDEX IF NOT EXISTS idx_audit_log_created_at ON audit_log(created_at)")
     conn.execute(f"PRAGMA user_version = {SCHEMA_VERSION}")
     conn.commit()
@@ -702,15 +720,17 @@ def set_archived(assessment_id: int, session_id: str, archived: bool, user_id: i
 
 def create_user(email: str, password: str, display_name: str,
                 consent_at: str = None, consent_version: str = "1.0",
-                role: str = "user") -> int:
+                role: str = "user", email_verified_at: str = "__default__") -> int:
     """Create an account and return its id."""
     normalized_email = email.strip().lower()
     consent_at = consent_at or datetime.now(timezone.utc).isoformat(timespec="seconds")
+    if email_verified_at == "__default__":
+        email_verified_at = datetime.now(timezone.utc).isoformat(timespec="seconds")
     conn = get_connection()
     try:
         insert_sql = """INSERT INTO users
-               (email, password_hash, display_name, role, created_at, consent_at, consent_version)
-               VALUES (?, ?, ?, ?, ?, ?, ?)"""
+               (email, password_hash, display_name, role, created_at, consent_at, consent_version, email_verified_at)
+               VALUES (?, ?, ?, ?, ?, ?, ?, ?)"""
         if DB_BACKEND == "postgres":
             insert_sql += " RETURNING id"
         cur = conn.execute(
@@ -723,6 +743,7 @@ def create_user(email: str, password: str, display_name: str,
                 datetime.now(timezone.utc).isoformat(timespec="seconds"),
                 consent_at,
                 consent_version,
+                email_verified_at,
             ),
         )
         conn.commit()
@@ -782,10 +803,117 @@ def get_valid_password_reset_token(token_hash: str):
         ).fetchone()
         if not row:
             return None
-        expires_at = datetime.fromisoformat(row["expires_at"])
+        expires_at = row["expires_at"]
+        if isinstance(expires_at, str):
+            expires_at = datetime.fromisoformat(expires_at)
+        if expires_at.tzinfo is None:
+            expires_at = expires_at.replace(tzinfo=timezone.utc)
         if expires_at <= datetime.now(timezone.utc):
             return None
         return dict(row)
+    finally:
+        conn.close()
+
+
+def create_email_verification_token(user_id: int, token_hash: str, expires_at: str) -> None:
+    conn = get_connection()
+    try:
+        conn.execute(
+            "DELETE FROM email_verification_tokens WHERE user_id = ? AND used_at IS NULL",
+            (user_id,),
+        )
+        conn.execute(
+            """INSERT INTO email_verification_tokens (user_id, token_hash, expires_at)
+               VALUES (?, ?, ?)""",
+            (user_id, token_hash, expires_at),
+        )
+        conn.commit()
+    except Exception:
+        conn.rollback()
+        raise
+    finally:
+        conn.close()
+
+
+def get_email_verification_token(token_hash: str):
+    conn = get_connection()
+    try:
+        row = conn.execute(
+            """SELECT * FROM email_verification_tokens
+               WHERE token_hash = ? AND used_at IS NULL""",
+            (token_hash,),
+        ).fetchone()
+        if not row:
+            return None
+        expires_at = row["expires_at"]
+        if isinstance(expires_at, str):
+            expires_at = datetime.fromisoformat(expires_at)
+        if expires_at.tzinfo is None:
+            expires_at = expires_at.replace(tzinfo=timezone.utc)
+        if expires_at <= datetime.now(timezone.utc):
+            return None
+        return dict(row)
+    finally:
+        conn.close()
+
+
+def consume_email_verification_token(token_id: int, user_id: int, verified_at: str) -> bool:
+    conn = get_connection()
+    try:
+        cur = conn.execute(
+            """UPDATE email_verification_tokens SET used_at = ?
+               WHERE id = ? AND user_id = ? AND used_at IS NULL""",
+            (verified_at, token_id, user_id),
+        )
+        if cur.rowcount != 1:
+            conn.rollback()
+            return False
+        conn.execute(
+            "UPDATE users SET email_verified_at = ? WHERE id = ? AND email_verified_at IS NULL",
+            (verified_at, user_id),
+        )
+        conn.execute("UPDATE email_verification_tokens SET used_at = ? WHERE user_id = ? AND used_at IS NULL", (verified_at, user_id))
+        conn.commit()
+        return True
+    except Exception:
+        conn.rollback()
+        raise
+    finally:
+        conn.close()
+
+
+def mark_email_verified(user_id: int, verified_at: str = None) -> None:
+    verified_at = verified_at or datetime.now(timezone.utc).isoformat(timespec="seconds")
+    conn = get_connection()
+    try:
+        conn.execute("UPDATE users SET email_verified_at = ? WHERE id = ?", (verified_at, user_id))
+        conn.execute("UPDATE email_verification_tokens SET used_at = ? WHERE user_id = ? AND used_at IS NULL", (verified_at, user_id))
+        conn.commit()
+    except Exception:
+        conn.rollback()
+        raise
+    finally:
+        conn.close()
+
+
+def prune_unverified_accounts(days: int = 7) -> int:
+    cutoff = (datetime.now(timezone.utc) - timedelta(days=days)).isoformat(timespec="seconds")
+    conn = get_connection()
+    try:
+        rows = conn.execute(
+            "SELECT id FROM users WHERE email_verified_at IS NULL AND created_at < ?",
+            (cutoff,),
+        ).fetchall()
+        for row in rows:
+            conn.execute("DELETE FROM email_verification_tokens WHERE user_id = ?", (row["id"],))
+            _delete_assessments_with_connection(conn, "user_id = ?", (row["id"],))
+            conn.execute("DELETE FROM password_reset_tokens WHERE user_id = ?", (row["id"],))
+            conn.execute("DELETE FROM users WHERE id = ?", (row["id"],))
+        conn.commit()
+        return len(rows)
+    except Exception:
+        conn.rollback()
+        raise
     finally:
         conn.close()
 
@@ -915,6 +1043,7 @@ def delete_user_account(user_id: int) -> None:
     try:
         _delete_assessments_with_connection(conn, "user_id = ?", (user_id,))
         conn.execute("DELETE FROM password_reset_tokens WHERE user_id = ?", (user_id,))
+        conn.execute("DELETE FROM email_verification_tokens WHERE user_id = ?", (user_id,))
         conn.execute("DELETE FROM users WHERE id = ?", (user_id,))
         conn.commit()
     except Exception:

@@ -157,6 +157,9 @@ def load_user(user_id):
 
 
 _DUMMY_PASSWORD_HASH = generate_password_hash("dummy-password-for-timing", method="scrypt")
+_verification_resend_lock = threading.Lock()
+_verification_resend_times = {}
+_verification_resend_history = {}
 COMMON_PASSWORDS = {
     "123456", "123456789", "12345", "password", "password1", "12345678",
     "qwerty", "abc123", "111111", "123123", "admin", "letmein",
@@ -386,6 +389,13 @@ except Exception:
 
 if pruned_count:
     logger.info("Expired assessments pruned: %d", pruned_count)
+try:
+    pruned_unverified = database.prune_unverified_accounts(days=7)
+except Exception:
+    logger.exception("Failed to prune stale unverified accounts")
+    pruned_unverified = 0
+if pruned_unverified:
+    logger.info("Stale unverified accounts pruned: %d", pruned_unverified)
 
 CATEGORIES = ["cardiovascular", "neuropathy_mobility", "general_burden", "retinopathy"]
 FEATURE_COLUMNS = [
@@ -424,34 +434,114 @@ for cat in CATEGORIES:
 
 
 def _send_reset_email(email, reset_link):
-        smtp_host = os.getenv("SMTP_HOST", "").strip()
-        smtp_port = int(os.getenv("SMTP_PORT", "587"))
-        smtp_user = os.getenv("SMTP_USER", "").strip()
-        smtp_password = os.getenv("SMTP_PASSWORD", "")
-        smtp_from = os.getenv("SMTP_FROM", "").strip()
-        if not smtp_host or not smtp_from:
-            if DEBUG:
-                logger.info("Password reset link for configured debug delivery: %s", reset_link)
-                return True
+    smtp_host = os.getenv("SMTP_HOST", "").strip()
+    smtp_port = int(os.getenv("SMTP_PORT", "587"))
+    smtp_user = os.getenv("SMTP_USER", "").strip()
+    smtp_password = os.getenv("SMTP_PASSWORD", "")
+    smtp_from = os.getenv("SMTP_FROM", "").strip()
+    if not smtp_host or not smtp_from:
+        if DEBUG:
+            logger.info("Password reset link for configured debug delivery: %s", reset_link)
+            return True
+        return False
+    message = EmailMessage()
+    message["Subject"] = "DiaBeates password reset"
+    message["From"] = smtp_from
+    message["To"] = email
+    message.set_content(f"Use this link within 60 minutes to reset your password:\n\n{reset_link}")
+    with smtplib.SMTP(smtp_host, smtp_port, timeout=10) as server:
+        server.starttls()
+        if smtp_user:
+            server.login(smtp_user, smtp_password)
+        server.send_message(message)
+    return True
+
+
+def _smtp_configured():
+    return all(os.getenv(name, "").strip() for name in (
+        "SMTP_HOST", "SMTP_PORT", "SMTP_USER", "SMTP_PASSWORD", "SMTP_FROM"
+    ))
+
+
+def _email_verification_required():
+    value = os.getenv("REQUIRE_EMAIL_VERIFICATION")
+    if value is None or not value.strip():
+        return _smtp_configured()
+    return value.strip().lower() in {"1", "true", "yes", "on"}
+
+
+def _verification_link(token):
+    base_url = os.getenv("BASE_URL", "").strip().rstrip("/")
+    path = url_for("verify_email", token=token)
+    return f"{base_url}{path}" if base_url else url_for("verify_email", token=token, _external=True)
+
+
+def _send_verification_email(email, display_name, verification_link):
+    if not _smtp_configured():
+        return False
+    message = EmailMessage()
+    message["Subject"] = "Confirm your DiaBeates email"
+    message["From"] = os.getenv("SMTP_FROM", "").strip()
+    message["To"] = email
+    message.set_content(render_template("emails/verification.txt", display_name=display_name, verification_link=verification_link))
+    message.add_alternative(render_template("emails/verification.html", display_name=display_name, verification_link=verification_link), subtype="html")
+    with smtplib.SMTP(os.getenv("SMTP_HOST", "").strip(), int(os.getenv("SMTP_PORT", "587")), timeout=10) as server:
+        server.starttls()
+        server.login(os.getenv("SMTP_USER", "").strip(), os.getenv("SMTP_PASSWORD", ""))
+        server.send_message(message)
+    return True
+
+
+def _send_welcome_email(email, display_name):
+    if not _smtp_configured():
+        return False
+    message = EmailMessage()
+    message["Subject"] = "Welcome to DiaBeates"
+    message["From"] = os.getenv("SMTP_FROM", "").strip()
+    message["To"] = email
+    message.set_content(render_template("emails/welcome.txt", display_name=display_name))
+    message.add_alternative(render_template("emails/welcome.html", display_name=display_name), subtype="html")
+    with smtplib.SMTP(os.getenv("SMTP_HOST", "").strip(), int(os.getenv("SMTP_PORT", "587")), timeout=10) as server:
+        server.starttls()
+        server.login(os.getenv("SMTP_USER", "").strip(), os.getenv("SMTP_PASSWORD", ""))
+        server.send_message(message)
+    return True
+
+
+def _create_verification_message(user_id, email, display_name):
+    raw_token = secrets.token_urlsafe(32)
+    database.create_email_verification_token(
+        user_id,
+        hashlib.sha256(raw_token.encode("utf-8")).hexdigest(),
+        (datetime.now(timezone.utc) + timedelta(hours=24)).isoformat(timespec="seconds"),
+    )
+    return _send_verification_email(email, display_name, _verification_link(raw_token))
+
+
+def _resend_allowed(email):
+    now = datetime.now(timezone.utc).timestamp()
+    with _verification_resend_lock:
+        last_sent = _verification_resend_times.get(email)
+        history = [timestamp for timestamp in _verification_resend_history.get(email, []) if now - timestamp < 3600]
+        if (last_sent and now - last_sent < 60) or len(history) >= 5:
             return False
-        message = EmailMessage()
-        message["Subject"] = "DiaBeates password reset"
-        message["From"] = smtp_from
-        message["To"] = email
-        message.set_content(f"Use this link within 60 minutes to reset your password:\n\n{reset_link}")
-        with smtplib.SMTP(smtp_host, smtp_port, timeout=10) as server:
-            server.starttls()
-            if smtp_user:
-                server.login(smtp_user, smtp_password)
-            server.send_message(message)
+        _verification_resend_times[email] = now
+        history.append(now)
+        _verification_resend_history[email] = history
         return True
 
 
+if not _smtp_configured() and not _email_verification_required():
+    logger.warning("SMTP is not fully configured; new accounts will be auto-verified.")
+elif not _smtp_configured() and _email_verification_required():
+    logger.warning("Email verification is required but SMTP is not fully configured; registration is disabled.")
+
+
 def _reset_link(token):
-        base_url = os.getenv("BASE_URL", "").strip().rstrip("/")
-        if base_url:
-            return f"{base_url}{url_for('reset_password', token=token)}"
-        return url_for("reset_password", token=token, _external=True)
+    base_url = os.getenv("BASE_URL", "").strip().rstrip("/")
+    if base_url:
+        return f"{base_url}{url_for('reset_password', token=token)}"
+    return url_for("reset_password", token=token, _external=True)
 
 
 def _post_auth_redirect(next_url=None):
@@ -509,7 +599,7 @@ def register():
         return _post_auth_redirect(request.args.get("next"))
     errors = []
     if request.method == "POST":
-        display_name = request.form.get("nickname", "").strip()
+        display_name = re.sub(r"[\r\n]+", " ", request.form.get("nickname", "").strip())
         email = request.form.get("email", "").strip().lower()
         password = request.form.get("password", "")
         confirm_password = request.form.get("confirm_password", "")
@@ -524,22 +614,53 @@ def register():
             errors.append("Passwords do not match.")
         if not consent:
             errors.append("Please agree to the Privacy Notice.")
+        if _email_verification_required() and not _smtp_configured():
+            errors.append("Email sign-up is temporarily unavailable. Please try again later.")
         if not errors:
-            try:
-                user_id = database.create_user(email, password, display_name)
-            except sqlite3.IntegrityError:
+            existing = database.get_user_by_email(email)
+            if existing and existing["email_verified_at"]:
                 errors.append("That email is already registered.")
             else:
-                guest_sid = session.get("session_id")
-                session.clear()
-                session["session_id"] = str(uuid.uuid4())
-                session.permanent = True
-                if guest_sid:
-                    session["claim_sid"] = guest_sid
-                user = load_user(user_id)
-                login_user(user, remember=False)
-                database.log_audit("login_success", str(user_id), user_id, get_remote_address())
-                return _post_auth_redirect(request.args.get("next"))
+                try:
+                    if existing:
+                        user_id = existing["id"]
+                        conn = database.get_connection()
+                        try:
+                            conn.execute(
+                                "UPDATE users SET display_name = ?, password_hash = ?, email_verified_at = NULL, "
+                                "consent_at = ?, consent_version = ?, created_at = ? WHERE id = ?",
+                                (display_name, generate_password_hash(password, method="scrypt"),
+                                 datetime.now(timezone.utc).isoformat(timespec="seconds"), "1.0",
+                                 datetime.now(timezone.utc).isoformat(timespec="seconds"), user_id),
+                            )
+                            conn.commit()
+                        finally:
+                            conn.close()
+                        raw_token = secrets.token_urlsafe(32)
+                        database.create_email_verification_token(
+                            user_id,
+                            hashlib.sha256(raw_token.encode("utf-8")).hexdigest(),
+                            (datetime.now(timezone.utc) + timedelta(hours=24)).isoformat(timespec="seconds"),
+                        )
+                        sent = _send_verification_email(email, display_name, _verification_link(raw_token))
+                    else:
+                        verified_at = None if _email_verification_required() else datetime.now(timezone.utc).isoformat(timespec="seconds")
+                        user_id = database.create_user(email, password, display_name, email_verified_at=verified_at)
+                        sent = True if verified_at else _create_verification_message(user_id, email, display_name)
+                except (OSError, smtplib.SMTPException, ValueError):
+                    logger.warning("Verification email delivery failed for a pending account.")
+                    sent = False
+                except sqlite3.IntegrityError:
+                    errors.append("That email is already registered.")
+                else:
+                    if not sent and _email_verification_required():
+                        errors.append("We could not send the confirmation email. Please try again.")
+                    elif _email_verification_required():
+                        database.log_audit("verification_sent", str(user_id), None, get_remote_address())
+                        session["pending_verification_email"] = email
+                        return redirect(url_for("check_email"))
+                    else:
+                        return redirect(url_for("login"))
     return render_template("register.html", errors=errors, form_data=request.form)
 
 
@@ -575,6 +696,9 @@ def login():
             elif row:
                 database.log_audit("login_failed", str(row["id"]), None, get_remote_address())
             errors.append("Email or password is incorrect.")
+        elif not row["email_verified_at"]:
+            errors.append("Please confirm your email first.")
+            session["pending_verification_email"] = email
         else:
             guest_sid = session.get("session_id")
             session.clear()
@@ -587,7 +711,64 @@ def login():
             login_user(user, remember=remember and user.role != "admin")
             database.log_audit("login_success", str(user.id), user.id, get_remote_address())
             return _post_auth_redirect(request.args.get("next"))
-    return render_template("login.html", errors=errors, form_data=request.form)
+    return render_template(
+        "login.html",
+        errors=errors,
+        form_data=request.form,
+        unverified_email=session.get("pending_verification_email") if any(
+            "confirm your email" in error.lower() for error in errors
+        ) else None,
+    )
+
+
+@app.get("/check-email")
+def check_email():
+    email = session.get("pending_verification_email")
+    if not email:
+        return redirect(url_for("register"))
+    return render_template("check_email.html", email=email)
+
+
+@app.post("/resend-verification")
+@limiter.limit("5 per hour")
+def resend_verification():
+    email = request.form.get("email", "").strip().lower()
+    row = database.get_user_by_email(email)
+    if row and not row["email_verified_at"] and _resend_allowed(email):
+        try:
+            if _create_verification_message(row["id"], row["email"], row["display_name"]):
+                database.log_audit("verification_sent", str(row["id"]), None, get_remote_address())
+                database.log_audit("resend_requested", str(row["id"]), None, get_remote_address())
+        except (OSError, smtplib.SMTPException, ValueError):
+            logger.warning("Verification resend failed for a pending account.")
+    session["pending_verification_email"] = email
+    return render_template("check_email.html", email=email, resend_submitted=True)
+
+
+@app.route("/verify-email/<token>", methods=["GET", "POST"])
+def verify_email(token):
+    token_row = database.get_email_verification_token(
+        hashlib.sha256(token.encode("utf-8")).hexdigest()
+    )
+    if request.method == "GET":
+        if not token_row:
+            return render_template("verify_email.html", state="invalid")
+        user = database.get_user_by_id(token_row["user_id"])
+        if user and user["email_verified_at"]:
+            return render_template("verify_email.html", state="already_verified")
+        return render_template("verify_email.html", state="confirm", token=token)
+    if not token_row:
+        return render_template("verify_email.html", state="invalid")
+    verified_at = datetime.now(timezone.utc).isoformat(timespec="seconds")
+    if not database.consume_email_verification_token(token_row["id"], token_row["user_id"], verified_at):
+        return render_template("verify_email.html", state="invalid")
+    user = database.get_user_by_id(token_row["user_id"])
+    database.log_audit("verified", str(token_row["user_id"]), None, get_remote_address())
+    try:
+        _send_welcome_email(user["email"], user["display_name"])
+    except (OSError, smtplib.SMTPException, ValueError):
+        logger.warning("Welcome email delivery failed after verification.")
+    return render_template("verify_email.html", state="verified")
 
 
 @app.post("/logout")
@@ -666,12 +847,14 @@ def account_delete():
 @app.get("/account/export")
 @login_required
 def account_export():
+    user_row = database.get_user_by_id(current_user.id)
     records = database.get_all_assessments(
         session_id=session["session_id"], user_id=current_user.id, limit=10000, sort_order="asc"
     )
     payload = {
         "nickname": current_user.display_name,
         "email": current_user.email,
+        "email_verified_at": user_row["email_verified_at"],
         "assessments": records,
     }
     response = app.response_class(
@@ -694,7 +877,7 @@ def admin_users():
     conn = database.get_connection()
     try:
         users = [dict(row) for row in conn.execute(
-            """SELECT id, display_name, email, role, is_active, created_at, last_login_at
+            """SELECT id, display_name, email, role, is_active, email_verified_at, created_at, last_login_at
                FROM users ORDER BY id DESC"""
         ).fetchall()]
     finally:
@@ -999,6 +1182,7 @@ def reset_password(token):
             errors.append("Passwords do not match.")
         else:
             database.complete_password_reset(token_row["id"], token_row["user_id"], password)
+            database.mark_email_verified(token_row["user_id"])
             database.log_audit("password_reset_completed", str(token_row["user_id"]), token_row["user_id"], get_remote_address())
             return redirect(url_for("login"))
     return render_template("reset_password.html", errors=errors, invalid=token_row is None)

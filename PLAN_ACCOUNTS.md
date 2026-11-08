@@ -270,6 +270,7 @@ PLAN_STATUS
 P1 [x] P2 [x] P3 [x] P4 [x] P5 [x] P6 [x] P7 [x] P8 [x]
 
 CHANGELOG
+- 2026-11-08: Added optional email ownership verification with hashed, single-use 24-hour tokens, neutral resend flow, verified-login gating, reset verification, and SQLite/Postgres schema support.
 - 2026-11-04: Added an accessible results-page feedback modal with CSRF-protected server submission and a privacy-safe Supabase/Postgres feedback_submissions table.
 - 2026-11-04: Isolated active admin sessions to admin tools and account settings; patient check, history, and other patient-facing routes redirect to the admin dashboard.
 - 2026-11-04: Fixed admin post-login routing so History destinations return admins to the admin dashboard; regular users retain safe `?next=` paths and the guest-claim prompt.

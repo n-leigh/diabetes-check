@@ -1,0 +1,6 @@
+DiaBeates
+
+Welcome, {{ display_name }}.
+
+Your email is confirmed. You can now sign in to DiaBeates.
+We do not include health information in email.
