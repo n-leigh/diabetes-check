@@ -1,0 +1,8 @@
+DiaBeates
+
+Your check is saved.
+Your latest check was saved to your DiaBeates history on {{ datetime_pht }}.
+For your privacy, we never put results in email. Sign in to view them.
+View my history: {{ history_link }}
+You received this because email notifications are on. Turn them off in your account.
+DiaBeates is a screening tool, not a diagnosis.

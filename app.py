@@ -39,7 +39,7 @@ from dotenv import load_dotenv
 import joblib
 import numpy as np
 import pandas as pd
-from flask import Flask, render_template, request, redirect, url_for, session, abort, jsonify
+from flask import Flask, current_app, render_template, request, redirect, url_for, session, abort, jsonify
 from flask_wtf.csrf import CSRFProtect, CSRFError
 from flask_limiter import Limiter
 from flask_limiter.util import get_remote_address
@@ -433,7 +433,7 @@ for cat in CATEGORIES:
         logger.warning(f"Model file not found for '{cat}' at {path}")
 
 
-def _send_reset_email(email, reset_link):
+def _send_reset_email(email, reset_link, display_name=""):
     smtp_host = os.getenv("SMTP_HOST", "").strip()
     smtp_port = int(os.getenv("SMTP_PORT", "587"))
     smtp_user = os.getenv("SMTP_USER", "").strip()
@@ -445,16 +445,52 @@ def _send_reset_email(email, reset_link):
             return True
         return False
     message = EmailMessage()
-    message["Subject"] = "DiaBeates password reset"
+    message["Subject"] = "Reset your DiaBeates password"
     message["From"] = smtp_from
     message["To"] = email
-    message.set_content(f"Use this link within 60 minutes to reset your password:\n\n{reset_link}")
+    message.set_content(render_template("emails/password_reset.txt", display_name=display_name, reset_link=reset_link, minutes=60))
+    message.add_alternative(render_template("emails/password_reset.html", display_name=display_name, reset_link=reset_link, minutes=60), subtype="html")
     with smtplib.SMTP(smtp_host, smtp_port, timeout=10) as server:
         server.starttls()
         if smtp_user:
             server.login(smtp_user, smtp_password)
         server.send_message(message)
     return True
+
+
+def _send_email_template(email, subject, html_template, text_template, **context):
+    if not _smtp_configured():
+        return False
+    message = EmailMessage()
+    message["Subject"] = subject
+    message["From"] = os.getenv("SMTP_FROM", "").strip()
+    message["To"] = email
+    message.set_content(render_template(text_template, **context))
+    message.add_alternative(render_template(html_template, **context), subtype="html")
+    with smtplib.SMTP(os.getenv("SMTP_HOST", "").strip(), int(os.getenv("SMTP_PORT", "587")), timeout=10) as server:
+        server.starttls()
+        server.login(os.getenv("SMTP_USER", "").strip(), os.getenv("SMTP_PASSWORD", ""))
+        server.send_message(message)
+    return True
+
+
+def _send_email_async(email, subject, html_template, text_template, **context):
+    application = current_app._get_current_object()
+
+    def deliver():
+        try:
+            with application.app_context():
+                _send_email_template(email, subject, html_template, text_template, **context)
+        except (OSError, smtplib.SMTPException, ValueError):
+            logger.warning("Non-critical email delivery failed for configured account notification.")
+    threading.Thread(
+        target=deliver,
+        daemon=True,
+    ).start()
+
+
+def _datetime_pht():
+    return datetime.now(timezone.utc).astimezone(DISPLAY_ZONE).strftime("%Y-%m-%d %H:%M PHT")
 
 
 def _smtp_configured():
@@ -476,6 +512,11 @@ def _verification_link(token):
     return f"{base_url}{path}" if base_url else url_for("verify_email", token=token, _external=True)
 
 
+def _site_link(path):
+    base_url = os.getenv("BASE_URL", "").strip().rstrip("/")
+    return f"{base_url}{path}" if base_url else path
+
+
 def _send_verification_email(email, display_name, verification_link):
     if not _smtp_configured():
         return False
@@ -493,19 +534,10 @@ def _send_verification_email(email, display_name, verification_link):
 
 
 def _send_welcome_email(email, display_name):
-    if not _smtp_configured():
-        return False
-    message = EmailMessage()
-    message["Subject"] = "Welcome to DiaBeates"
-    message["From"] = os.getenv("SMTP_FROM", "").strip()
-    message["To"] = email
-    message.set_content(render_template("emails/welcome.txt", display_name=display_name))
-    message.add_alternative(render_template("emails/welcome.html", display_name=display_name), subtype="html")
-    with smtplib.SMTP(os.getenv("SMTP_HOST", "").strip(), int(os.getenv("SMTP_PORT", "587")), timeout=10) as server:
-        server.starttls()
-        server.login(os.getenv("SMTP_USER", "").strip(), os.getenv("SMTP_PASSWORD", ""))
-        server.send_message(message)
-    return True
+    return _send_email_template(
+        email, "Welcome to DiaBeates", "emails/welcome.html", "emails/welcome.txt",
+        display_name=display_name,
+    )
 
 
 def _create_verification_message(user_id, email, display_name):
@@ -798,7 +830,7 @@ def account():
 @app.post("/account/profile")
 @login_required
 def account_profile():
-    display_name = request.form.get("nickname", "").strip()
+    display_name = re.sub(r"[\r\n]+", " ", request.form.get("nickname", "").strip())
     if not display_name or len(display_name) > 40:
         return redirect(url_for("account", message="Enter a nickname from 1 to 40 characters."))
     conn = database.get_connection()
@@ -826,6 +858,12 @@ def account_password():
     else:
         database.update_password(current_user.id, new_password)
         database.log_audit("password_changed", str(current_user.id), current_user.id, get_remote_address())
+        _send_email_async(
+            row["email"], "Your DiaBeates password was changed",
+            "emails/password_changed.html", "emails/password_changed.txt",
+            display_name=row["display_name"], datetime_pht=_datetime_pht(),
+            reset_link=_site_link("/forgot-password"),
+        )
         message = "Your password was changed."
     return redirect(url_for("account", message=message))
 
@@ -837,8 +875,16 @@ def account_delete():
     if not check_password_hash(row["password_hash"], request.form.get("current_password", "")):
         return redirect(url_for("account", message="Your current password is incorrect."))
     user_id = current_user.id
+    deleted_email = row["email"]
+    deleted_name = row["display_name"]
     database.log_audit("account_deleted", str(user_id), user_id, get_remote_address())
     database.delete_user_account(user_id)
+    _send_email_async(
+        deleted_email, "Your DiaBeates account was deleted",
+        "emails/account_deleted.html", "emails/account_deleted.txt",
+        display_name=deleted_name, datetime_pht=_datetime_pht(),
+        assessment_link=_site_link("/assessment"),
+    )
     logout_user()
     session.clear()
     return redirect(url_for("index", deleted="1"))
@@ -855,6 +901,7 @@ def account_export():
         "nickname": current_user.display_name,
         "email": current_user.email,
         "email_verified_at": user_row["email_verified_at"],
+        "email_notifications": bool(user_row["email_notifications"]),
         "assessments": records,
     }
     response = app.response_class(
@@ -863,6 +910,13 @@ def account_export():
     )
     response.headers["Content-Disposition"] = "attachment; filename=diabeates-data.json"
     return response
+
+
+@app.post("/account/email-notifications")
+@login_required
+def account_email_notifications():
+    database.set_email_notifications(current_user.id, request.form.get("email_notifications") == "1")
+    return redirect(url_for("account", message="Email preferences were saved."))
 
 
 @app.get("/admin")
@@ -1146,7 +1200,7 @@ def forgot_password():
             )
             link = _reset_link(raw_token)
             try:
-                sent = _send_reset_email(row["email"], link)
+                sent = _send_reset_email(row["email"], link, row["display_name"])
             except (OSError, smtplib.SMTPException, ValueError):
                 logger.exception("Password reset email delivery failed")
                 sent = False
@@ -1184,6 +1238,13 @@ def reset_password(token):
             database.complete_password_reset(token_row["id"], token_row["user_id"], password)
             database.mark_email_verified(token_row["user_id"])
             database.log_audit("password_reset_completed", str(token_row["user_id"]), token_row["user_id"], get_remote_address())
+            user = database.get_user_by_id(token_row["user_id"])
+            _send_email_async(
+                user["email"], "Your DiaBeates password was changed",
+                "emails/password_changed.html", "emails/password_changed.txt",
+                display_name=user["display_name"], datetime_pht=_datetime_pht(),
+                reset_link=_site_link("/forgot-password"),
+            )
             return redirect(url_for("login"))
     return render_template("reset_password.html", errors=errors, invalid=token_row is None)
 
@@ -1232,20 +1293,23 @@ def report():
 @limiter.exempt
 def health():
     db_ok = True
+    migration_pending = False
     try:
         conn = database.get_connection()
         conn.execute("SELECT 1").fetchone()
         conn.close()
+        migration_pending = not database.check_email_verification_schema()
     except Exception as e:
         logger.error(f"Health check DB probe failed: {e}")
         db_ok = False
 
     models_loaded = list(MODELS.keys())
-    healthy = db_ok and len(models_loaded) == len(CATEGORIES)
+    healthy = db_ok and not migration_pending and len(models_loaded) == len(CATEGORIES)
     status_code = 200 if healthy else 503
     return {
         "status": "healthy" if healthy else "degraded",
         "database": "connected" if db_ok else "unreachable",
+        "reason": "database migration pending" if migration_pending else None,
         "models_loaded": models_loaded,
         "models_expected": CATEGORIES,
         "rule_version": RULE_VERSION,
@@ -1362,7 +1426,7 @@ def explain_patient_risk(patient: dict) -> dict:
             "badge": "bg-amber-100 text-amber-800 border-amber-200",
             "detail": "Accelerates microvascular renal arteriosclerosis."
         })
-    if patient.get("MentHlth", 0) >= 15:
+    if (patient.get("MentHlth") or 0) >= 15:
         drivers["general_burden"].append({
             "factor": "Frequent Mental Distress",
             "impact": "Mild",
@@ -1385,7 +1449,7 @@ def explain_patient_risk(patient: dict) -> dict:
             "badge": "bg-red-100 text-red-700 border-red-200",
             "detail": "Cardinal functional sign of lower-extremity peripheral diabetic neuropathy."
         })
-    phys_hlth = patient.get("PhysHlth", 0)
+    phys_hlth = patient.get("PhysHlth") or 0
     if phys_hlth >= 15:
         drivers["neuropathy_mobility"].append({
             "factor": f"Severe Physical Deficit ({phys_hlth} days/mo)",
@@ -1544,6 +1608,16 @@ def predict():
             model_names=MODEL_NAMES,
             rule_version=RULE_VERSION,
         )
+        if current_user.is_authenticated:
+            saved_user = database.get_user_by_id(current_user.id)
+            if saved_user["email_notifications"]:
+                _send_email_async(
+                    saved_user["email"], "Your check was saved",
+                    "emails/check_saved.html", "emails/check_saved.txt",
+                    display_name=saved_user["display_name"],
+                    datetime_pht=_datetime_pht(),
+                    history_link=_site_link("/history"),
+                )
 
     recommendations = build_recommendations(rule_results, lab_assessment, patient)
     patient_drivers = explain_patient_risk(patient)

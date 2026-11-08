@@ -45,11 +45,11 @@ except ImportError:  # SQLite remains usable without PostgreSQL dependencies.
 
 from rule_matrix import compute_lab_assessment
 
-DB_PATH = os.path.join(os.path.dirname(os.path.abspath(__file__)), "diabetes_system.db")
-KEY_PATH = os.path.join(os.path.dirname(os.path.abspath(__file__)), ".db.key")
-PROTECTED_KEY_PATH = os.path.join(os.path.dirname(os.path.abspath(__file__)), ".db.key.dpapi")
+DB_PATH = os.getenv("DIABEATES_TEST_DB_PATH") or os.path.join(os.path.dirname(os.path.abspath(__file__)), "diabetes_system.db")
+KEY_PATH = os.getenv("DIABEATES_TEST_KEY_PATH") or os.path.join(os.path.dirname(os.path.abspath(__file__)), ".db.key")
+PROTECTED_KEY_PATH = os.getenv("DIABEATES_TEST_PROTECTED_KEY_PATH") or os.path.join(os.path.dirname(os.path.abspath(__file__)), ".db.key.dpapi")
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
-SCHEMA_VERSION = 6
+SCHEMA_VERSION = 7
 _KEY_ENVIRONMENT_VARIABLE = "DIABEATES_DB_KEY"
 DB_BACKEND = os.getenv("DB_BACKEND", "sqlite").strip().lower()
 SUPABASE_DB_URL = os.getenv("SUPABASE_DB_URL", "").strip()
@@ -462,12 +462,13 @@ def init_db():
         )
     """)
     existing_user_cols = [r[1] for r in conn.execute("PRAGMA table_info(users)").fetchall()]
+    added_verification_column = "email_verified_at" not in existing_user_cols
     if "email_verified_at" not in existing_user_cols:
         conn.execute("ALTER TABLE users ADD COLUMN email_verified_at TEXT")
-    conn.execute(
-        "UPDATE users SET email_verified_at = COALESCE(email_verified_at, created_at) "
-        "WHERE email_verified_at IS NULL"
-    )
+    if added_verification_column:
+        conn.execute("UPDATE users SET email_verified_at = created_at WHERE email_verified_at IS NULL")
+    if "email_notifications" not in existing_user_cols:
+        conn.execute("ALTER TABLE users ADD COLUMN email_notifications INTEGER NOT NULL DEFAULT 0")
     conn.execute("""
         CREATE TABLE IF NOT EXISTS email_verification_tokens (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -495,6 +496,9 @@ def init_db():
     conn.execute("CREATE INDEX IF NOT EXISTS idx_assessments_user_archived_id ON assessments(user_id, archived, id)")
     conn.execute("CREATE INDEX IF NOT EXISTS idx_password_reset_tokens_hash ON password_reset_tokens(token_hash)")
     conn.execute("CREATE INDEX IF NOT EXISTS idx_email_verification_tokens_hash ON email_verification_tokens(token_hash)")
+    conn.execute("CREATE UNIQUE INDEX IF NOT EXISTS idx_email_verification_tokens_unique_hash ON email_verification_tokens(token_hash)")
+    conn.execute("CREATE INDEX IF NOT EXISTS idx_email_verification_tokens_user_id ON email_verification_tokens(user_id)")
+    conn.execute("CREATE INDEX IF NOT EXISTS idx_email_verification_tokens_expires_at ON email_verification_tokens(expires_at)")
     conn.execute("CREATE INDEX IF NOT EXISTS idx_audit_log_created_at ON audit_log(created_at)")
     conn.execute(f"PRAGMA user_version = {SCHEMA_VERSION}")
     conn.commit()
@@ -729,8 +733,8 @@ def create_user(email: str, password: str, display_name: str,
     conn = get_connection()
     try:
         insert_sql = """INSERT INTO users
-               (email, password_hash, display_name, role, created_at, consent_at, consent_version, email_verified_at)
-               VALUES (?, ?, ?, ?, ?, ?, ?, ?)"""
+               (email, password_hash, display_name, role, created_at, consent_at, consent_version, email_verified_at, email_notifications)
+               VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)"""
         if DB_BACKEND == "postgres":
             insert_sql += " RETURNING id"
         cur = conn.execute(
@@ -744,6 +748,7 @@ def create_user(email: str, password: str, display_name: str,
                 consent_at,
                 consent_version,
                 email_verified_at,
+                0,
             ),
         )
         conn.commit()
@@ -769,6 +774,38 @@ def get_user_by_id(user_id: int):
     try:
         row = conn.execute("SELECT * FROM users WHERE id = ?", (user_id,)).fetchone()
         return dict(row) if row else None
+    finally:
+        conn.close()
+
+
+def set_email_notifications(user_id: int, enabled: bool) -> None:
+    conn = get_connection()
+    try:
+        conn.execute("UPDATE users SET email_notifications = ? WHERE id = ?", (bool(enabled) if DB_BACKEND == "postgres" else int(enabled), user_id))
+        conn.commit()
+    finally:
+        conn.close()
+
+
+def check_email_verification_schema() -> bool:
+    conn = get_connection()
+    try:
+        if DB_BACKEND == "postgres":
+            user_column = conn.execute(
+                "SELECT 1 FROM information_schema.columns "
+                "WHERE table_schema = 'public' AND table_name = 'users' "
+                "AND column_name = 'email_verified_at'"
+            ).fetchone()
+            token_table = conn.execute(
+                "SELECT 1 FROM information_schema.tables "
+                "WHERE table_schema = 'public' AND table_name = 'email_verification_tokens'"
+            ).fetchone()
+            return bool(user_column and token_table)
+        columns = {row[1] for row in conn.execute("PRAGMA table_info(users)").fetchall()}
+        token_table = conn.execute(
+            "SELECT 1 FROM sqlite_master WHERE type = 'table' AND name = 'email_verification_tokens'"
+        ).fetchone()
+        return "email_verified_at" in columns and bool(token_table)
     finally:
         conn.close()
 

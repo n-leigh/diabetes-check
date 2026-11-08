@@ -1,5 +1,6 @@
-<!DOCTYPE html>
-{% set admin_area = current_user.is_authenticated and current_user.role == 'admin' %}
+﻿<!DOCTYPE html>
+{% set viewer = current_user if current_user is defined else namespace(is_authenticated=false, role='user', display_name='') %}
+{% set admin_area = viewer.is_authenticated and viewer.role == 'admin' %}
 <html lang="en">
 <head>
   <meta charset="UTF-8">
@@ -41,10 +42,10 @@
           <a href="/admin" class="inline-flex min-h-[48px] items-center text-[18px] font-semibold {{ 'text-[#014c5e] border-b-2 border-[#2e7283]' if request.path == '/admin' else 'text-[#4f5b66] hover:text-[#014c5e] border-b-2 border-transparent' }}">Dashboard</a>
           <a href="/admin/users" class="inline-flex min-h-[48px] items-center text-[18px] font-semibold {{ 'text-[#014c5e] border-b-2 border-[#2e7283]' if request.path.startswith('/admin/users') else 'text-[#4f5b66] hover:text-[#014c5e] border-b-2 border-transparent' }}">Accounts</a>
           <a href="/admin/feedback" class="inline-flex min-h-[48px] items-center text-[18px] font-semibold {{ 'text-[#014c5e] border-b-2 border-[#2e7283]' if request.path == '/admin/feedback' else 'text-[#4f5b66] hover:text-[#014c5e] border-b-2 border-transparent' }}">Feedback</a>
-          {% if current_user.is_authenticated %}
+          {% if viewer.is_authenticated %}
           <details class="admin-account-menu">
-            <summary class="account-avatar-link" aria-label="Admin account menu for {{ current_user.display_name }}" title="{{ current_user.display_name }}">
-              <span class="account-avatar" aria-hidden="true">{{ current_user.display_name[:1]|upper }}</span>
+            <summary class="account-avatar-link" aria-label="Admin account menu for {{ viewer.display_name }}" title="{{ viewer.display_name }}">
+              <span class="account-avatar" aria-hidden="true">{{ viewer.display_name[:1]|upper }}</span>
             </summary>
             <div class="admin-account-popover">
               <a href="/account">Account</a>
@@ -68,10 +69,10 @@
           <a href="/about" class="text-[19px] font-semibold transition-colors duration-150 py-1.5 {{ 'text-[#014c5e] border-b-2 border-[#2e7283]' if active_page == 'about' else 'text-[#4f5b66] hover:text-[#014c5e] border-b-2 border-transparent' }}">
             About
           </a>
-          {% if current_user.is_authenticated %}
+          {% if viewer.is_authenticated %}
           <details class="admin-account-menu">
-            <summary class="account-avatar-link" aria-label="Account menu for {{ current_user.display_name }}" title="{{ current_user.display_name }}">
-              <span class="account-avatar" aria-hidden="true">{{ current_user.display_name[:1]|upper }}</span>
+            <summary class="account-avatar-link" aria-label="Account menu for {{ viewer.display_name }}" title="{{ viewer.display_name }}">
+              <span class="account-avatar" aria-hidden="true">{{ viewer.display_name[:1]|upper }}</span>
             </summary>
             <div class="admin-account-popover">
               <a href="/account">Profile</a>
@@ -81,7 +82,7 @@
               </form>
             </div>
           </details>
-          {% if current_user.role == 'admin' %}<a href="/admin" class="text-[19px] font-semibold text-[#0b7a85]">Admin</a>{% endif %}
+          {% if viewer.role == 'admin' %}<a href="/admin" class="text-[19px] font-semibold text-[#0b7a85]">Admin</a>{% endif %}
           {% else %}
           <a href="/login" class="text-[19px] font-semibold text-[#0b7a85] hover:text-[#08616a]">Sign in</a>
           {% endif %}
@@ -104,10 +105,10 @@
         <a href="/admin" class="block px-4 py-3 text-[19px] font-semibold rounded-lg text-[#0b7a85]">Dashboard</a>
         <a href="/admin/users" class="block px-4 py-3 text-[19px] font-semibold rounded-lg text-[#0b7a85]">Accounts</a>
         <a href="/admin/feedback" class="block px-4 py-3 text-[19px] font-semibold rounded-lg text-[#0b7a85]">Feedback</a>
-        {% if current_user.is_authenticated %}
+        {% if viewer.is_authenticated %}
         <details class="admin-account-menu mobile-admin-account-menu">
-          <summary class="account-avatar-link" aria-label="Admin account menu for {{ current_user.display_name }}" title="{{ current_user.display_name }}">
-            <span class="account-avatar" aria-hidden="true">{{ current_user.display_name[:1]|upper }}</span>
+          <summary class="account-avatar-link" aria-label="Admin account menu for {{ viewer.display_name }}" title="{{ viewer.display_name }}">
+            <span class="account-avatar" aria-hidden="true">{{ viewer.display_name[:1]|upper }}</span>
           </summary>
           <div class="admin-account-popover">
             <a href="/account">Account</a>
@@ -123,9 +124,9 @@
         <a href="/assessment" class="block px-4 py-3 text-[19px] font-semibold rounded-lg {{ 'bg-[#e8f5f7] text-[#014c5e]' if active_page == 'assessment' else 'text-[#4f5b66] hover:bg-[#d9eff3]' }}">Check</a>
         <a href="/history" class="block px-4 py-3 text-[19px] font-semibold rounded-lg {{ 'bg-[#e8f5f7] text-[#014c5e]' if active_page == 'history' else 'text-[#4f5b66] hover:bg-[#d9eff3]' }}">History</a>
         <a href="/about" class="block px-4 py-3 text-[19px] font-semibold rounded-lg {{ 'bg-[#e8f5f7] text-[#014c5e]' if active_page == 'about' else 'text-[#4f5b66] hover:bg-[#d9eff3]' }}">About</a>
-        {% if current_user.is_authenticated %}
+        {% if viewer.is_authenticated %}
         <a href="/account" class="block px-4 py-3 text-[19px] font-semibold rounded-lg text-[#0b7a85]">Account</a>
-        {% if current_user.role == 'admin' %}<a href="/admin" class="block px-4 py-3 text-[19px] font-semibold rounded-lg text-[#0b7a85]">Admin</a>{% endif %}
+        {% if viewer.role == 'admin' %}<a href="/admin" class="block px-4 py-3 text-[19px] font-semibold rounded-lg text-[#0b7a85]">Admin</a>{% endif %}
         <form action="/logout" method="post" class="px-4">
           <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
           <button type="submit" class="w-full text-left py-3 text-[19px] font-semibold text-[#4f5b66]">Sign out</button>
