@@ -7,6 +7,10 @@ import ssl
 from email.message import EmailMessage
 from urllib.parse import urljoin
 
+from dotenv import load_dotenv
+
+load_dotenv()
+
 
 def main():
     parser = argparse.ArgumentParser()
