@@ -3102,3 +3102,30 @@ HINT:  No operator matches the given name and argument types. You might need to 
 2026-11-06 17:13:13,776 - werkzeug - INFO - 127.0.0.1 - - [06/Nov/2026 17:13:13] "GET /assessment HTTP/1.1" 200 -
 2026-11-06 17:13:13,795 - DiaBeates - INFO - Rule matrix assessment completed
 2026-11-06 17:13:13,976 - werkzeug - INFO - 127.0.0.1 - - [06/Nov/2026 17:13:13] "POST /predict HTTP/1.1" 200 -
+2026-11-08 01:29:58,772 - DiaBeates - INFO - Database initialized successfully with non-destructive WAL mode.
+2026-11-08 01:29:59,469 - DiaBeates - INFO - Loaded clinical models summary: ['cardiovascular', 'general_burden', 'neuropathy_mobility', 'retinopathy']
+2026-11-08 01:30:00,880 - werkzeug - INFO - WARNING: This is a development server. Do not use it in a production deployment. Use a production WSGI server instead.
+ * Running on http://127.0.0.1:5000
+2026-11-08 01:30:00,880 - werkzeug - INFO - Press CTRL+C to quit
+2026-11-08 01:56:31,333 - werkzeug - INFO - 127.0.0.1 - - [08/Nov/2026 01:56:31] "GET /assessment HTTP/1.1" 200 -
+2026-11-08 01:56:31,811 - werkzeug - INFO - 127.0.0.1 - - [08/Nov/2026 01:56:31] "GET /static/js/assessment.js HTTP/1.1" 200 -
+2026-11-08 01:56:31,814 - werkzeug - INFO - 127.0.0.1 - - [08/Nov/2026 01:56:31] "GET /static/css/tailwind.min.css HTTP/1.1" 304 -
+2026-11-08 01:56:31,816 - werkzeug - INFO - 127.0.0.1 - - [08/Nov/2026 01:56:31] "GET /static/js/app.js HTTP/1.1" 304 -
+2026-11-08 01:56:31,817 - werkzeug - INFO - 127.0.0.1 - - [08/Nov/2026 01:56:31] "GET /static/css/clinical.css HTTP/1.1" 304 -
+2026-11-08 01:56:31,849 - werkzeug - INFO - 127.0.0.1 - - [08/Nov/2026 01:56:31] "GET /static/logo.png HTTP/1.1" 304 -
+2026-11-08 01:56:32,098 - werkzeug - INFO - 127.0.0.1 - - [08/Nov/2026 01:56:32] "GET /static/fonts/fraunces-700.woff2 HTTP/1.1" 304 -
+2026-11-08 01:56:32,101 - werkzeug - INFO - 127.0.0.1 - - [08/Nov/2026 01:56:32] "GET /static/fonts/source-sans-3-500.woff2 HTTP/1.1" 304 -
+2026-11-08 01:56:32,111 - werkzeug - INFO - 127.0.0.1 - - [08/Nov/2026 01:56:32] "GET /static/fonts/source-sans-3-600.woff2 HTTP/1.1" 304 -
+2026-11-08 01:56:32,115 - werkzeug - INFO - 127.0.0.1 - - [08/Nov/2026 01:56:32] "GET /static/fonts/ibm_plex_mono-600-normal.woff2 HTTP/1.1" 304 -
+2026-11-08 01:56:32,130 - werkzeug - INFO - 127.0.0.1 - - [08/Nov/2026 01:56:32] "GET /static/fonts/source-sans-3-400.woff2 HTTP/1.1" 304 -
+2026-11-08 13:35:50,481 - werkzeug - INFO - 127.0.0.1 - - [08/Nov/2026 13:35:50] "GET /assessment HTTP/1.1" 200 -
+2026-11-08 13:35:50,679 - werkzeug - INFO - 127.0.0.1 - - [08/Nov/2026 13:35:50] "GET /static/css/tailwind.min.css HTTP/1.1" 304 -
+2026-11-08 13:35:50,682 - werkzeug - INFO - 127.0.0.1 - - [08/Nov/2026 13:35:50] "GET /static/css/clinical.css HTTP/1.1" 304 -
+2026-11-08 13:35:50,765 - werkzeug - INFO - 127.0.0.1 - - [08/Nov/2026 13:35:50] "GET /static/logo.png HTTP/1.1" 304 -
+2026-11-08 13:35:50,784 - werkzeug - INFO - 127.0.0.1 - - [08/Nov/2026 13:35:50] "GET /static/js/app.js HTTP/1.1" 304 -
+2026-11-08 13:35:50,820 - werkzeug - INFO - 127.0.0.1 - - [08/Nov/2026 13:35:50] "GET /static/fonts/fraunces-700.woff2 HTTP/1.1" 304 -
+2026-11-08 13:35:50,834 - werkzeug - INFO - 127.0.0.1 - - [08/Nov/2026 13:35:50] "GET /static/fonts/source-sans-3-600.woff2 HTTP/1.1" 304 -
+2026-11-08 13:35:50,836 - werkzeug - INFO - 127.0.0.1 - - [08/Nov/2026 13:35:50] "GET /static/fonts/source-sans-3-500.woff2 HTTP/1.1" 304 -
+2026-11-08 13:35:50,847 - werkzeug - INFO - 127.0.0.1 - - [08/Nov/2026 13:35:50] "GET /static/fonts/source-sans-3-400.woff2 HTTP/1.1" 304 -
+2026-11-08 13:35:50,873 - werkzeug - INFO - 127.0.0.1 - - [08/Nov/2026 13:35:50] "GET /static/fonts/ibm_plex_mono-600-normal.woff2 HTTP/1.1" 304 -
+2026-11-08 13:35:50,935 - werkzeug - INFO - 127.0.0.1 - - [08/Nov/2026 13:35:50] "GET /static/js/assessment.js HTTP/1.1" 304 -
