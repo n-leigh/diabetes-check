@@ -137,6 +137,9 @@ class AuthUser(UserMixin):
         self.display_name = row["display_name"]
         self.role = row["role"]
         self.is_active = bool(row["is_active"])
+        self._password_fingerprint = hashlib.sha256(
+            row["password_hash"].encode("utf-8")
+        ).hexdigest()
 
     @property
     def is_active(self):
@@ -146,14 +149,21 @@ class AuthUser(UserMixin):
     def is_active(self, value):
         self._is_active = bool(value)
 
+    def get_id(self):
+        return f"{self.id}:{self._password_fingerprint}"
+
 
 @login_manager.user_loader
 def load_user(user_id):
     try:
-        row = database.get_user_by_id(int(user_id))
+        raw_id, fingerprint = str(user_id).split(":", 1)
+        row = database.get_user_by_id(int(raw_id))
     except (TypeError, ValueError):
         return None
-    return AuthUser(row) if row else None
+    if not row:
+        return None
+    expected = hashlib.sha256(row["password_hash"].encode("utf-8")).hexdigest()
+    return AuthUser(row) if secrets.compare_digest(expected, fingerprint) else None
 
 
 _DUMMY_PASSWORD_HASH = generate_password_hash("dummy-password-for-timing", method="scrypt")
@@ -453,8 +463,8 @@ def _send_reset_email(email, reset_link, display_name=""):
     message["Subject"] = "Reset your DiaBeates password"
     message["From"] = smtp_from
     message["To"] = email
-    message.set_content(render_template("emails/password_reset.txt", display_name=display_name, reset_link=reset_link, minutes=60))
-    message.add_alternative(render_template("emails/password_reset.html", display_name=display_name, reset_link=reset_link, minutes=60), subtype="html")
+    message.set_content(render_template("emails/password_reset.txt", display_name=display_name, reset_link=reset_link, minutes=30))
+    message.add_alternative(render_template("emails/password_reset.html", display_name=display_name, reset_link=reset_link, minutes=30), subtype="html")
     with smtplib.SMTP(smtp_host, smtp_port, timeout=10) as server:
         server.starttls()
         if smtp_user:
@@ -1215,7 +1225,7 @@ def forgot_password():
             database.create_password_reset_token(
                 row["id"],
                 hashlib.sha256(raw_token.encode("utf-8")).hexdigest(),
-                (datetime.now(timezone.utc) + timedelta(minutes=60)).isoformat(timespec="seconds"),
+                (datetime.now(timezone.utc) + timedelta(minutes=30)).isoformat(timespec="seconds"),
             )
             link = _reset_link(raw_token)
             try:
@@ -1254,17 +1264,19 @@ def reset_password(token):
         elif password != confirm_password:
             errors.append("Passwords do not match.")
         else:
-            database.complete_password_reset(token_row["id"], token_row["user_id"], password)
-            database.mark_email_verified(token_row["user_id"])
-            database.log_audit("password_reset_completed", str(token_row["user_id"]), token_row["user_id"], get_remote_address())
-            user = database.get_user_by_id(token_row["user_id"])
-            _send_email_async(
-                user["email"], "Your DiaBeates password was changed",
-                "emails/password_changed.html", "emails/password_changed.txt",
-                display_name=user["display_name"], datetime_pht=_datetime_pht(),
-                reset_link=_site_link("/forgot-password"),
-            )
-            return redirect(url_for("login"))
+            if not database.complete_password_reset(token_row["id"], token_row["user_id"], password):
+                errors.append("This reset link is invalid or expired.")
+            else:
+                database.mark_email_verified(token_row["user_id"])
+                database.log_audit("password_reset_completed", str(token_row["user_id"]), token_row["user_id"], get_remote_address())
+                user = database.get_user_by_id(token_row["user_id"])
+                _send_email_async(
+                    user["email"], "Your DiaBeates password was changed",
+                    "emails/password_changed.html", "emails/password_changed.txt",
+                    display_name=user["display_name"], datetime_pht=_datetime_pht(),
+                    reset_link=_site_link("/forgot-password"),
+                )
+                return redirect(url_for("login"))
     return render_template("reset_password.html", errors=errors, invalid=token_row is None)
 
 

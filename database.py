@@ -955,18 +955,25 @@ def prune_unverified_accounts(days: int = 7) -> int:
         conn.close()
 
 
-def complete_password_reset(token_id: int, user_id: int, password: str) -> None:
+def complete_password_reset(token_id: int, user_id: int, password: str) -> bool:
     conn = get_connection()
     try:
+        used_at = datetime.now(timezone.utc).isoformat(timespec="seconds")
+        cur = conn.execute(
+            """UPDATE password_reset_tokens
+               SET used_at = ?
+               WHERE id = ? AND user_id = ? AND used_at IS NULL AND expires_at > ?""",
+            (used_at, token_id, user_id, used_at),
+        )
+        if cur.rowcount != 1:
+            conn.rollback()
+            return False
         conn.execute(
             "UPDATE users SET password_hash = ?, failed_attempts = 0, locked_until = NULL WHERE id = ?",
             (generate_password_hash(password, method="scrypt"), user_id),
         )
-        conn.execute(
-            "UPDATE password_reset_tokens SET used_at = ? WHERE id = ? AND used_at IS NULL",
-            (datetime.now(timezone.utc).isoformat(timespec="seconds"), token_id),
-        )
         conn.commit()
+        return True
     except Exception:
         conn.rollback()
         raise

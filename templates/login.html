@@ -19,10 +19,10 @@
     <form method="post" class="mt-8 space-y-5">
       <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
       <label class="block text-[18px] font-semibold">Email
-        <input type="email" name="email" required value="{{ form_data.get('email', '') }}" class="mt-2 w-full input-field">
+        <input type="email" name="email" required autocomplete="email" value="{{ form_data.get('email', '') }}" class="mt-2 w-full input-field">
       </label>
       <label class="block text-[18px] font-semibold">Password
-        <input type="password" name="password" required class="mt-2 w-full input-field">
+        <input type="password" name="password" required autocomplete="current-password" class="mt-2 w-full input-field">
       </label>
       <label class="flex gap-3 items-center text-[17px]">
         <input type="checkbox" name="remember" value="1">
