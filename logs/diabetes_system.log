@@ -2425,3 +2425,115 @@ DETAIL:  Key (email)=(carlo.timbas14@gmail.com) already exists.
 2026-11-08 16:28:16,394 - werkzeug - INFO - 127.0.0.1 - - [08/Nov/2026 16:28:16] "GET /static/fonts/source-sans-3-600.woff2 HTTP/1.1" 304 -
 2026-11-08 16:28:16,626 - werkzeug - INFO - 127.0.0.1 - - [08/Nov/2026 16:28:16] "GET /static/fonts/source-sans-3-400.woff2 HTTP/1.1" 304 -
 2026-11-08 16:28:16,895 - werkzeug - INFO - 127.0.0.1 - - [08/Nov/2026 16:28:16] "GET /history/signature?view=active HTTP/1.1" 200 -
+2026-11-08 16:29:00,886 - werkzeug - INFO - 127.0.0.1 - - [08/Nov/2026 16:29:00] "POST /logout HTTP/1.1" 302 -
+2026-11-08 16:29:00,909 - werkzeug - INFO - 127.0.0.1 - - [08/Nov/2026 16:29:00] "GET / HTTP/1.1" 200 -
+2026-11-08 16:29:00,954 - werkzeug - INFO - 127.0.0.1 - - [08/Nov/2026 16:29:00] "GET /static/css/tailwind.min.css HTTP/1.1" 304 -
+2026-11-08 16:29:00,986 - werkzeug - INFO - 127.0.0.1 - - [08/Nov/2026 16:29:00] "GET /static/js/app.js HTTP/1.1" 304 -
+2026-11-08 16:29:00,989 - werkzeug - INFO - 127.0.0.1 - - [08/Nov/2026 16:29:00] "GET /static/css/clinical.css HTTP/1.1" 304 -
+2026-11-08 16:29:01,004 - werkzeug - INFO - 127.0.0.1 - - [08/Nov/2026 16:29:01] "GET /static/logo.png HTTP/1.1" 304 -
+2026-11-08 16:29:01,033 - werkzeug - INFO - 127.0.0.1 - - [08/Nov/2026 16:29:01] "GET /static/fonts/fraunces-700.woff2 HTTP/1.1" 304 -
+2026-11-08 16:29:01,037 - werkzeug - INFO - 127.0.0.1 - - [08/Nov/2026 16:29:01] "GET /static/fonts/source-sans-3-500.woff2 HTTP/1.1" 304 -
+2026-11-08 16:29:01,049 - werkzeug - INFO - 127.0.0.1 - - [08/Nov/2026 16:29:01] "GET /static/fonts/source-sans-3-400.woff2 HTTP/1.1" 304 -
+2026-11-08 16:29:01,050 - werkzeug - INFO - 127.0.0.1 - - [08/Nov/2026 16:29:01] "GET /static/fonts/source-sans-3-600.woff2 HTTP/1.1" 304 -
+2026-11-08 16:34:48,735 - werkzeug - INFO - 127.0.0.1 - - [08/Nov/2026 16:34:48] "GET /login HTTP/1.1" 200 -
+2026-11-08 16:34:48,775 - werkzeug - INFO - 127.0.0.1 - - [08/Nov/2026 16:34:48] "GET /static/css/tailwind.min.css HTTP/1.1" 304 -
+2026-11-08 16:34:48,783 - werkzeug - INFO - 127.0.0.1 - - [08/Nov/2026 16:34:48] "GET /static/css/clinical.css HTTP/1.1" 304 -
+2026-11-08 16:34:48,796 - werkzeug - INFO - 127.0.0.1 - - [08/Nov/2026 16:34:48] "GET /static/js/app.js HTTP/1.1" 304 -
+2026-11-08 16:34:48,805 - werkzeug - INFO - 127.0.0.1 - - [08/Nov/2026 16:34:48] "GET /static/logo.png HTTP/1.1" 304 -
+2026-11-08 16:34:48,857 - werkzeug - INFO - 127.0.0.1 - - [08/Nov/2026 16:34:48] "GET /static/fonts/fraunces-700.woff2 HTTP/1.1" 304 -
+2026-11-08 16:34:48,873 - werkzeug - INFO - 127.0.0.1 - - [08/Nov/2026 16:34:48] "GET /static/fonts/source-sans-3-600.woff2 HTTP/1.1" 304 -
+2026-11-08 16:34:48,877 - werkzeug - INFO - 127.0.0.1 - - [08/Nov/2026 16:34:48] "GET /static/fonts/source-sans-3-500.woff2 HTTP/1.1" 304 -
+2026-11-08 16:34:48,880 - werkzeug - INFO - 127.0.0.1 - - [08/Nov/2026 16:34:48] "GET /static/fonts/source-sans-3-400.woff2 HTTP/1.1" 304 -
+2026-11-08 16:48:09,011 - werkzeug - INFO - 127.0.0.1 - - [08/Nov/2026 16:48:09] "GET /login HTTP/1.1" 200 -
+2026-11-08 16:48:09,057 - werkzeug - INFO - 127.0.0.1 - - [08/Nov/2026 16:48:09] "GET /static/css/clinical.css HTTP/1.1" 304 -
+2026-11-08 16:48:09,077 - werkzeug - INFO - 127.0.0.1 - - [08/Nov/2026 16:48:09] "GET /static/js/app.js HTTP/1.1" 304 -
+2026-11-08 16:48:09,080 - werkzeug - INFO - 127.0.0.1 - - [08/Nov/2026 16:48:09] "GET /static/css/tailwind.min.css HTTP/1.1" 304 -
+2026-11-08 16:48:09,087 - werkzeug - INFO - 127.0.0.1 - - [08/Nov/2026 16:48:09] "GET /static/logo.png HTTP/1.1" 304 -
+2026-11-08 16:48:09,119 - werkzeug - INFO - 127.0.0.1 - - [08/Nov/2026 16:48:09] "GET /static/fonts/source-sans-3-600.woff2 HTTP/1.1" 304 -
+2026-11-08 16:48:09,129 - werkzeug - INFO - 127.0.0.1 - - [08/Nov/2026 16:48:09] "GET /static/fonts/fraunces-700.woff2 HTTP/1.1" 304 -
+2026-11-08 16:48:09,167 - werkzeug - INFO - 127.0.0.1 - - [08/Nov/2026 16:48:09] "GET /static/fonts/source-sans-3-400.woff2 HTTP/1.1" 304 -
+2026-11-08 16:48:09,184 - werkzeug - INFO - 127.0.0.1 - - [08/Nov/2026 16:48:09] "GET /static/fonts/source-sans-3-500.woff2 HTTP/1.1" 304 -
+2026-11-08 16:48:09,205 - werkzeug - INFO - 127.0.0.1 - - [08/Nov/2026 16:48:09] "GET /static/logo.png HTTP/1.1" 304 -
+2026-11-08 16:48:12,384 - werkzeug - INFO - 127.0.0.1 - - [08/Nov/2026 16:48:12] "GET / HTTP/1.1" 200 -
+2026-11-08 16:48:12,420 - werkzeug - INFO - 127.0.0.1 - - [08/Nov/2026 16:48:12] "GET /static/css/tailwind.min.css HTTP/1.1" 304 -
+2026-11-08 16:48:12,445 - werkzeug - INFO - 127.0.0.1 - - [08/Nov/2026 16:48:12] "GET /static/css/clinical.css HTTP/1.1" 304 -
+2026-11-08 16:48:12,462 - werkzeug - INFO - 127.0.0.1 - - [08/Nov/2026 16:48:12] "GET /static/js/app.js HTTP/1.1" 304 -
+2026-11-08 16:48:12,538 - werkzeug - INFO - 127.0.0.1 - - [08/Nov/2026 16:48:12] "GET /static/logo.png HTTP/1.1" 304 -
+2026-11-08 16:48:12,566 - werkzeug - INFO - 127.0.0.1 - - [08/Nov/2026 16:48:12] "GET /static/fonts/source-sans-3-600.woff2 HTTP/1.1" 304 -
+2026-11-08 16:48:12,571 - werkzeug - INFO - 127.0.0.1 - - [08/Nov/2026 16:48:12] "GET /static/fonts/fraunces-700.woff2 HTTP/1.1" 304 -
+2026-11-08 16:48:12,617 - werkzeug - INFO - 127.0.0.1 - - [08/Nov/2026 16:48:12] "GET /static/fonts/source-sans-3-400.woff2 HTTP/1.1" 304 -
+2026-11-08 16:48:12,631 - werkzeug - INFO - 127.0.0.1 - - [08/Nov/2026 16:48:12] "GET /static/fonts/source-sans-3-500.woff2 HTTP/1.1" 304 -
+2026-11-08 17:18:36,352 - DiaBeates - INFO - Database initialized successfully with non-destructive WAL mode.
+2026-11-08 17:18:36,355 - DiaBeates - INFO - Loaded clinical models summary: ['cardiovascular', 'general_burden', 'neuropathy_mobility', 'retinopathy']
+2026-11-08 17:18:39,320 - DiaBeates - ERROR - Unexpected server error
+Traceback (most recent call last):
+  File "C:\Users\carlo\AppData\Local\Programs\Python\Python311\Lib\site-packages\flask\app.py", line 917, in full_dispatch_request
+    rv = self.dispatch_request()
+         ^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\carlo\AppData\Local\Programs\Python\Python311\Lib\site-packages\flask\app.py", line 902, in dispatch_request
+    return self.ensure_sync(self.view_functions[rule.endpoint])(**view_args)  # type: ignore[no-any-return]
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\carlo\AppData\Local\Programs\Python\Python311\Lib\site-packages\flask_limiter\_limits.py", line 326, in __inner
+    return cast(R, flask.current_app.ensure_sync(obj)(*a, **k))
+                   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\carlo\Documents\htdocs\diabetes-check\app.py", line 685, in register
+    user_id = database.create_user(email, password, display_name, email_verified_at=verified_at)
+              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\carlo\Documents\htdocs\diabetes-check\database.py", line 740, in create_user
+    cur = conn.execute(
+          ^^^^^^^^^^^^^
+  File "C:\Users\carlo\Documents\htdocs\diabetes-check\database.py", line 88, in execute
+    return self._connection.execute(query.replace("?", "%s"), params)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\carlo\AppData\Local\Programs\Python\Python311\Lib\site-packages\psycopg\connection.py", line 304, in execute
+    raise ex.with_traceback(None)
+psycopg.errors.DatatypeMismatch: column "email_notifications" is of type boolean but expression is of type smallint
+LINE 3: ...          VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9) RETURN...
+                                                             ^
+HINT:  You will need to rewrite or cast the expression.
+2026-11-08 17:19:13,114 - DiaBeates - INFO - Database initialized successfully with non-destructive WAL mode.
+2026-11-08 17:19:13,116 - DiaBeates - INFO - Loaded clinical models summary: ['cardiovascular', 'general_burden', 'neuropathy_mobility', 'retinopathy']
+2026-11-08 17:19:47,954 - DiaBeates - INFO - Database initialized successfully with non-destructive WAL mode.
+2026-11-08 17:19:47,957 - DiaBeates - INFO - Loaded clinical models summary: ['cardiovascular', 'general_burden', 'neuropathy_mobility', 'retinopathy']
+2026-11-08 17:20:18,697 - DiaBeates - INFO - Database initialized successfully with non-destructive WAL mode.
+2026-11-08 17:20:18,700 - DiaBeates - INFO - Loaded clinical models summary: ['cardiovascular', 'general_burden', 'neuropathy_mobility', 'retinopathy']
+2026-11-08 17:20:48,101 - DiaBeates - INFO - Database initialized successfully with non-destructive WAL mode.
+2026-11-08 17:20:48,106 - DiaBeates - INFO - Loaded clinical models summary: ['cardiovascular', 'general_burden', 'neuropathy_mobility', 'retinopathy']
+2026-11-08 17:32:44,318 - DiaBeates - INFO - Database initialized successfully with non-destructive WAL mode.
+2026-11-08 17:32:44,322 - DiaBeates - INFO - Loaded clinical models summary: ['cardiovascular', 'general_burden', 'neuropathy_mobility', 'retinopathy']
+2026-11-08 17:33:17,033 - werkzeug - INFO - 127.0.0.1 - - [08/Nov/2026 17:33:17] "GET / HTTP/1.1" 200 -
+2026-11-08 17:33:17,146 - werkzeug - INFO - 127.0.0.1 - - [08/Nov/2026 17:33:17] "GET /static/css/tailwind.min.css HTTP/1.1" 304 -
+2026-11-08 17:33:17,191 - werkzeug - INFO - 127.0.0.1 - - [08/Nov/2026 17:33:17] "GET /static/css/clinical.css HTTP/1.1" 304 -
+2026-11-08 17:33:17,195 - werkzeug - INFO - 127.0.0.1 - - [08/Nov/2026 17:33:17] "GET /static/js/app.js HTTP/1.1" 304 -
+2026-11-08 17:33:17,233 - werkzeug - INFO - 127.0.0.1 - - [08/Nov/2026 17:33:17] "GET /static/logo.png HTTP/1.1" 304 -
+2026-11-08 17:33:17,362 - werkzeug - INFO - 127.0.0.1 - - [08/Nov/2026 17:33:17] "GET /static/fonts/fraunces-700.woff2 HTTP/1.1" 304 -
+2026-11-08 17:33:17,398 - werkzeug - INFO - 127.0.0.1 - - [08/Nov/2026 17:33:17] "GET /static/fonts/source-sans-3-500.woff2 HTTP/1.1" 304 -
+2026-11-08 17:33:17,441 - werkzeug - INFO - 127.0.0.1 - - [08/Nov/2026 17:33:17] "GET /static/fonts/source-sans-3-600.woff2 HTTP/1.1" 304 -
+2026-11-08 17:33:17,680 - werkzeug - INFO - 127.0.0.1 - - [08/Nov/2026 17:33:17] "GET /static/fonts/source-sans-3-400.woff2 HTTP/1.1" 304 -
+2026-11-08 17:33:19,567 - werkzeug - INFO - 127.0.0.1 - - [08/Nov/2026 17:33:19] "GET /history HTTP/1.1" 200 -
+2026-11-08 17:33:19,626 - werkzeug - INFO - 127.0.0.1 - - [08/Nov/2026 17:33:19] "GET /static/css/tailwind.min.css HTTP/1.1" 304 -
+2026-11-08 17:33:19,683 - werkzeug - INFO - 127.0.0.1 - - [08/Nov/2026 17:33:19] "GET /static/css/clinical.css HTTP/1.1" 304 -
+2026-11-08 17:33:19,710 - werkzeug - INFO - 127.0.0.1 - - [08/Nov/2026 17:33:19] "GET /static/js/app.js HTTP/1.1" 304 -
+2026-11-08 17:33:19,743 - werkzeug - INFO - 127.0.0.1 - - [08/Nov/2026 17:33:19] "GET /static/logo.png HTTP/1.1" 304 -
+2026-11-08 17:33:19,760 - werkzeug - INFO - 127.0.0.1 - - [08/Nov/2026 17:33:19] "GET /static/js/history.js HTTP/1.1" 304 -
+2026-11-08 17:33:19,807 - werkzeug - INFO - 127.0.0.1 - - [08/Nov/2026 17:33:19] "GET /static/js/history-live.js HTTP/1.1" 304 -
+2026-11-08 17:33:19,860 - werkzeug - INFO - 127.0.0.1 - - [08/Nov/2026 17:33:19] "GET /static/fonts/source-sans-3-500.woff2 HTTP/1.1" 304 -
+2026-11-08 17:33:19,890 - werkzeug - INFO - 127.0.0.1 - - [08/Nov/2026 17:33:19] "GET /static/fonts/fraunces-700.woff2 HTTP/1.1" 304 -
+2026-11-08 17:33:19,981 - werkzeug - INFO - 127.0.0.1 - - [08/Nov/2026 17:33:19] "GET /static/fonts/source-sans-3-600.woff2 HTTP/1.1" 304 -
+2026-11-08 17:33:20,062 - werkzeug - INFO - 127.0.0.1 - - [08/Nov/2026 17:33:20] "GET /static/fonts/source-sans-3-400.woff2 HTTP/1.1" 304 -
+2026-11-08 17:33:20,445 - werkzeug - INFO - 127.0.0.1 - - [08/Nov/2026 17:33:20] "GET /history/signature?view=active HTTP/1.1" 200 -
+2026-11-08 17:35:46,830 - DiaBeates - INFO - Database initialized successfully with non-destructive WAL mode.
+2026-11-08 17:35:46,832 - DiaBeates - INFO - Loaded clinical models summary: ['cardiovascular', 'general_burden', 'neuropathy_mobility', 'retinopathy']
+2026-11-08 17:55:55,095 - werkzeug - INFO - 127.0.0.1 - - [08/Nov/2026 17:55:55] "GET /history/signature?view=active HTTP/1.1" 200 -
+2026-11-08 17:56:00,233 - werkzeug - INFO - 127.0.0.1 - - [08/Nov/2026 17:56:00] "GET /history/signature?view=active HTTP/1.1" 200 -
+2026-11-08 17:56:10,163 - werkzeug - INFO - 127.0.0.1 - - [08/Nov/2026 17:56:10] "GET /history/signature?view=active HTTP/1.1" 200 -
+2026-11-08 17:56:20,161 - werkzeug - INFO - 127.0.0.1 - - [08/Nov/2026 17:56:20] "GET /history/signature?view=active HTTP/1.1" 200 -
+2026-11-08 17:56:20,461 - werkzeug - INFO - 127.0.0.1 - - [08/Nov/2026 17:56:20] "GET / HTTP/1.1" 200 -
+2026-11-08 17:56:20,501 - werkzeug - INFO - 127.0.0.1 - - [08/Nov/2026 17:56:20] "GET /static/css/tailwind.min.css HTTP/1.1" 304 -
+2026-11-08 17:56:20,528 - werkzeug - INFO - 127.0.0.1 - - [08/Nov/2026 17:56:20] "GET /static/js/app.js HTTP/1.1" 304 -
+2026-11-08 17:56:20,530 - werkzeug - INFO - 127.0.0.1 - - [08/Nov/2026 17:56:20] "GET /static/css/clinical.css HTTP/1.1" 304 -
+2026-11-08 17:56:20,534 - werkzeug - INFO - 127.0.0.1 - - [08/Nov/2026 17:56:20] "GET /static/logo.png HTTP/1.1" 304 -
+2026-11-08 17:56:20,565 - werkzeug - INFO - 127.0.0.1 - - [08/Nov/2026 17:56:20] "GET /static/fonts/fraunces-700.woff2 HTTP/1.1" 304 -
+2026-11-08 17:56:20,570 - werkzeug - INFO - 127.0.0.1 - - [08/Nov/2026 17:56:20] "GET /static/fonts/source-sans-3-500.woff2 HTTP/1.1" 304 -
+2026-11-08 17:56:20,578 - werkzeug - INFO - 127.0.0.1 - - [08/Nov/2026 17:56:20] "GET /static/fonts/source-sans-3-600.woff2 HTTP/1.1" 304 -
+2026-11-08 17:56:20,583 - werkzeug - INFO - 127.0.0.1 - - [08/Nov/2026 17:56:20] "GET /static/fonts/source-sans-3-400.woff2 HTTP/1.1" 304 -
