@@ -2169,3 +2169,18 @@ HINT:  No operator matches the given name and argument types. You might need to 
 2026-11-06 01:18:10,176 - werkzeug - INFO - 127.0.0.1 - - [06/Nov/2026 01:18:10] "[36mGET /static/fonts/fraunces-700.woff2 HTTP/1.1[0m" 304 -
 2026-11-06 01:18:10,179 - werkzeug - INFO - 127.0.0.1 - - [06/Nov/2026 01:18:10] "[36mGET /static/fonts/source-sans-3-600.woff2 HTTP/1.1[0m" 304 -
 2026-11-06 01:18:10,187 - werkzeug - INFO - 127.0.0.1 - - [06/Nov/2026 01:18:10] "[33mGET /favicon.ico HTTP/1.1[0m" 404 -
+2026-11-06 12:03:35,806 - DiaBeates - INFO - Database initialized successfully with non-destructive WAL mode.
+2026-11-06 12:03:36,094 - DiaBeates - INFO - Loaded clinical models summary: ['cardiovascular', 'general_burden', 'neuropathy_mobility', 'retinopathy']
+2026-11-06 12:03:36,633 - werkzeug - INFO - [31m[1mWARNING: This is a development server. Do not use it in a production deployment. Use a production WSGI server instead.[0m
+ * Running on http://127.0.0.1:5000
+2026-11-06 12:03:36,633 - werkzeug - INFO - [33mPress CTRL+C to quit[0m
+2026-11-06 12:03:46,838 - werkzeug - INFO - 127.0.0.1 - - [06/Nov/2026 12:03:46] "GET /history/progress?before=188&after=189 HTTP/1.1" 200 -
+2026-11-06 12:03:47,673 - werkzeug - INFO - 127.0.0.1 - - [06/Nov/2026 12:03:47] "[36mGET /static/logo.png HTTP/1.1[0m" 304 -
+2026-11-06 12:03:47,700 - werkzeug - INFO - 127.0.0.1 - - [06/Nov/2026 12:03:47] "[36mGET /static/css/tailwind.min.css HTTP/1.1[0m" 304 -
+2026-11-06 12:03:47,707 - werkzeug - INFO - 127.0.0.1 - - [06/Nov/2026 12:03:47] "[36mGET /static/js/app.js HTTP/1.1[0m" 304 -
+2026-11-06 12:03:47,709 - werkzeug - INFO - 127.0.0.1 - - [06/Nov/2026 12:03:47] "[36mGET /static/css/clinical.css HTTP/1.1[0m" 304 -
+2026-11-06 12:03:48,334 - werkzeug - INFO - 127.0.0.1 - - [06/Nov/2026 12:03:48] "[36mGET /static/fonts/source-sans-3-500.woff2 HTTP/1.1[0m" 304 -
+2026-11-06 12:03:48,354 - werkzeug - INFO - 127.0.0.1 - - [06/Nov/2026 12:03:48] "[36mGET /static/fonts/fraunces-700.woff2 HTTP/1.1[0m" 304 -
+2026-11-06 12:03:48,364 - werkzeug - INFO - 127.0.0.1 - - [06/Nov/2026 12:03:48] "[36mGET /static/fonts/source-sans-3-400.woff2 HTTP/1.1[0m" 304 -
+2026-11-06 12:03:48,372 - werkzeug - INFO - 127.0.0.1 - - [06/Nov/2026 12:03:48] "[36mGET /static/fonts/source-sans-3-600.woff2 HTTP/1.1[0m" 304 -
+2026-11-06 12:03:48,733 - werkzeug - INFO - 127.0.0.1 - - [06/Nov/2026 12:03:48] "[36mGET /static/logo.png HTTP/1.1[0m" 304 -
