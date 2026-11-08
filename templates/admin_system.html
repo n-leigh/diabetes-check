@@ -14,7 +14,7 @@
       <h2 class="font-heading text-2xl font-bold text-[#063154]">Health and storage</h2>
       <dl class="admin-system-list">
         <div><dt>Health check</dt><dd><a href="/health">View service health</a></dd></div>
-        <div><dt>Database size</dt><dd>{{ database_size }} bytes</dd></div>
+        <div><dt>Database</dt><dd>{{ 'Supabase Postgres' if database_backend == 'postgres' else database_size ~ ' bytes' }}</dd></div>
         <div><dt>Guest data retention</dt><dd>{{ retention_days }} days</dd></div>
         <div><dt>Loaded models</dt><dd>{{ model_names.values()|join(', ') }}</dd></div>
       </dl>
@@ -22,16 +22,22 @@
     <article class="admin-panel">
       <p class="admin-eyebrow">Data protection</p>
       <h2 class="font-heading text-2xl font-bold text-[#063154]">Backups</h2>
+      {% if database_backend == 'postgres' %}
+      <p class="admin-panel-description">Backups are managed in Supabase or with pg_dump.</p>
+      {% else %}
       <p class="admin-panel-description">Backups contain private records. Store and share them carefully.</p>
       <form method="post" action="/admin/system/backup">
       <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
       <button class="btn-primary" type="submit">Create backup</button>
       </form>
+      {% endif %}
     </article>
   </div>
+  {% if database_backend != 'postgres' %}
   <div class="admin-backup-list">
     <h2 class="font-heading text-2xl font-bold text-[#063154]">Existing backups</h2>
     <ul>{% for backup in backups %}<li><code>{{ backup }}</code></li>{% else %}<li>No backups yet.</li>{% endfor %}</ul>
   </div>
+  {% endif %}
 </section>
 {% endblock %}

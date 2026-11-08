@@ -748,7 +748,7 @@ def create_user(email: str, password: str, display_name: str,
                 consent_at,
                 consent_version,
                 email_verified_at,
-                0,
+                False if DB_BACKEND == "postgres" else 0,
             ),
         )
         conn.commit()

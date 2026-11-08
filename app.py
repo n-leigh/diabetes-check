@@ -371,6 +371,10 @@ limiter = Limiter(
 database.init_db()
 database.verify_database_integrity()
 logger.info("Database initialized successfully with non-destructive WAL mode.")
+LIVE_DB_CHECKS = (
+    os.getenv("ALLOW_LIVE_DB_CHECKS") == "1"
+    and os.getenv("LIVE_DB_BACKUP_CONFIRMED") == "1"
+)
 try:
     RETENTION_DAYS = int(os.getenv("RETENTION_DAYS", "90"))
 except ValueError:
@@ -381,21 +385,22 @@ if RETENTION_DAYS < 1:
     logger.warning("RETENTION_DAYS must be >= 1; falling back to 90.")
     RETENTION_DAYS = 90
 
-try:
-    pruned_count = database.prune_expired_assessments(days=RETENTION_DAYS)
-except Exception:
-    logger.exception("Failed to prune expired assessments")
-    pruned_count = 0
+if not LIVE_DB_CHECKS:
+    try:
+        pruned_count = database.prune_expired_assessments(days=RETENTION_DAYS)
+    except Exception:
+        logger.exception("Failed to prune expired assessments")
+        pruned_count = 0
 
-if pruned_count:
-    logger.info("Expired assessments pruned: %d", pruned_count)
-try:
-    pruned_unverified = database.prune_unverified_accounts(days=7)
-except Exception:
-    logger.exception("Failed to prune stale unverified accounts")
-    pruned_unverified = 0
-if pruned_unverified:
-    logger.info("Stale unverified accounts pruned: %d", pruned_unverified)
+    if pruned_count:
+        logger.info("Expired assessments pruned: %d", pruned_count)
+    try:
+        pruned_unverified = database.prune_unverified_accounts(days=7)
+    except Exception:
+        logger.exception("Failed to prune stale unverified accounts")
+        pruned_unverified = 0
+    if pruned_unverified:
+        logger.info("Stale unverified accounts pruned: %d", pruned_unverified)
 
 CATEGORIES = ["cardiovascular", "neuropathy_mobility", "general_burden", "retinopathy"]
 FEATURE_COLUMNS = [
@@ -1054,6 +1059,16 @@ def admin_audit():
 @app.get("/admin/system")
 @admin_required
 def admin_system():
+    if database.DB_BACKEND == "postgres":
+        return render_template(
+            "admin_system.html",
+            backups=[],
+            database_size=None,
+            database_backend="postgres",
+            model_names=MODEL_NAMES,
+            retention_days=RETENTION_DAYS,
+            backup_message=session.pop("backup_message", None),
+        )
     backups_dir = os.path.join(BASE_DIR, "backups")
     os.makedirs(backups_dir, exist_ok=True)
     backups = sorted(
@@ -1068,6 +1083,7 @@ def admin_system():
         "admin_system.html",
         backups=backups,
         database_size=database_size,
+        database_backend="sqlite",
         model_names=MODEL_NAMES,
         retention_days=RETENTION_DAYS,
         backup_message=session.pop("backup_message", None),
@@ -1077,6 +1093,9 @@ def admin_system():
 @app.post("/admin/system/backup")
 @admin_required
 def admin_backup():
+    if database.DB_BACKEND == "postgres":
+        session["backup_message"] = "Backups are managed in Supabase or with pg_dump."
+        return redirect(url_for("admin_system"))
     backups_dir = os.path.join(BASE_DIR, "backups")
     os.makedirs(backups_dir, exist_ok=True)
     stamp = datetime.now(timezone.utc).strftime("%Y%m%d-%H%M%S")
