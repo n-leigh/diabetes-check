@@ -41,8 +41,6 @@ def _config_error():
             return f"{name} has surrounding spaces or quotes"
         if any(marker in value.lower() for marker in ("replace", "password", "your_")) or "(" in value or ")" in value:
             return f"{name} looks like a placeholder"
-    if os.getenv("SMTP_HOST", "").strip().lower() == "smtp-relay.brevo.com" and "@" in os.getenv("SMTP_USER", ""):
-        return "SMTP_USER looks like an email address; Brevo expects the SMTP login shown on its SMTP & API page"
     if os.getenv("SMTP_PORT", "").strip() != "587":
         return "SMTP_PORT must be 587 when using STARTTLS"
     return None
@@ -63,22 +61,22 @@ def main():
     if config_error:
         print(f"failure: {config_error}")
         return 1
-    link = urljoin(os.environ["BASE_URL"].rstrip("/") + "/", "verify-email/test-message")
-    message = EmailMessage()
-    message["Subject"] = "DiaBeates email delivery test"
-    message["From"] = os.environ["SMTP_FROM"].strip()
-    message["To"] = args.to.strip()
-    message.set_content(f"DiaBeates email delivery test.\n\nVerification-style link:\n{link}\n")
-    message.add_alternative(
-        f"<p>DiaBeates email delivery test.</p><p><a href=\"{link}\">Open verification-style link</a></p>",
-        subtype="html",
-    )
     try:
         context = ssl.create_default_context()
         with smtplib.SMTP(os.environ["SMTP_HOST"].strip(), int(os.environ["SMTP_PORT"]), timeout=10) as server:
             server.starttls(context=context)
             server.login(os.environ["SMTP_USER"].strip(), os.environ["SMTP_PASSWORD"])
             if not args.check_auth_only:
+                link = urljoin(os.environ["BASE_URL"].rstrip("/") + "/", "verify-email/test-message")
+                message = EmailMessage()
+                message["Subject"] = "DiaBeates email delivery test"
+                message["From"] = os.environ["SMTP_FROM"].strip()
+                message["To"] = args.to.strip()
+                message.set_content(f"DiaBeates email delivery test.\n\nVerification-style link:\n{link}\n")
+                message.add_alternative(
+                    f"<p>DiaBeates email delivery test.</p><p><a href=\"{link}\">Open verification-style link</a></p>",
+                    subtype="html",
+                )
                 server.send_message(message)
     except (OSError, smtplib.SMTPException, ValueError) as error:
         print(f"failure: {_diagnose(error)}")
