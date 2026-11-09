@@ -3266,3 +3266,80 @@ HINT:  No operator matches the given name and argument types. You might need to 
 2026-11-09 12:42:13,574 - werkzeug - INFO - 127.0.0.1 - - [09/Nov/2026 12:42:13] "[36mGET /static/css/clinical.css HTTP/1.1[0m" 304 -
 2026-11-09 12:42:13,588 - werkzeug - INFO - 127.0.0.1 - - [09/Nov/2026 12:42:13] "[36mGET /static/css/tailwind.min.css HTTP/1.1[0m" 304 -
 2026-11-09 12:42:14,049 - werkzeug - INFO - 127.0.0.1 - - [09/Nov/2026 12:42:14] "[36mGET /static/logo.png HTTP/1.1[0m" 304 -
+2026-11-09 13:27:00,201 - werkzeug - INFO - 127.0.0.1 - - [09/Nov/2026 13:27:00] "[32mPOST /logout HTTP/1.1[0m" 302 -
+2026-11-09 13:27:00,342 - werkzeug - INFO - 127.0.0.1 - - [09/Nov/2026 13:27:00] "GET /login?next=/admin HTTP/1.1" 200 -
+2026-11-09 13:27:00,435 - werkzeug - INFO - 127.0.0.1 - - [09/Nov/2026 13:27:00] "[36mGET /static/css/tailwind.min.css HTTP/1.1[0m" 304 -
+2026-11-09 13:27:00,444 - werkzeug - INFO - 127.0.0.1 - - [09/Nov/2026 13:27:00] "[36mGET /static/css/clinical.css HTTP/1.1[0m" 304 -
+2026-11-09 13:27:00,450 - werkzeug - INFO - 127.0.0.1 - - [09/Nov/2026 13:27:00] "[36mGET /static/js/app.js HTTP/1.1[0m" 304 -
+2026-11-09 13:27:00,480 - werkzeug - INFO - 127.0.0.1 - - [09/Nov/2026 13:27:00] "[36mGET /static/logo.png HTTP/1.1[0m" 304 -
+2026-11-09 13:27:00,591 - werkzeug - INFO - 127.0.0.1 - - [09/Nov/2026 13:27:00] "[36mGET /static/css/tailwind.min.css HTTP/1.1[0m" 304 -
+2026-11-09 13:27:00,598 - werkzeug - INFO - 127.0.0.1 - - [09/Nov/2026 13:27:00] "[36mGET /static/css/clinical.css HTTP/1.1[0m" 304 -
+2026-11-09 13:27:11,882 - werkzeug - INFO - 127.0.0.1 - - [09/Nov/2026 13:27:11] "[32mPOST /login?next=/admin HTTP/1.1[0m" 302 -
+2026-11-09 13:27:12,701 - werkzeug - INFO - 127.0.0.1 - - [09/Nov/2026 13:27:12] "GET /admin HTTP/1.1" 200 -
+2026-11-09 13:27:13,253 - werkzeug - INFO - 127.0.0.1 - - [09/Nov/2026 13:27:13] "[36mGET /static/js/admin_dashboard.js HTTP/1.1[0m" 304 -
+2026-11-09 13:27:13,263 - werkzeug - INFO - 127.0.0.1 - - [09/Nov/2026 13:27:13] "[36mGET /static/css/clinical.css HTTP/1.1[0m" 304 -
+2026-11-09 13:27:13,306 - werkzeug - INFO - 127.0.0.1 - - [09/Nov/2026 13:27:13] "[36mGET /static/css/tailwind.min.css HTTP/1.1[0m" 304 -
+2026-11-09 13:27:13,342 - werkzeug - INFO - 127.0.0.1 - - [09/Nov/2026 13:27:13] "[36mGET /static/js/app.js HTTP/1.1[0m" 304 -
+2026-11-09 13:27:13,671 - werkzeug - INFO - 127.0.0.1 - - [09/Nov/2026 13:27:13] "[36mGET /static/logo.png HTTP/1.1[0m" 304 -
+2026-11-09 13:27:17,403 - werkzeug - INFO - 127.0.0.1 - - [09/Nov/2026 13:27:17] "GET /admin/system HTTP/1.1" 200 -
+2026-11-09 13:27:18,242 - werkzeug - INFO - 127.0.0.1 - - [09/Nov/2026 13:27:18] "[36mGET /static/js/app.js HTTP/1.1[0m" 304 -
+2026-11-09 13:27:18,256 - werkzeug - INFO - 127.0.0.1 - - [09/Nov/2026 13:27:18] "[36mGET /static/logo.png HTTP/1.1[0m" 304 -
+2026-11-09 13:27:18,327 - werkzeug - INFO - 127.0.0.1 - - [09/Nov/2026 13:27:18] "[36mGET /static/css/tailwind.min.css HTTP/1.1[0m" 304 -
+2026-11-09 13:27:18,371 - werkzeug - INFO - 127.0.0.1 - - [09/Nov/2026 13:27:18] "[36mGET /static/css/clinical.css HTTP/1.1[0m" 304 -
+2026-11-09 13:31:45,041 - werkzeug - INFO - 127.0.0.1 - - [09/Nov/2026 13:31:45] "GET /admin/system HTTP/1.1" 200 -
+2026-11-09 13:31:45,719 - werkzeug - INFO - 127.0.0.1 - - [09/Nov/2026 13:31:45] "[36mGET /static/logo.png HTTP/1.1[0m" 304 -
+2026-11-09 13:31:45,725 - werkzeug - INFO - 127.0.0.1 - - [09/Nov/2026 13:31:45] "[36mGET /static/css/tailwind.min.css HTTP/1.1[0m" 304 -
+2026-11-09 13:31:45,808 - werkzeug - INFO - 127.0.0.1 - - [09/Nov/2026 13:31:45] "[36mGET /static/css/clinical.css HTTP/1.1[0m" 304 -
+2026-11-09 13:31:45,843 - werkzeug - INFO - 127.0.0.1 - - [09/Nov/2026 13:31:45] "[36mGET /static/js/app.js HTTP/1.1[0m" 304 -
+2026-11-09 13:31:59,774 - werkzeug - INFO - 127.0.0.1 - - [09/Nov/2026 13:31:59] "GET /assessment HTTP/1.1" 200 -
+2026-11-09 13:31:59,774 - werkzeug - INFO - 127.0.0.1 - - [09/Nov/2026 13:31:59] "GET / HTTP/1.1" 200 -
+2026-11-09 13:31:59,788 - werkzeug - INFO - 127.0.0.1 - - [09/Nov/2026 13:31:59] "GET /assessment HTTP/1.1" 200 -
+2026-11-09 13:31:59,803 - DiaBeates - INFO - Rule matrix assessment completed
+2026-11-09 13:31:59,905 - DiaBeates - INFO - Rule matrix assessment completed
+2026-11-09 13:32:00,914 - werkzeug - INFO - 127.0.0.1 - - [09/Nov/2026 13:32:00] "POST /predict HTTP/1.1" 200 -
+2026-11-09 13:32:00,923 - werkzeug - INFO - 127.0.0.1 - - [09/Nov/2026 13:32:00] "GET /assessment HTTP/1.1" 200 -
+2026-11-09 13:32:00,928 - DiaBeates - INFO - Rule matrix assessment completed
+2026-11-09 13:32:01,004 - werkzeug - INFO - 127.0.0.1 - - [09/Nov/2026 13:32:01] "POST /predict HTTP/1.1" 200 -
+2026-11-09 13:32:01,326 - werkzeug - INFO - 127.0.0.1 - - [09/Nov/2026 13:32:01] "POST /predict HTTP/1.1" 200 -
+2026-11-09 13:32:01,792 - werkzeug - INFO - 127.0.0.1 - - [09/Nov/2026 13:32:01] "GET /history/127/print HTTP/1.1" 200 -
+2026-11-09 13:32:02,207 - werkzeug - INFO - 127.0.0.1 - - [09/Nov/2026 13:32:02] "GET /history HTTP/1.1" 200 -
+2026-11-09 13:32:05,971 - DiaBeates - INFO - Database initialized successfully with non-destructive WAL mode.
+2026-11-09 13:32:06,635 - DiaBeates - INFO - Loaded clinical models summary: ['cardiovascular', 'general_burden', 'neuropathy_mobility', 'retinopathy']
+2026-11-09 13:32:07,140 - DiaBeates - WARNING - SMTP is not fully configured; new accounts will be auto-verified.
+2026-11-09 13:32:12,444 - flask_wtf.csrf - INFO - The CSRF token is missing.
+2026-11-09 13:32:12,445 - DiaBeates - WARNING - CSRF validation failed: The CSRF token is missing.
+2026-11-09 13:32:12,451 - DiaBeates - INFO - Rule matrix assessment completed
+2026-11-09 13:32:15,008 - werkzeug - INFO - 127.0.0.1 - - [09/Nov/2026 13:32:15] "GET /admin HTTP/1.1" 200 -
+2026-11-09 13:32:15,711 - werkzeug - INFO - 127.0.0.1 - - [09/Nov/2026 13:32:15] "[36mGET /static/css/tailwind.min.css HTTP/1.1[0m" 304 -
+2026-11-09 13:32:15,757 - werkzeug - INFO - 127.0.0.1 - - [09/Nov/2026 13:32:15] "[36mGET /static/js/admin_dashboard.js HTTP/1.1[0m" 304 -
+2026-11-09 13:32:15,769 - werkzeug - INFO - 127.0.0.1 - - [09/Nov/2026 13:32:15] "[36mGET /static/css/clinical.css HTTP/1.1[0m" 304 -
+2026-11-09 13:32:15,785 - werkzeug - INFO - 127.0.0.1 - - [09/Nov/2026 13:32:15] "[36mGET /static/js/app.js HTTP/1.1[0m" 304 -
+2026-11-09 13:32:16,122 - werkzeug - INFO - 127.0.0.1 - - [09/Nov/2026 13:32:16] "[36mGET /static/logo.png HTTP/1.1[0m" 304 -
+2026-11-09 13:32:20,460 - werkzeug - INFO - 127.0.0.1 - - [09/Nov/2026 13:32:20] "GET /admin/audit HTTP/1.1" 200 -
+2026-11-09 13:32:21,004 - werkzeug - INFO - 127.0.0.1 - - [09/Nov/2026 13:32:21] "[36mGET /static/css/tailwind.min.css HTTP/1.1[0m" 304 -
+2026-11-09 13:32:21,050 - werkzeug - INFO - 127.0.0.1 - - [09/Nov/2026 13:32:21] "[36mGET /static/js/app.js HTTP/1.1[0m" 304 -
+2026-11-09 13:32:21,068 - werkzeug - INFO - 127.0.0.1 - - [09/Nov/2026 13:32:21] "[36mGET /static/css/clinical.css HTTP/1.1[0m" 304 -
+2026-11-09 13:32:21,105 - werkzeug - INFO - 127.0.0.1 - - [09/Nov/2026 13:32:21] "[36mGET /static/logo.png HTTP/1.1[0m" 304 -
+2026-11-09 13:32:27,583 - werkzeug - INFO - 127.0.0.1 - - [09/Nov/2026 13:32:27] "GET /admin HTTP/1.1" 200 -
+2026-11-09 13:32:28,224 - werkzeug - INFO - 127.0.0.1 - - [09/Nov/2026 13:32:28] "[36mGET /static/css/tailwind.min.css HTTP/1.1[0m" 304 -
+2026-11-09 13:32:28,324 - werkzeug - INFO - 127.0.0.1 - - [09/Nov/2026 13:32:28] "[36mGET /static/js/app.js HTTP/1.1[0m" 304 -
+2026-11-09 13:32:28,324 - werkzeug - INFO - 127.0.0.1 - - [09/Nov/2026 13:32:28] "[36mGET /static/css/clinical.css HTTP/1.1[0m" 304 -
+2026-11-09 13:32:28,326 - werkzeug - INFO - 127.0.0.1 - - [09/Nov/2026 13:32:28] "[36mGET /static/js/admin_dashboard.js HTTP/1.1[0m" 304 -
+2026-11-09 13:32:28,683 - werkzeug - INFO - 127.0.0.1 - - [09/Nov/2026 13:32:28] "[36mGET /static/logo.png HTTP/1.1[0m" 304 -
+2026-11-09 13:32:47,906 - werkzeug - INFO - 127.0.0.1 - - [09/Nov/2026 13:32:47] "GET /admin/export.csv HTTP/1.1" 200 -
+2026-11-09 13:32:55,827 - werkzeug - INFO - 127.0.0.1 - - [09/Nov/2026 13:32:55] "GET /admin/users HTTP/1.1" 200 -
+2026-11-09 13:32:56,418 - werkzeug - INFO - 127.0.0.1 - - [09/Nov/2026 13:32:56] "[36mGET /static/css/tailwind.min.css HTTP/1.1[0m" 304 -
+2026-11-09 13:32:56,432 - werkzeug - INFO - 127.0.0.1 - - [09/Nov/2026 13:32:56] "[36mGET /static/css/clinical.css HTTP/1.1[0m" 304 -
+2026-11-09 13:32:56,454 - werkzeug - INFO - 127.0.0.1 - - [09/Nov/2026 13:32:56] "[36mGET /static/logo.png HTTP/1.1[0m" 304 -
+2026-11-09 13:32:56,484 - werkzeug - INFO - 127.0.0.1 - - [09/Nov/2026 13:32:56] "[36mGET /static/js/app.js HTTP/1.1[0m" 304 -
+2026-11-09 13:33:02,015 - werkzeug - INFO - 127.0.0.1 - - [09/Nov/2026 13:33:02] "GET /admin/feedback HTTP/1.1" 200 -
+2026-11-09 13:33:02,553 - werkzeug - INFO - 127.0.0.1 - - [09/Nov/2026 13:33:02] "[36mGET /static/css/clinical.css HTTP/1.1[0m" 304 -
+2026-11-09 13:33:02,574 - werkzeug - INFO - 127.0.0.1 - - [09/Nov/2026 13:33:02] "[36mGET /static/logo.png HTTP/1.1[0m" 304 -
+2026-11-09 13:33:02,588 - werkzeug - INFO - 127.0.0.1 - - [09/Nov/2026 13:33:02] "[36mGET /static/css/tailwind.min.css HTTP/1.1[0m" 304 -
+2026-11-09 13:33:02,598 - werkzeug - INFO - 127.0.0.1 - - [09/Nov/2026 13:33:02] "[36mGET /static/js/app.js HTTP/1.1[0m" 304 -
+2026-11-09 13:33:06,425 - werkzeug - INFO - 127.0.0.1 - - [09/Nov/2026 13:33:06] "GET /admin HTTP/1.1" 200 -
+2026-11-09 13:33:06,974 - werkzeug - INFO - 127.0.0.1 - - [09/Nov/2026 13:33:06] "[36mGET /static/css/tailwind.min.css HTTP/1.1[0m" 304 -
+2026-11-09 13:33:06,991 - werkzeug - INFO - 127.0.0.1 - - [09/Nov/2026 13:33:06] "[36mGET /static/css/clinical.css HTTP/1.1[0m" 304 -
+2026-11-09 13:33:07,010 - werkzeug - INFO - 127.0.0.1 - - [09/Nov/2026 13:33:07] "[36mGET /static/js/admin_dashboard.js HTTP/1.1[0m" 304 -
+2026-11-09 13:33:07,015 - werkzeug - INFO - 127.0.0.1 - - [09/Nov/2026 13:33:07] "[36mGET /static/js/app.js HTTP/1.1[0m" 304 -
+2026-11-09 13:33:07,421 - werkzeug - INFO - 127.0.0.1 - - [09/Nov/2026 13:33:07] "[36mGET /static/logo.png HTTP/1.1[0m" 304 -
