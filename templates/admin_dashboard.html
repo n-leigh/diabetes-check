@@ -7,6 +7,11 @@
     <h1 class="font-heading text-3xl sm:text-4xl font-bold text-[#063154]">Admin dashboard</h1>
     <p class="admin-intro">A quick view of account growth and service use.</p>
   </div>
+  {% if admin_error %}
+  <div role="alert" aria-live="polite" class="mb-6 rounded-lg border border-[#f1b8af] bg-[#f9e1dc] p-4 text-[#b03a2e]">
+    <p class="font-semibold">{{ admin_error }}</p>
+  </div>
+  {% endif %}
   <div class="admin-metric-grid">
     <article class="admin-metric">
       <div class="admin-metric-header">

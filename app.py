@@ -1079,7 +1079,7 @@ def admin_deactivate_user(user_id):
         abort(403)
     conn = database.get_connection()
     try:
-        conn.execute("UPDATE users SET is_active = 0 WHERE id = ?", (user_id,))
+        conn.execute("UPDATE users SET is_active = ? WHERE id = ?", (False, user_id))
         conn.commit()
     finally:
         conn.close()
@@ -1095,7 +1095,7 @@ def admin_reactivate_user(user_id):
         abort(404)
     conn = database.get_connection()
     try:
-        conn.execute("UPDATE users SET is_active = 1 WHERE id = ?", (user_id,))
+        conn.execute("UPDATE users SET is_active = ? WHERE id = ?", (True, user_id))
         conn.commit()
     finally:
         conn.close()
@@ -2140,6 +2140,19 @@ def handle_unexpected_error(e):
     if isinstance(e, HTTPException):
         return e
     logger.exception("Unexpected server error")
+    if request.path.startswith("/admin"):
+        return render_template(
+            "admin_dashboard.html",
+            dashboard={
+                "users_total": "—",
+                "new_users": "—",
+                "assessments_total": "—",
+                "feedback_helpful_rate": "—",
+                "status_counts": {},
+                "days": [],
+            },
+            admin_error="An unexpected server error occurred while processing administrative data. Please check server logs.",
+        ), 500
     return render_template(
         "assessment.html",
         errors=["An error occurred while processing your assessment. Please check your inputs and try again."],

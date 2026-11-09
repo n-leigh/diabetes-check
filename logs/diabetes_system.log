@@ -5143,3 +5143,39 @@ HINT:  No operator matches the given name and argument types. You might need to 
 2026-11-09 20:21:41,931 - werkzeug - INFO - 127.0.0.1 - - [09/Nov/2026 20:21:41] "[36mGET /static/css/clinical.css HTTP/1.1[0m" 304 -
 2026-11-09 20:21:41,946 - werkzeug - INFO - 127.0.0.1 - - [09/Nov/2026 20:21:41] "[36mGET /static/js/app.js HTTP/1.1[0m" 304 -
 2026-11-09 20:21:41,965 - werkzeug - INFO - 127.0.0.1 - - [09/Nov/2026 20:21:41] "[36mGET /static/logo.png HTTP/1.1[0m" 304 -
+2026-11-09 21:11:40,193 - DiaBeates - INFO - Database initialized successfully with non-destructive WAL mode.
+2026-11-09 21:11:40,621 - DiaBeates - INFO - Loaded clinical models summary: ['cardiovascular', 'general_burden', 'neuropathy_mobility', 'retinopathy']
+2026-11-09 21:12:20,630 - DiaBeates - INFO - Database initialized successfully with non-destructive WAL mode.
+2026-11-09 21:12:21,037 - DiaBeates - INFO - Loaded clinical models summary: ['cardiovascular', 'general_burden', 'neuropathy_mobility', 'retinopathy']
+2026-11-09 21:12:26,243 - flask_wtf.csrf - INFO - The CSRF token is missing.
+2026-11-09 21:12:26,243 - DiaBeates - WARNING - CSRF validation failed: The CSRF token is missing.
+2026-11-09 21:12:26,250 - DiaBeates - INFO - Rule matrix assessment completed
+2026-11-09 21:12:47,966 - DiaBeates - INFO - Database initialized successfully with non-destructive WAL mode.
+2026-11-09 21:12:48,332 - DiaBeates - INFO - Loaded clinical models summary: ['cardiovascular', 'general_burden', 'neuropathy_mobility', 'retinopathy']
+2026-11-09 21:12:48,823 - werkzeug - INFO - WARNING: This is a development server. Do not use it in a production deployment. Use a production WSGI server instead.
+ * Running on http://127.0.0.1:5000
+2026-11-09 21:12:48,823 - werkzeug - INFO - Press CTRL+C to quit
+2026-11-09 21:12:50,717 - werkzeug - INFO - 127.0.0.1 - - [09/Nov/2026 21:12:50] "GET /health HTTP/1.1" 200 -
+2026-11-09 21:13:31,368 - werkzeug - INFO - 127.0.0.1 - - [09/Nov/2026 21:13:31] "GET /login HTTP/1.1" 200 -
+2026-11-09 21:13:31,917 - werkzeug - INFO - 127.0.0.1 - - [09/Nov/2026 21:13:31] "GET /static/logo.png HTTP/1.1" 200 -
+2026-11-09 21:13:31,921 - werkzeug - INFO - 127.0.0.1 - - [09/Nov/2026 21:13:31] "GET /static/js/app.js HTTP/1.1" 200 -
+2026-11-09 21:13:31,922 - werkzeug - INFO - 127.0.0.1 - - [09/Nov/2026 21:13:31] "GET /static/css/clinical.css HTTP/1.1" 200 -
+2026-11-09 21:13:31,937 - werkzeug - INFO - 127.0.0.1 - - [09/Nov/2026 21:13:31] "GET /static/css/tailwind.min.css HTTP/1.1" 200 -
+2026-11-09 21:13:32,066 - werkzeug - INFO - 127.0.0.1 - - [09/Nov/2026 21:13:32] "GET /static/fonts/fraunces-700.woff2 HTTP/1.1" 200 -
+2026-11-09 21:13:32,071 - werkzeug - INFO - 127.0.0.1 - - [09/Nov/2026 21:13:32] "GET /static/fonts/source-sans-3-500.woff2 HTTP/1.1" 200 -
+2026-11-09 21:13:32,084 - werkzeug - INFO - 127.0.0.1 - - [09/Nov/2026 21:13:32] "GET /static/fonts/source-sans-3-600.woff2 HTTP/1.1" 200 -
+2026-11-09 21:13:32,087 - werkzeug - INFO - 127.0.0.1 - - [09/Nov/2026 21:13:32] "GET /static/fonts/source-sans-3-400.woff2 HTTP/1.1" 200 -
+2026-11-09 21:13:32,136 - werkzeug - INFO - 127.0.0.1 - - [09/Nov/2026 21:13:32] "GET /static/logo.png HTTP/1.1" 304 -
+2026-11-09 21:13:47,092 - werkzeug - INFO - 127.0.0.1 - - [09/Nov/2026 21:13:47] "POST /login HTTP/1.1" 302 -
+2026-11-09 21:13:50,207 - werkzeug - INFO - 127.0.0.1 - - [09/Nov/2026 21:13:50] "GET /admin HTTP/1.1" 200 -
+2026-11-09 21:13:50,534 - werkzeug - INFO - 127.0.0.1 - - [09/Nov/2026 21:13:50] "GET /static/css/clinical.css HTTP/1.1" 304 -
+2026-11-09 21:13:50,537 - werkzeug - INFO - 127.0.0.1 - - [09/Nov/2026 21:13:50] "GET /static/css/tailwind.min.css HTTP/1.1" 304 -
+2026-11-09 21:13:50,794 - werkzeug - INFO - 127.0.0.1 - - [09/Nov/2026 21:13:50] "GET /static/js/app.js HTTP/1.1" 304 -
+2026-11-09 21:13:50,853 - werkzeug - INFO - 127.0.0.1 - - [09/Nov/2026 21:13:50] "GET /static/js/admin_dashboard.js HTTP/1.1" 200 -
+2026-11-09 21:13:51,136 - werkzeug - INFO - 127.0.0.1 - - [09/Nov/2026 21:13:51] "GET /static/logo.png HTTP/1.1" 304 -
+2026-11-09 21:13:51,145 - werkzeug - INFO - 127.0.0.1 - - [09/Nov/2026 21:13:51] "GET /static/fonts/source-sans-3-500.woff2 HTTP/1.1" 304 -
+2026-11-09 21:13:51,138 - werkzeug - INFO - 127.0.0.1 - - [09/Nov/2026 21:13:51] "GET /static/fonts/fraunces-700.woff2 HTTP/1.1" 304 -
+2026-11-09 21:13:51,373 - werkzeug - INFO - 127.0.0.1 - - [09/Nov/2026 21:13:51] "GET /static/fonts/source-sans-3-600.woff2 HTTP/1.1" 304 -
+2026-11-09 21:13:51,376 - werkzeug - INFO - 127.0.0.1 - - [09/Nov/2026 21:13:51] "GET /static/fonts/source-sans-3-400.woff2 HTTP/1.1" 304 -
+2026-11-09 21:13:51,380 - werkzeug - INFO - 127.0.0.1 - - [09/Nov/2026 21:13:51] "GET /static/fonts/ibm_plex_mono-600-normal.woff2 HTTP/1.1" 200 -
+2026-11-09 21:13:51,731 - werkzeug - INFO - 127.0.0.1 - - [09/Nov/2026 21:13:51] "GET /static/fonts/ibm_plex_mono-400-normal.woff2 HTTP/1.1" 200 -
