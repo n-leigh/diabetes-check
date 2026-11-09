@@ -306,6 +306,8 @@ def test_admin_routes_and_last_admin_protection(client, admin, user):
     assert 'href="/assessment"' not in account_page
     assert 'href="/history"' not in account_page
     dashboard = client.get("/admin").get_data(as_text=True)
+    assert "Admin dashboard" in dashboard
+    assert "Health Risk Check" not in dashboard
     assert "Admin workspace" in dashboard
     assert "Individual health checks are not shown here" in dashboard
     assert 'href="/assessment"' not in dashboard
