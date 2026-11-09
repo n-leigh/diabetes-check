@@ -11,31 +11,43 @@ document.addEventListener('DOMContentLoaded', () => {
   const draftMaxAgeMs = 7 * 24 * 60 * 60 * 1000;
   let draftSaveTimer = null;
   let isRestoringDraft = false;
+  let isSubmitting = false;
   const touchedFields = new Set();
 
   function setDraftActionVisible(visible) {
     const actions = document.getElementById('draftActions');
-    if (actions) actions.classList.toggle('hidden', !visible);
+    if (!actions) return;
+    actions.classList.toggle('hidden', !visible);
+    actions.classList.toggle('flex', visible);
   }
 
   function hasAssessmentAnswers() {
     const form = document.getElementById('assessmentForm');
     if (!form) return false;
 
-    return Array.from(form.elements).some((field) => {
-      if (!field.name || field.name === 'csrf_token' || field.type === 'submit' ||
-          field.type === 'button') return false;
-      if (field.type === 'checkbox' || field.type === 'radio') return field.checked;
-      if (field.type === 'range') {
-        return touchedFields.has(field.name) || field.value !== field.defaultValue;
-      }
-      return field.value !== '';
-    });
+    return Array.from(form.elements).some(fieldHasAnswer);
+  }
+
+  function fieldHasAnswer(field) {
+    if (!field.name || field.name === 'csrf_token' || field.type === 'submit' ||
+        field.type === 'button') return false;
+    if (field.type === 'checkbox' || field.type === 'radio') return field.checked;
+    if (field.type === 'range') {
+      return touchedFields.has(field.name) || field.value !== field.defaultValue;
+    }
+    if (field.tagName === 'SELECT') {
+      const defaultOption = Array.from(field.options).find((option) => option.defaultSelected);
+      const defaultValue = defaultOption ? defaultOption.value : '';
+      return field.value !== '' && field.value !== defaultValue;
+    }
+    return field.value !== '' && field.value !== field.defaultValue;
   }
 
   function updateClearDraftButtonState() {
     const clearDraftBtn = document.getElementById('clearDraftBtn');
-    if (clearDraftBtn) clearDraftBtn.disabled = !hasAssessmentAnswers();
+    const hasAnswers = hasAssessmentAnswers();
+    if (clearDraftBtn) clearDraftBtn.disabled = !hasAnswers;
+    setDraftActionVisible(hasAnswers);
   }
 
   function setDraftStatus(message, isError) {
@@ -47,6 +59,16 @@ document.addEventListener('DOMContentLoaded', () => {
   }
 
   function readDraft() {
+    const startsFresh = new URLSearchParams(window.location.search).get('fresh') === '1';
+    if (startsFresh) {
+      try {
+        window.localStorage.removeItem(draftStorageKey);
+      } catch (error) {
+        setDraftStatus('The previous check could not be cleared from this device.', true);
+      }
+      return null;
+    }
+
     try {
       const rawDraft = window.localStorage.getItem(draftStorageKey);
       if (!rawDraft) return null;
@@ -73,15 +95,12 @@ document.addEventListener('DOMContentLoaded', () => {
           field.type === 'button') return;
       if (field.type === 'checkbox' || field.type === 'radio') {
         fields[field.name] = field.checked;
-        hasAnswers = hasAnswers || field.checked;
       } else if (field.type === 'range') {
         fields[field.name] = field.value;
-        hasAnswers = hasAnswers || touchedFields.has(field.name) ||
-          field.value !== field.defaultValue;
       } else {
         fields[field.name] = field.value;
-        hasAnswers = hasAnswers || field.value !== '';
       }
+      hasAnswers = hasAnswers || fieldHasAnswer(field);
     });
 
     const labsToggle = document.getElementById('hasLabsToggle');
@@ -95,7 +114,7 @@ document.addEventListener('DOMContentLoaded', () => {
   }
 
   function saveDraft() {
-    if (isRestoringDraft) return;
+    if (isRestoringDraft || isSubmitting) return;
     const draft = collectDraft();
     try {
       if (draft) {
@@ -559,6 +578,7 @@ document.addEventListener('DOMContentLoaded', () => {
       if (field) field.dispatchEvent(new Event('input', { bubbles: true }));
     });
     goToStep(1);
+    clearDraft();
     updateClearDraftButtonState();
     setDraftStatus('Saved answers cleared. You can enter a new check.', false);
   }
@@ -569,6 +589,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
   if (assessmentForm && submitBtn) {
     assessmentForm.addEventListener('submit', function () {
+      isSubmitting = true;
       clearDraft();
       submitBtn.disabled = true;
       submitBtn.textContent = 'Checking your results...';
