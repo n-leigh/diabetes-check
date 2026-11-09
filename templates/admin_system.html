@@ -33,7 +33,7 @@
         <div><dt>Models health</dt><dd>{{ health_info.models_loaded_count }} of {{ health_info.models_expected_count }} loaded</dd></div>
         <div><dt>Application uptime</dt><dd>{{ uptime }}</dd></div>
         <div><dt>Database</dt><dd>{{ 'Supabase Postgres' if database_backend == 'postgres' else database_size ~ ' bytes' }}</dd></div>
-        <div><dt>Guest data retention</dt><dd>{{ retention_days }} days{% if last_pruned %} (last startup prune: {{ last_pruned }}){% endif %}</dd></div>
+        <div><dt>Guest data retention</dt><dd>Guest checks are deleted after {{ retention_days }} days. Accounts are kept until deleted.{% if last_pruned %} (last startup prune: {{ last_pruned }}){% endif %}</dd></div>
       </dl>
       <div class="admin-model-section">
         <h3 class="font-heading text-lg font-bold text-[#063154] mb-3">Clinical prediction models</h3>
@@ -58,7 +58,9 @@
       <p class="admin-panel-description">Backups are managed in Supabase or with pg_dump.</p>
       {% else %}
       <p class="admin-panel-description">Backups contain private records. Store and share them carefully.</p>
-      <form class="admin-backup-form" method="post" action="/admin/system/backup">
+      <form class="admin-backup-form" method="post" action="/admin/system/backup"
+        data-confirm-message="Create a new encrypted database backup?"
+        data-confirm-label="Create backup">
         <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
         <button class="btn-primary admin-backup-button" type="submit">Create backup</button>
       </form>

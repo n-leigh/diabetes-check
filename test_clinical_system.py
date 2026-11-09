@@ -90,9 +90,11 @@ def isolated_database_environment():
         original_db_path = database.DB_PATH
         original_key_path = database.KEY_PATH
         original_protected_key_path = database.PROTECTED_KEY_PATH
+        original_backend = database.DB_BACKEND
         database.DB_PATH = os.path.join(directory, "diabetes_system.db")
         database.KEY_PATH = os.path.join(directory, ".db.key")
         database.PROTECTED_KEY_PATH = os.path.join(directory, ".db.key.dpapi")
+        database.DB_BACKEND = "sqlite"
         try:
             database.init_db()
             yield directory
@@ -100,6 +102,7 @@ def isolated_database_environment():
             database.DB_PATH = original_db_path
             database.KEY_PATH = original_key_path
             database.PROTECTED_KEY_PATH = original_protected_key_path
+            database.DB_BACKEND = original_backend
 
 
 def test_database_persistence():

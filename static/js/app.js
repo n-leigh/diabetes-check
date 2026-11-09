@@ -57,14 +57,111 @@ document.addEventListener('DOMContentLoaded', () => {
     updatePasswordMessages();
   }
 
+  let pendingConfirmation = null;
+  let confirmationDialog = null;
+
+  const getConfirmationDialog = () => {
+    if (confirmationDialog) return confirmationDialog;
+    if (!window.HTMLDialogElement || typeof HTMLDialogElement.prototype.showModal !== 'function') {
+      return null;
+    }
+
+    const dialog = document.createElement('dialog');
+    dialog.className = 'action-confirm-dialog';
+    dialog.setAttribute('aria-modal', 'true');
+    dialog.setAttribute('aria-labelledby', 'action-confirm-title');
+    dialog.setAttribute('aria-describedby', 'action-confirm-message');
+
+    const panel = document.createElement('div');
+    panel.className = 'action-confirm-panel';
+
+    const header = document.createElement('header');
+    header.className = 'action-confirm-header';
+
+    const heading = document.createElement('h2');
+    heading.id = 'action-confirm-title';
+    heading.textContent = 'Please confirm';
+
+    const closeButton = document.createElement('button');
+    closeButton.className = 'action-confirm-close';
+    closeButton.type = 'button';
+    closeButton.setAttribute('aria-label', 'Close confirmation');
+    closeButton.textContent = '×';
+    closeButton.addEventListener('click', () => dialog.close('cancel'));
+
+    header.append(heading, closeButton);
+
+    const content = document.createElement('div');
+    content.className = 'action-confirm-content';
+
+    const message = document.createElement('p');
+    message.id = 'action-confirm-message';
+    content.append(message);
+
+    const footer = document.createElement('footer');
+    footer.className = 'action-confirm-footer';
+
+    const cancelButton = document.createElement('button');
+    cancelButton.className = 'btn-secondary';
+    cancelButton.type = 'button';
+    cancelButton.textContent = 'Cancel';
+    cancelButton.addEventListener('click', () => dialog.close('cancel'));
+
+    const confirmButton = document.createElement('button');
+    confirmButton.className = 'btn-primary';
+    confirmButton.type = 'button';
+    confirmButton.textContent = 'Confirm';
+    confirmButton.addEventListener('click', () => {
+      const current = pendingConfirmation;
+      dialog.close('confirm');
+      if (!current) return;
+      current.form.dataset.confirmed = 'true';
+      current.form.requestSubmit(current.submitter || undefined);
+    });
+
+    footer.append(cancelButton, confirmButton);
+    panel.append(header, content, footer);
+    dialog.append(panel);
+    dialog.addEventListener('click', (event) => {
+      if (event.target === dialog) dialog.close('cancel');
+    });
+    dialog.addEventListener('close', () => {
+      const current = pendingConfirmation;
+      pendingConfirmation = null;
+      if (current && current.submitter) current.submitter.focus();
+    });
+
+    document.body.append(dialog);
+    confirmationDialog = { dialog, message, confirmButton, cancelButton };
+    return confirmationDialog;
+  };
+
   document.addEventListener('submit', (event) => {
     const form = event.target instanceof HTMLFormElement ? event.target : null;
     if (!form) return;
     const message = form.dataset.confirmMessage;
     if (!message) return;
-    if (!window.confirm(message)) {
-      event.preventDefault();
+    if (form.dataset.confirmed === 'true') {
+      delete form.dataset.confirmed;
+      return;
     }
+
+    event.preventDefault();
+    const confirmation = getConfirmationDialog();
+    if (!confirmation) {
+      if (window.confirm(message)) form.requestSubmit(event.submitter || undefined);
+      return;
+    }
+
+    pendingConfirmation = { form, submitter: event.submitter };
+    confirmation.message.textContent = message;
+    confirmation.confirmButton.textContent = form.dataset.confirmLabel || 'Confirm';
+    confirmation.confirmButton.classList.toggle(
+      'action-confirm-danger',
+      form.dataset.confirmVariant === 'danger'
+    );
+    confirmation.dialog.showModal();
+    confirmation.cancelButton.focus();
   });
 });
 
