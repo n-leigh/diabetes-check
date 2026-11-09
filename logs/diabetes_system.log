@@ -4388,3 +4388,34 @@ HINT:  No operator matches the given name and argument types. You might need to 
 2026-11-09 15:58:29,204 - werkzeug - INFO - 127.0.0.1 - - [09/Nov/2026 15:58:29] "[36mGET /static/css/tailwind.min.css HTTP/1.1[0m" 304 -
 2026-11-09 15:58:29,208 - werkzeug - INFO - 127.0.0.1 - - [09/Nov/2026 15:58:29] "[36mGET /static/css/clinical.css HTTP/1.1[0m" 304 -
 >>>>>>> 66d23ed1aac3d6760f680cf88b2a2c12715bf718
+2026-11-09 16:35:17,708 - DiaBeates - INFO - Database initialized successfully with non-destructive WAL mode.
+2026-11-09 16:35:18,084 - DiaBeates - INFO - Loaded clinical models summary: ['cardiovascular', 'general_burden', 'neuropathy_mobility', 'retinopathy']
+2026-11-09 16:35:19,147 - werkzeug - INFO - [31m[1mWARNING: This is a development server. Do not use it in a production deployment. Use a production WSGI server instead.[0m
+ * Running on http://127.0.0.1:5000
+2026-11-09 16:35:19,148 - werkzeug - INFO - [33mPress CTRL+C to quit[0m
+2026-11-09 16:35:43,816 - werkzeug - INFO - 127.0.0.1 - - [09/Nov/2026 16:35:43] "GET / HTTP/1.1" 200 -
+2026-11-09 16:35:44,295 - werkzeug - INFO - 127.0.0.1 - - [09/Nov/2026 16:35:44] "[36mGET /static/css/clinical.css HTTP/1.1[0m" 304 -
+2026-11-09 16:35:44,311 - werkzeug - INFO - 127.0.0.1 - - [09/Nov/2026 16:35:44] "[36mGET /static/logo.png HTTP/1.1[0m" 304 -
+2026-11-09 16:35:44,341 - werkzeug - INFO - 127.0.0.1 - - [09/Nov/2026 16:35:44] "[36mGET /static/css/tailwind.min.css HTTP/1.1[0m" 304 -
+2026-11-09 16:35:44,365 - werkzeug - INFO - 127.0.0.1 - - [09/Nov/2026 16:35:44] "[36mGET /static/js/app.js HTTP/1.1[0m" 304 -
+2026-11-09 16:35:44,875 - werkzeug - INFO - 127.0.0.1 - - [09/Nov/2026 16:35:44] "[36mGET /static/fonts/source-sans-3-600.woff2 HTTP/1.1[0m" 304 -
+2026-11-09 16:35:44,900 - werkzeug - INFO - 127.0.0.1 - - [09/Nov/2026 16:35:44] "[36mGET /static/fonts/source-sans-3-500.woff2 HTTP/1.1[0m" 304 -
+2026-11-09 16:35:44,904 - werkzeug - INFO - 127.0.0.1 - - [09/Nov/2026 16:35:44] "[36mGET /static/fonts/fraunces-700.woff2 HTTP/1.1[0m" 304 -
+2026-11-09 16:35:44,938 - werkzeug - INFO - 127.0.0.1 - - [09/Nov/2026 16:35:44] "[36mGET /static/fonts/source-sans-3-400.woff2 HTTP/1.1[0m" 304 -
+2026-11-09 16:35:45,107 - werkzeug - INFO - 127.0.0.1 - - [09/Nov/2026 16:35:45] "[36mGET /static/logo.png HTTP/1.1[0m" 304 -
+2026-11-09 16:35:46,777 - werkzeug - INFO - 127.0.0.1 - - [09/Nov/2026 16:35:46] "GET /login HTTP/1.1" 200 -
+2026-11-09 16:35:46,905 - werkzeug - INFO - 127.0.0.1 - - [09/Nov/2026 16:35:46] "[36mGET /static/css/clinical.css HTTP/1.1[0m" 304 -
+2026-11-09 16:35:46,960 - werkzeug - INFO - 127.0.0.1 - - [09/Nov/2026 16:35:46] "[36mGET /static/css/tailwind.min.css HTTP/1.1[0m" 304 -
+2026-11-09 16:35:46,967 - werkzeug - INFO - 127.0.0.1 - - [09/Nov/2026 16:35:46] "[36mGET /static/js/app.js HTTP/1.1[0m" 304 -
+2026-11-09 16:35:46,984 - werkzeug - INFO - 127.0.0.1 - - [09/Nov/2026 16:35:46] "[36mGET /static/logo.png HTTP/1.1[0m" 304 -
+2026-11-09 16:35:52,249 - werkzeug - INFO - 127.0.0.1 - - [09/Nov/2026 16:35:52] "GET /register HTTP/1.1" 200 -
+2026-11-09 16:35:52,423 - werkzeug - INFO - 127.0.0.1 - - [09/Nov/2026 16:35:52] "[36mGET /static/css/tailwind.min.css HTTP/1.1[0m" 304 -
+2026-11-09 16:35:52,428 - werkzeug - INFO - 127.0.0.1 - - [09/Nov/2026 16:35:52] "[36mGET /static/css/clinical.css HTTP/1.1[0m" 304 -
+2026-11-09 16:35:52,434 - werkzeug - INFO - 127.0.0.1 - - [09/Nov/2026 16:35:52] "[36mGET /static/js/app.js HTTP/1.1[0m" 304 -
+2026-11-09 16:35:52,441 - werkzeug - INFO - 127.0.0.1 - - [09/Nov/2026 16:35:52] "[36mGET /static/logo.png HTTP/1.1[0m" 304 -
+2026-11-09 16:36:20,111 - werkzeug - INFO - 127.0.0.1 - - [09/Nov/2026 16:36:20] "[32mPOST /register HTTP/1.1[0m" 302 -
+2026-11-09 16:36:20,137 - werkzeug - INFO - 127.0.0.1 - - [09/Nov/2026 16:36:20] "GET /check-email HTTP/1.1" 200 -
+2026-11-09 16:36:20,265 - werkzeug - INFO - 127.0.0.1 - - [09/Nov/2026 16:36:20] "[36mGET /static/css/tailwind.min.css HTTP/1.1[0m" 304 -
+2026-11-09 16:36:20,299 - werkzeug - INFO - 127.0.0.1 - - [09/Nov/2026 16:36:20] "[36mGET /static/css/clinical.css HTTP/1.1[0m" 304 -
+2026-11-09 16:36:20,387 - werkzeug - INFO - 127.0.0.1 - - [09/Nov/2026 16:36:20] "[36mGET /static/js/app.js HTTP/1.1[0m" 304 -
+2026-11-09 16:36:20,515 - werkzeug - INFO - 127.0.0.1 - - [09/Nov/2026 16:36:20] "[36mGET /static/logo.png HTTP/1.1[0m" 304 -
