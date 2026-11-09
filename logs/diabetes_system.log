@@ -3127,3 +3127,78 @@ TypeError: fromisoformat: argument must be str
 2026-11-08 19:51:01,139 - werkzeug - INFO - 127.0.0.1 - - [08/Nov/2026 19:51:01] "GET /static/fonts/source-sans-3-400.woff2 HTTP/1.1" 304 -
 2026-11-08 19:51:03,030 - flask-limiter - INFO - ratelimit 5 per 1 hour (127.0.0.1) exceeded at endpoint: forgot_password
 2026-11-08 19:51:03,032 - werkzeug - INFO - 127.0.0.1 - - [08/Nov/2026 19:51:03] "GET /forgot-password HTTP/1.1" 429 -
+2026-11-09 10:50:22,291 - DiaBeates - ERROR - Health check DB probe failed: consuming input failed: server closed the connection unexpectedly
+	This probably means the server terminated abnormally
+	before or while processing the request.
+server closed the connection unexpectedly
+	This probably means the server terminated abnormally
+	before or while processing the request.
+2026-11-09 10:50:22,406 - werkzeug - INFO - 127.0.0.1 - - [09/Nov/2026 10:50:22] "GET /health HTTP/1.1" 503 -
+2026-11-09 10:51:14,895 - DiaBeates - INFO - Database initialized successfully with non-destructive WAL mode.
+2026-11-09 10:51:15,410 - DiaBeates - INFO - Loaded clinical models summary: ['cardiovascular', 'general_burden', 'neuropathy_mobility', 'retinopathy']
+2026-11-09 10:51:18,036 - waitress - INFO - Serving on http://127.0.0.1:5000
+2026-11-09 10:54:49,836 - DiaBeates - INFO - Database initialized successfully with non-destructive WAL mode.
+2026-11-09 10:54:50,308 - DiaBeates - INFO - Loaded clinical models summary: ['cardiovascular', 'general_burden', 'neuropathy_mobility', 'retinopathy']
+2026-11-09 10:54:52,278 - waitress - INFO - Serving on http://127.0.0.1:5000
+2026-11-09 10:56:05,675 - DiaBeates - INFO - Database initialized successfully with non-destructive WAL mode.
+2026-11-09 10:56:06,335 - DiaBeates - INFO - Loaded clinical models summary: ['cardiovascular', 'general_burden', 'neuropathy_mobility', 'retinopathy']
+2026-11-09 10:57:23,961 - DiaBeates - ERROR - Unexpected server error
+Traceback (most recent call last):
+  File "C:\Users\carlo\AppData\Local\Programs\Python\Python311\Lib\site-packages\flask\app.py", line 917, in full_dispatch_request
+    rv = self.dispatch_request()
+         ^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\carlo\AppData\Local\Programs\Python\Python311\Lib\site-packages\flask\app.py", line 902, in dispatch_request
+    return self.ensure_sync(self.view_functions[rule.endpoint])(**view_args)  # type: ignore[no-any-return]
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\carlo\AppData\Local\Programs\Python\Python311\Lib\site-packages\flask_login\utils.py", line 290, in decorated_view
+    return current_app.ensure_sync(func)(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\carlo\Documents\htdocs\diabetes-check\app.py", line 215, in wrapped
+    return view(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\carlo\Documents\htdocs\diabetes-check\app.py", line 940, in admin_dashboard
+    return render_template("admin_dashboard.html", dashboard=_admin_dashboard_data())
+                                                             ^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\carlo\Documents\htdocs\diabetes-check\app.py", line 234, in _admin_dashboard_data
+    helpful_total = conn.execute("SELECT COUNT(*) FROM feedback WHERE helpful = 1").fetchone()[0]
+                    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\carlo\Documents\htdocs\diabetes-check\database.py", line 88, in execute
+    return self._connection.execute(query.replace("?", "%s"), params)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\carlo\AppData\Local\Programs\Python\Python311\Lib\site-packages\psycopg\connection.py", line 304, in execute
+    raise ex.with_traceback(None)
+psycopg.errors.UndefinedFunction: operator does not exist: boolean = integer
+LINE 1: SELECT COUNT(*) FROM feedback WHERE helpful = 1
+                                                    ^
+HINT:  No operator matches the given name and argument types. You might need to add explicit type casts.
+2026-11-09 10:58:25,970 - DiaBeates - ERROR - Unexpected server error
+Traceback (most recent call last):
+  File "C:\Users\carlo\AppData\Local\Programs\Python\Python311\Lib\site-packages\flask\app.py", line 917, in full_dispatch_request
+    rv = self.dispatch_request()
+         ^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\carlo\AppData\Local\Programs\Python\Python311\Lib\site-packages\flask\app.py", line 902, in dispatch_request
+    return self.ensure_sync(self.view_functions[rule.endpoint])(**view_args)  # type: ignore[no-any-return]
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\carlo\AppData\Local\Programs\Python\Python311\Lib\site-packages\flask_login\utils.py", line 290, in decorated_view
+    return current_app.ensure_sync(func)(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\carlo\Documents\htdocs\diabetes-check\app.py", line 215, in wrapped
+    return view(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\carlo\Documents\htdocs\diabetes-check\app.py", line 940, in admin_dashboard
+    return render_template("admin_dashboard.html", dashboard=_admin_dashboard_data())
+                                                             ^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\carlo\Documents\htdocs\diabetes-check\app.py", line 234, in _admin_dashboard_data
+    helpful_total = conn.execute("SELECT COUNT(*) FROM feedback WHERE helpful = 1").fetchone()[0]
+                    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\carlo\Documents\htdocs\diabetes-check\database.py", line 88, in execute
+    return self._connection.execute(query.replace("?", "%s"), params)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\carlo\AppData\Local\Programs\Python\Python311\Lib\site-packages\psycopg\connection.py", line 304, in execute
+    raise ex.with_traceback(None)
+psycopg.errors.UndefinedFunction: operator does not exist: boolean = integer
+LINE 1: SELECT COUNT(*) FROM feedback WHERE helpful = 1
+                                                    ^
+HINT:  No operator matches the given name and argument types. You might need to add explicit type casts.
+2026-11-09 11:01:38,565 - DiaBeates - INFO - Database initialized successfully with non-destructive WAL mode.
+2026-11-09 11:01:39,058 - DiaBeates - INFO - Loaded clinical models summary: ['cardiovascular', 'general_burden', 'neuropathy_mobility', 'retinopathy']

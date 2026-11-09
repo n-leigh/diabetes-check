@@ -1,1 +1,12 @@
-<!doctype html><html lang="en"><head><meta name="color-scheme" content="light dark"></head><body class="page"><div class="band">DiaBeates</div><main class="card"><h1>Your check is saved.</h1><p>Your latest check was saved to your DiaBeates history on {{ datetime_pht }}.</p><p>For your privacy, we never put results in email. Sign in to view them.</p><p class="panel">Tip: bring your results to your next doctor visit, or print them from your history page.</p><p><a class="button" href="{{ history_link }}">View my history</a></p><p><a href="{{ history_link }}">{{ history_link }}</a></p></main><footer class="footer">You received this because email notifications are on. Turn them off in your account. DiaBeates is a screening tool, not a diagnosis.</footer></body></html>
+{% extends "emails/base.html" %}
+{% block title %}Your DiaBeates check is saved{% endblock %}
+{% block content %}
+<font color="#0b7a85" face="Arial, Helvetica, sans-serif" size="2"><strong>CHECK SAVED</strong></font>
+<h1 style="margin:12px 0 16px; color:#063154; font-family:Georgia, 'Times New Roman', serif; font-size:30px; line-height:1.2;">Your check is saved.</h1>
+<p style="margin:0 0 16px; color:#1f2a33; font-family:Arial, Helvetica, sans-serif; font-size:16px; line-height:1.6;">Your latest check was saved to your DiaBeates history on {{ datetime_pht }}.</p>
+<p style="margin:0 0 20px; color:#1f2a33; font-family:Arial, Helvetica, sans-serif; font-size:15px; line-height:1.6;">For your privacy, we never put results in email. Sign in to view them.</p>
+<table role="presentation" width="100%" border="0" cellpadding="0" cellspacing="0" bgcolor="#e6f4f5"><tr><td style="padding:16px; color:#1f2a33; font-family:Arial, Helvetica, sans-serif; font-size:14px; line-height:1.5;">Tip: bring your results to your next doctor visit, or print them from your history page.</td></tr></table>
+<p style="margin:24px 0 0;"><a href="{{ history_link }}" style="display:inline-block; padding:14px 22px; background-color:#0b7a85; border-radius:8px; color:#ffffff; font-family:Arial, Helvetica, sans-serif; font-size:16px; font-weight:bold; text-decoration:none;">View my history</a></p>
+<p style="margin:14px 0 0; word-break:break-all; font-family:Arial, Helvetica, sans-serif; font-size:13px;"><a href="{{ history_link }}" style="color:#0b7a85;">{{ history_link }}</a></p>
+<p style="margin:20px 0 0; color:#4f5b66; font-family:Arial, Helvetica, sans-serif; font-size:12px; line-height:1.5;">You received this because email notifications are on. Turn them off in your account.</p>
+{% endblock %}
