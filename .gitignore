@@ -35,6 +35,7 @@ logs/
 *.sqlcipher-migration-*.tmp
 *.restore-*.tmp
 backups/
+email_previews/
 supabase/.temp/
 supabase/.branches/
 migration_exports/
@@ -51,4 +52,3 @@ logs/
 node_modules/
 !static/css/tailwind.min.css
 !static/fonts/
-logs/diabetes_system.log

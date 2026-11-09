@@ -1,0 +1,12 @@
+{% extends "emails/base.html" %}
+{% block title %}Confirm your DiaBeates email{% endblock %}
+{% block content %}
+<font color="#0b7a85" face="Arial, Helvetica, sans-serif" size="2"><strong>CONFIRM YOUR EMAIL</strong></font>
+<h1 style="margin:12px 0 16px; color:#063154; font-family:Georgia, 'Times New Roman', serif; font-size:30px; line-height:1.2;">One quick step, {{ display_name }}</h1>
+<p style="margin:0 0 24px; color:#1f2a33; font-family:Arial, Helvetica, sans-serif; font-size:16px; line-height:1.6;">Confirm your email address to finish creating your DiaBeates account.</p>
+<table role="presentation" border="0" cellpadding="0" cellspacing="0"><tr><td bgcolor="#0b7a85" style="border-radius:8px;"><a href="{{ verification_link }}" style="display:inline-block; padding:14px 22px; color:#ffffff; font-family:Arial, Helvetica, sans-serif; font-size:16px; font-weight:bold; text-decoration:none;">Confirm my email</a></td></tr></table>
+<table role="presentation" width="100%" border="0" cellpadding="0" cellspacing="0" bgcolor="#e6f4f5" style="margin:24px 0;"><tr><td style="padding:16px; color:#1f2a33; font-family:Arial, Helvetica, sans-serif; font-size:14px; line-height:1.5;">This link works once and expires in 24 hours.</td></tr></table>
+<p style="margin:0 0 16px; color:#4f5b66; font-family:Arial, Helvetica, sans-serif; font-size:14px; line-height:1.6;">Did not sign up? You can ignore this email. The account will not be activated.</p>
+<p style="margin:0 0 6px; color:#4f5b66; font-family:Arial, Helvetica, sans-serif; font-size:13px;">If the button does not work, copy this link:</p>
+<p style="margin:0; word-break:break-all; font-family:Arial, Helvetica, sans-serif; font-size:13px; line-height:1.5;"><a href="{{ verification_link }}" style="color:#0b7a85;">{{ verification_link }}</a></p>
+{% endblock %}

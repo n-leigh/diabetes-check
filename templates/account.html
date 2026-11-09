@@ -19,6 +19,17 @@
       </form>
     </article>
     <article class="health-card p-6 sm:p-8">
+      <h2 class="font-heading text-2xl font-bold text-[#014c5e]">Email preferences</h2>
+      <form method="post" action="/account/email-notifications" class="mt-5">
+        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+        <label class="flex gap-3 items-start text-[17px] leading-relaxed">
+          <input type="checkbox" name="email_notifications" value="1" {% if user.email_notifications %}checked{% endif %} class="mt-1.5">
+          <span>Email me when I save a check. Results are never included.</span>
+        </label>
+        <button class="btn-primary mt-5 text-[18px]" type="submit">Save email preferences</button>
+      </form>
+    </article>
+    <article class="health-card p-6 sm:p-8">
       <h2 class="font-heading text-2xl font-bold text-[#014c5e]">Change password</h2>
       <form method="post" action="/account/password" class="mt-5 space-y-4">
         <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
