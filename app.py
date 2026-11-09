@@ -529,7 +529,7 @@ for cat in CATEGORIES:
         logger.warning(f"Model file not found for '{cat}' at {path}")
 
 
-def _send_reset_email(email, reset_link, display_name=""):
+def _send_reset_email(email, reset_link, display_name="", minutes=60):
     smtp_host = os.getenv("SMTP_HOST", "").strip()
     smtp_port = int(os.getenv("SMTP_PORT", "587"))
     smtp_user = os.getenv("SMTP_USER", "").strip()
@@ -544,8 +544,18 @@ def _send_reset_email(email, reset_link, display_name=""):
     message["Subject"] = "Reset your DiaBeates password"
     message["From"] = smtp_from
     message["To"] = email
-    message.set_content(render_template("emails/password_reset.txt", display_name=display_name, reset_link=reset_link, minutes=30))
-    message.add_alternative(render_template("emails/password_reset.html", display_name=display_name, reset_link=reset_link, minutes=30), subtype="html")
+    message.set_content(render_template(
+        "emails/password_reset.txt",
+        display_name=display_name,
+        reset_link=reset_link,
+        minutes=minutes,
+    ))
+    message.add_alternative(render_template(
+        "emails/password_reset.html",
+        display_name=display_name,
+        reset_link=reset_link,
+        minutes=minutes,
+    ), subtype="html")
     with smtplib.SMTP(smtp_host, smtp_port, timeout=10) as server:
         server.starttls()
         if smtp_user:
@@ -1049,11 +1059,11 @@ def admin_users():
         ).fetchall()]
     finally:
         conn.close()
-    reset_link = session.pop("admin_reset_link", None)
+    reset_message = session.pop("admin_reset_message", None)
     return render_template(
         "admin_users.html",
         users=users,
-        reset_link=reset_link,
+        reset_message=reset_message,
         active_admin_count=_active_admin_count(),
     )
 
@@ -1122,14 +1132,41 @@ def admin_reset_link(user_id):
     row = database.get_user_by_id(user_id)
     if not row:
         abort(404)
+    if not _smtp_configured():
+        session["admin_reset_message"] = (
+            "Password reset email could not be sent. Email delivery is not configured."
+        )
+        return redirect(url_for("admin_users"))
+
     raw_token = secrets.token_urlsafe(32)
+    token_hash = hashlib.sha256(raw_token.encode("utf-8")).hexdigest()
     database.create_password_reset_token(
         user_id,
-        hashlib.sha256(raw_token.encode("utf-8")).hexdigest(),
+        token_hash,
         (datetime.now(timezone.utc) + timedelta(minutes=60)).isoformat(timespec="seconds"),
     )
-    session["admin_reset_link"] = _reset_link(raw_token)
+    try:
+        sent = _send_reset_email(
+            row["email"],
+            _reset_link(raw_token),
+            row["display_name"],
+            minutes=60,
+        )
+    except (OSError, smtplib.SMTPException, ValueError):
+        logger.exception("Admin password reset email delivery failed")
+        sent = False
+
+    if not sent:
+        database.invalidate_password_reset_token(token_hash)
+        session["admin_reset_message"] = (
+            "Password reset email could not be sent. Please try again later."
+        )
+        return redirect(url_for("admin_users"))
+
     database.log_audit("admin_reset_link_created", str(user_id), current_user.id, get_remote_address())
+    session["admin_reset_message"] = (
+        f"Password reset email sent to {row['email']}. The link expires in 60 minutes."
+    )
     return redirect(url_for("admin_users"))
 
 
@@ -1387,7 +1424,7 @@ def forgot_password():
             database.create_password_reset_token(
                 row["id"],
                 hashlib.sha256(raw_token.encode("utf-8")).hexdigest(),
-                (datetime.now(timezone.utc) + timedelta(minutes=30)).isoformat(timespec="seconds"),
+                (datetime.now(timezone.utc) + timedelta(minutes=60)).isoformat(timespec="seconds"),
             )
             link = _reset_link(raw_token)
             try:
