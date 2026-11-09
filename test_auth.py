@@ -214,6 +214,29 @@ def test_ownership_returns_404_for_all_assessment_actions(client, user):
         database.delete_user_account(other_id)
 
 
+def test_archive_button_moves_assessment_to_archived_history(client, user):
+    _, owner_email = user
+    assert _login(client, owner_email).status_code == 302
+    with client.session_transaction() as state:
+        session_id = state["session_id"]
+
+    assessment_id = _assessment(session_id, user_id=user[0])
+    csrf = _csrf(client, "/history")
+    response = client.post(
+        f"/history/{assessment_id}/archive",
+        data={"csrf_token": csrf, "archived": "1", "from": "active"},
+        follow_redirects=True,
+    )
+
+    assert response.status_code == 200
+    active_html = response.get_data(as_text=True)
+    assert f"/history/{assessment_id}/archive" not in active_html
+
+    archived_response = client.get("/history?view=archived")
+    assert archived_response.status_code == 200
+    assert f"/history/{assessment_id}/archive" in archived_response.get_data(as_text=True)
+
+
 def test_account_export_is_owner_only_and_progress_supports_guest_history(client, user):
     user_id, email = user
     assert client.get("/history/progress").status_code == 200

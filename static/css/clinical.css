@@ -220,6 +220,22 @@ textarea:focus {
   height: 21px;
 }
 
+.password-helper {
+  display: block;
+  margin-top: 0.35rem;
+  font-size: 0.95rem;
+  font-weight: 500;
+  line-height: 1.4;
+}
+
+.password-helper-warning {
+  color: var(--status-doctor-text);
+}
+
+.password-input-warning {
+  border-color: var(--status-doctor-text) !important;
+}
+
 /* Primary Button (Large, calm, 48px+ tap target, 18-20px font) */
 .btn-primary {
   min-height: 48px;
