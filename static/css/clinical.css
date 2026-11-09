@@ -993,15 +993,27 @@ body.admin-interface {
    - Handcrafted micro-interactions (subtle hover lifts, tactile presses)
    ========================================================================== */
 
-.admin-page {
+.admin-page,
+.admin-container,
+body.admin-interface header > div,
+body.admin-interface footer > div {
   width: calc(100% - 240px);
   max-width: none;
 }
 
 @media (max-width: 1000px) {
-  .admin-page {
+  .admin-page,
+  .admin-container,
+  body.admin-interface header > div,
+  body.admin-interface footer > div {
     width: 100%;
   }
+}
+
+body.admin-interface header > div,
+body.admin-interface footer > div {
+  padding-left: 1rem !important;
+  padding-right: 1rem !important;
 }
 
 .admin-workspace-banner {
@@ -1010,11 +1022,18 @@ body.admin-interface {
 }
 
 .admin-workspace-banner p {
-  max-width: 64rem;
+  width: calc(100% - 240px);
+  max-width: none;
   margin: 0 auto;
   padding: 0.75rem 1rem;
   color: #1f2a33;
   font-size: 0.9rem;
+}
+
+@media (max-width: 1000px) {
+  .admin-workspace-banner p {
+    width: 100%;
+  }
 }
 
 .admin-page-heading {
@@ -1887,12 +1906,12 @@ body.admin-interface {
   border-bottom: 0;
 }
 
-.admin-table td:first-child strong,
-.admin-table td:first-child span {
+.admin-table td:not(.admin-empty-state):first-child strong,
+.admin-table td:not(.admin-empty-state):first-child span {
   display: block;
 }
 
-.admin-table td:first-child span {
+.admin-table td:not(.admin-empty-state):first-child span {
   margin-top: 0.15rem;
   color: #4f5b66;
   font-size: 0.85rem;
@@ -1903,6 +1922,11 @@ body.admin-interface {
   margin-top: 0;
   color: var(--navy);
   font-size: 18px;
+}
+
+.admin-table td:first-child .admin-empty-state-icon {
+  display: inline-flex !important;
+  margin-top: 0 !important;
 }
 
 /* Chips & Badges */
@@ -2244,15 +2268,23 @@ body.admin-interface {
 }
 
 .admin-empty-state-icon {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: center !important;
   width: 3.5rem;
   height: 3.5rem;
   border-radius: 50%;
   background: #f3e9d6;
   color: #063154;
+  margin-top: 0 !important;
   margin-bottom: 0.75rem;
+}
+
+.admin-empty-state-icon svg {
+  display: block;
+  margin: auto;
+  width: 1.75rem;
+  height: 1.75rem;
 }
 
 @media (max-width: 760px) {
