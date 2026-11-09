@@ -57,6 +57,7 @@ load_dotenv(os.path.join(os.path.dirname(os.path.abspath(__file__)), ".env"))
 import database
 
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
+APP_STARTED_AT = datetime.now(timezone.utc)
 load_dotenv(os.path.join(BASE_DIR, ".env"))
 
 # ===== LOGGING CONFIGURATION =====
@@ -220,6 +221,63 @@ def _admin_count(value):
     return str(value) if value >= 5 else "<5"
 
 
+def format_file_size(size_bytes: int) -> str:
+    """Format bytes into human-readable units (KB/MB)."""
+    if size_bytes >= 1024 * 1024:
+        return f"{size_bytes / (1024 * 1024):.1f} MB"
+    if size_bytes >= 1024:
+        return f"{size_bytes / 1024:.1f} KB"
+    return f"{size_bytes} bytes"
+
+
+def _format_uptime(started_at) -> str:
+    """Format process uptime into plain-language days and hours."""
+    delta = datetime.now(timezone.utc) - started_at
+    days = delta.days
+    hours = delta.seconds // 3600
+    return f"Running for {days} days {hours} hours"
+
+
+def _admin_feedback_tally():
+    """Compute aggregate helpful vs unhelpful feedback with small-cell suppression."""
+    conn = database.get_connection()
+    try:
+        feedback_total = conn.execute("SELECT COUNT(*) FROM feedback").fetchone()[0]
+        helpful_total = conn.execute("SELECT COUNT(*) FROM feedback WHERE helpful = 1").fetchone()[0]
+        unhelpful_total = feedback_total - helpful_total
+        # Statistical disclosure control: if either helpful or unhelpful count is < 5,
+        # suppress both counts so the small count cannot be calculated from the total.
+        if helpful_total < 5 or unhelpful_total < 5:
+            yes_display = "<5"
+            no_display = "<5"
+        else:
+            yes_display = str(helpful_total)
+            no_display = str(unhelpful_total)
+        return {
+            "yes": yes_display,
+            "no": no_display,
+            "text": f"Helpful: {yes_display} yes / {no_display} no",
+        }
+    finally:
+        conn.close()
+
+
+def _sanitize_csv_cell(value):
+    """Neutralize potential CSV formula injection (=, +, -, @)."""
+    s = str(value) if value is not None else ""
+    if s and s[0] in ("=", "+", "-", "@"):
+        return f"'{s}"
+    return s
+
+
+ADMIN_DOMAIN_TITLES = (
+    ("cardiovascular", "Heart"),
+    ("general_burden", "Kidneys"),
+    ("neuropathy_mobility", "Nerves and feet"),
+    ("retinopathy", "Eyes"),
+)
+
+
 def _admin_dashboard_data():
     conn = database.get_connection()
     try:
@@ -238,24 +296,35 @@ def _admin_dashboard_data():
         else:
             feedback_helpful_rate = f"{helpful_total / feedback_total:.0%}"
         status_counts = {}
-        for category, title in (
-            ("cardiovascular", "Heart"),
-            ("general_burden", "Kidneys"),
-            ("neuropathy_mobility", "Nerves and feet"),
-            ("retinopathy", "Eyes"),
-        ):
+        for category, title in ADMIN_DOMAIN_TITLES:
             rows = conn.execute(
                 """SELECT rule_label, COUNT(*) AS total FROM risk_results
                    WHERE category = ? GROUP BY rule_label""",
                 (category,),
             ).fetchall()
-            status_counts[title] = {
-                label: "<5"
-                for label in ("Good", "Check", "See a doctor")
+            raw_counts = {
+                "Good": 0,
+                "Check": 0,
+                "See a doctor": 0,
             }
             for row in rows:
                 label = get_status_presentation(row["rule_label"])["label"]
-                status_counts[title][label] = _admin_count(row["total"])
+                raw_counts[label] = row["total"]
+
+            # Statistical disclosure control / Tightened secondary suppression rule (Requirement 3.1f / Item 4):
+            # If ANY status cell in a domain is below 5, display all three cells for that domain as "<5".
+            # This completely prevents deriving any hidden small count from domain or platform totals.
+            if any(count < 5 for count in raw_counts.values()):
+                status_counts[title] = {
+                    "Good": "<5",
+                    "Check": "<5",
+                    "See a doctor": "<5",
+                }
+            else:
+                status_counts[title] = {
+                    label: str(count)
+                    for label, count in raw_counts.items()
+                }
         days = []
         for offset in range(29, -1, -1):
             day = (now - timedelta(days=offset)).date()
@@ -363,8 +432,15 @@ def set_security_headers(response):
     if not DEBUG:
         response.headers["Strict-Transport-Security"] = "max-age=31536000; includeSubDomains"
 
-    # Enforce strict Cache-Control for sensitive clinical routes
-    if request.path == "/predict" or request.path.startswith("/print") or request.path.startswith("/history") or request.path.startswith("/result"):
+    # Enforce strict Cache-Control for sensitive clinical and admin routes
+    if (
+        request.path == "/predict"
+        or request.path.startswith("/print")
+        or request.path.startswith("/history")
+        or request.path.startswith("/result")
+        or request.path == "/admin"
+        or request.path.startswith("/admin/")
+    ):
         response.headers["Cache-Control"] = "no-store, no-cache, must-revalidate, max-age=0"
         response.headers["Pragma"] = "no-cache"
 
@@ -395,13 +471,14 @@ if RETENTION_DAYS < 1:
     logger.warning("RETENTION_DAYS must be >= 1; falling back to 90.")
     RETENTION_DAYS = 90
 
+LAST_PRUNED_COUNT = 0
 if not LIVE_DB_CHECKS:
     try:
         pruned_count = database.prune_expired_assessments(days=RETENTION_DAYS)
     except Exception:
         logger.exception("Failed to prune expired assessments")
         pruned_count = 0
-
+    LAST_PRUNED_COUNT = pruned_count
     if pruned_count:
         logger.info("Expired assessments pruned: %d", pruned_count)
     try:
@@ -940,6 +1017,23 @@ def admin_dashboard():
     return render_template("admin_dashboard.html", dashboard=_admin_dashboard_data())
 
 
+KNOWN_AUDIT_ACTIONS = [
+    "login_success",
+    "login_failed",
+    "lockout",
+    "logout",
+    "password_changed",
+    "password_reset_requested",
+    "password_reset_completed",
+    "account_deleted",
+    "admin_user_deactivated",
+    "admin_user_reactivated",
+    "admin_user_deleted",
+    "admin_reset_link_created",
+    "admin_backup_created",
+]
+
+
 @app.get("/admin/users")
 @admin_required
 def admin_users():
@@ -952,7 +1046,12 @@ def admin_users():
     finally:
         conn.close()
     reset_link = session.pop("admin_reset_link", None)
-    return render_template("admin_users.html", users=users, reset_link=reset_link)
+    return render_template(
+        "admin_users.html",
+        users=users,
+        reset_link=reset_link,
+        active_admin_count=_active_admin_count(),
+    )
 
 
 def _active_admin_count():
@@ -1032,18 +1131,37 @@ def admin_reset_link(user_id):
 @app.get("/admin/feedback")
 @admin_required
 def admin_feedback():
+    page = max(1, request.args.get("page", 1, type=int))
+    per_page = 50
+    offset = (page - 1) * per_page
     conn = database.get_connection()
     try:
-        feedback = [dict(row) for row in conn.execute(
-            """SELECT helpful, comment, created_at, NULL AS name FROM feedback
-               UNION ALL
-               SELECT NULL AS helpful, message AS comment, created_at, name
-               FROM feedback_submissions
-               ORDER BY created_at DESC LIMIT 200"""
-        ).fetchall()]
+        max_allowed = max(0, 200 - offset)
+        fetch_limit = min(per_page + 1, max_allowed)
+        if fetch_limit > 0:
+            raw_feedback = [dict(row) for row in conn.execute(
+                """SELECT helpful, comment, created_at, NULL AS name FROM feedback
+                   UNION ALL
+                   SELECT NULL AS helpful, message AS comment, created_at, name
+                   FROM feedback_submissions
+                   ORDER BY created_at DESC LIMIT ? OFFSET ?""",
+                (fetch_limit, offset),
+            ).fetchall()]
+        else:
+            raw_feedback = []
     finally:
         conn.close()
-    return render_template("admin_feedback.html", feedback=feedback)
+
+    has_next = len(raw_feedback) > per_page and (offset + per_page < 200)
+    feedback = raw_feedback[:per_page]
+    return render_template(
+        "admin_feedback.html",
+        feedback=feedback,
+        tally=_admin_feedback_tally(),
+        page=page,
+        has_next=has_next,
+        has_prev=(page > 1),
+    )
 
 
 @app.get("/admin/audit")
@@ -1051,19 +1169,30 @@ def admin_feedback():
 def admin_audit():
     page = max(1, request.args.get("page", 1, type=int))
     action = request.args.get("action", "").strip()
-    offset = (page - 1) * 50
+    per_page = 50
+    offset = (page - 1) * per_page
     conn = database.get_connection()
     try:
         where = "WHERE action = ?" if action else ""
-        params = (action, 50, offset) if action else (50, offset)
-        audit = [dict(row) for row in conn.execute(
+        params = (action, per_page + 1, offset) if action else (per_page + 1, offset)
+        raw_audit = [dict(row) for row in conn.execute(
             f"""SELECT id, actor_user_id, action, target, created_at
                 FROM audit_log {where} ORDER BY id DESC LIMIT ? OFFSET ?""",
             params,
         ).fetchall()]
     finally:
         conn.close()
-    return render_template("admin_audit.html", audit=audit, action=action, page=page)
+    has_next = len(raw_audit) > per_page
+    audit = raw_audit[:per_page]
+    return render_template(
+        "admin_audit.html",
+        audit=audit,
+        action=action,
+        page=page,
+        has_next=has_next,
+        has_prev=(page > 1),
+        known_actions=KNOWN_AUDIT_ACTIONS,
+    )
 
 
 @app.get("/admin/system")
@@ -1081,21 +1210,45 @@ def admin_system():
         )
     backups_dir = os.path.join(BASE_DIR, "backups")
     os.makedirs(backups_dir, exist_ok=True)
-    backups = sorted(
-        [name for name in os.listdir(backups_dir) if name.endswith(".zip")],
-        reverse=True,
-    )
+    backups = []
+    for name in sorted(os.listdir(backups_dir), reverse=True):
+        if name.endswith(".zip"):
+            bpath = os.path.join(backups_dir, name)
+            try:
+                bsize = format_file_size(os.path.getsize(bpath))
+            except OSError:
+                bsize = "Unknown size"
+            backups.append({"name": name, "size": bsize})
+
     try:
-        database_size = os.path.getsize(database.DB_PATH)
+        database_size = format_file_size(os.path.getsize(database.DB_PATH))
     except OSError:
-        database_size = 0
+        database_size = "0 bytes"
+
+    health_info = _system_health_status()
+    uptime = _format_uptime(APP_STARTED_AT)
+
+    model_details = []
+    for cat, title in ADMIN_DOMAIN_TITLES:
+        model_details.append({
+            "category": cat,
+            "title": title,
+            "name": MODEL_NAMES.get(cat, "Unknown model"),
+            "status": CLINICAL_METRICS.get(cat, {}).get("model_status", "validated"),
+            "is_loaded": cat in MODELS,
+        })
+
     return render_template(
         "admin_system.html",
         backups=backups,
         database_size=database_size,
-        database_backend="sqlite",
+        health_info=health_info,
+        uptime=uptime,
+        model_details=model_details,
+        database_backend=database.DB_BACKEND,
         model_names=MODEL_NAMES,
         retention_days=RETENTION_DAYS,
+        last_pruned=LAST_PRUNED_COUNT,
         backup_message=session.pop("backup_message", None),
     )
 
@@ -1127,16 +1280,20 @@ def admin_backup():
 @admin_required
 def admin_export_csv():
     dashboard = _admin_dashboard_data()
+    now_iso = datetime.now(timezone.utc).isoformat(timespec="seconds")
     output = io.StringIO()
     writer = csv.writer(output)
-    writer.writerow(["metric", "value"])
-    writer.writerow(["total_users", dashboard["users_total"]])
-    writer.writerow(["new_users_last_7_days", dashboard["new_users"]])
-    writer.writerow(["total_assessments", dashboard["assessments_total"]])
-    writer.writerow(["helpful_feedback_rate", dashboard["feedback_helpful_rate"]])
+    writer.writerow([_sanitize_csv_cell("metric"), _sanitize_csv_cell("value")])
+    writer.writerow([_sanitize_csv_cell("generated_at"), _sanitize_csv_cell(now_iso)])
+    writer.writerow([_sanitize_csv_cell("suppression_note"), _sanitize_csv_cell("Counts below 5 are shown as <5")])
+    writer.writerow([_sanitize_csv_cell("total_users"), _sanitize_csv_cell(dashboard["users_total"])])
+    writer.writerow([_sanitize_csv_cell("new_users_last_7_days"), _sanitize_csv_cell(dashboard["new_users"])])
+    writer.writerow([_sanitize_csv_cell("total_assessments"), _sanitize_csv_cell(dashboard["assessments_total"])])
+    writer.writerow([_sanitize_csv_cell("helpful_feedback_rate"), _sanitize_csv_cell(dashboard["feedback_helpful_rate"])])
     for title, counts in dashboard["status_counts"].items():
         for status, value in counts.items():
-            writer.writerow([f"{title.lower()}_{status.lower().replace(' ', '_')}", value])
+            key = f"{title.lower()}_{status.lower().replace(' ', '_')}"
+            writer.writerow([_sanitize_csv_cell(key), _sanitize_csv_cell(value)])
     response = app.response_class(output.getvalue(), mimetype="text/csv")
     response.headers["Content-Disposition"] = "attachment; filename=diabeates-admin-summary.csv"
     return response
@@ -1320,9 +1477,7 @@ def report():
     return render_template("report_viewer.html")
 
 
-@app.route("/health", methods=["GET"])
-@limiter.exempt
-def health():
+def _system_health_status():
     db_ok = True
     migration_pending = False
     try:
@@ -1342,8 +1497,24 @@ def health():
         "database": "connected" if db_ok else "unreachable",
         "reason": "database migration pending" if migration_pending else None,
         "models_loaded": models_loaded,
+        "models_loaded_count": len(models_loaded),
+        "models_expected_count": len(CATEGORIES),
         "models_expected": CATEGORIES,
         "rule_version": RULE_VERSION,
+    }
+
+
+@app.route("/health", methods=["GET"])
+@limiter.exempt
+def health():
+    info = _system_health_status()
+    status_code = 200 if info["status"] == "healthy" else 503
+    return {
+        "status": info["status"],
+        "database": info["database"],
+        "models_loaded": info["models_loaded"],
+        "models_expected": info["models_expected"],
+        "rule_version": info["rule_version"],
     }, status_code
 
 
@@ -1396,7 +1567,7 @@ def explain_patient_risk(patient: dict) -> dict:
             "badge": "bg-amber-100 text-amber-800 border-amber-200",
             "detail": "Promotes atherogenic arterial lipid accumulation."
         })
-    bmi = patient.get("BMI", 0)
+    bmi = patient.get("BMI") or 0
     if bmi >= 30:
         drivers["cardiovascular"].append({
             "factor": f"Obesity (BMI {bmi})",
@@ -1411,7 +1582,7 @@ def explain_patient_risk(patient: dict) -> dict:
             "badge": "bg-slate-100 text-slate-700 border-slate-200",
             "detail": "Mild elevated metabolic and cardiovascular strain."
         })
-    age_band = patient.get("Age", 0)
+    age_band = patient.get("Age") or 0
     if age_band >= 9:
         drivers["cardiovascular"].append({
             "factor": "Age ≥60 years",
@@ -1435,7 +1606,7 @@ def explain_patient_risk(patient: dict) -> dict:
             "badge": "bg-red-100 text-red-700 border-red-200",
             "detail": "Primary hemodynamic risk driver for glomerular hyperfiltration and renal decline."
         })
-    gen_hlth = patient.get("GenHlth", 1)
+    gen_hlth = patient.get("GenHlth") or 1
     if gen_hlth >= 4:
         drivers["general_burden"].append({
             "factor": "Fair / Poor General Health",
@@ -1518,7 +1689,7 @@ def explain_patient_risk(patient: dict) -> dict:
         })
 
     # Diabetic Retinopathy & Vision Loss drivers (ADA / UKPDS)
-    dur = patient.get("DiabetesDuration", 0)
+    dur = patient.get("DiabetesDuration") or 0
     if dur >= 3:
         drivers["retinopathy"].append({
             "factor": "Diabetes Duration ≥10 Years",

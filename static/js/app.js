@@ -13,6 +13,22 @@ document.addEventListener('DOMContentLoaded', () => {
     });
   }
 
+  const passwordInput = document.getElementById('loginPassword');
+  const passwordToggle = document.getElementById('loginPasswordToggle');
+  if (passwordInput && passwordToggle) {
+    const showIcon = passwordToggle.querySelector('[data-password-icon="show"]');
+    const hideIcon = passwordToggle.querySelector('[data-password-icon="hide"]');
+    passwordToggle.addEventListener('click', () => {
+      const isVisible = passwordInput.type === 'text';
+      passwordInput.type = isVisible ? 'password' : 'text';
+      passwordToggle.setAttribute('aria-label', isVisible ? 'Show password' : 'Hide password');
+      passwordToggle.setAttribute('aria-pressed', String(!isVisible));
+      if (showIcon) showIcon.classList.toggle('hidden', !isVisible);
+      if (hideIcon) hideIcon.classList.toggle('hidden', isVisible);
+      passwordInput.focus();
+    });
+  }
+
   document.addEventListener('submit', (event) => {
     const form = event.target instanceof HTMLFormElement ? event.target : null;
     if (!form) return;
@@ -94,4 +110,3 @@ document.addEventListener('DOMContentLoaded', () => {
     });
   }
 }());
-

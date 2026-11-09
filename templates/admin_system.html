@@ -1,43 +1,73 @@
 {% extends "base.html" %}
 {% block title %}DiaBeates - Admin system{% endblock %}
 {% block content %}
-<section class="admin-page max-w-5xl mx-auto px-4 py-10">
-  <div class="admin-page-heading">
-    <p class="admin-eyebrow">Operations</p>
-    <h1 class="font-heading text-3xl sm:text-4xl font-bold text-[#063154]">System</h1>
-    <p class="admin-intro">Check service health and manage protected backups.</p>
+<section class="admin-page admin-system-page max-w-5xl mx-auto px-4 py-10">
+  <div class="admin-page-heading admin-page-heading-row admin-system-heading">
+    <div>
+      <p class="admin-eyebrow"><span class="admin-eyebrow-dot" aria-hidden="true"></span> Operations</p>
+      <h1 class="font-heading text-3xl sm:text-4xl font-bold text-[#063154]">System</h1>
+      <p class="admin-intro">Check service health and manage protected backups.</p>
+    </div>
   </div>
-  {% if backup_message %}<p role="alert" aria-live="polite" class="admin-reset-notice">{{ backup_message }}</p>{% endif %}
+  {% if backup_message %}
+  <p role="alert" aria-live="polite" class="admin-reset-notice">{{ backup_message }}</p>
+  {% endif %}
   <div class="admin-system-grid">
-    <article class="admin-panel">
-      <p class="admin-eyebrow">Service status</p>
-      <h2 class="font-heading text-2xl font-bold text-[#063154]">Health and storage</h2>
-      <dl class="admin-system-list">
-        <div><dt>Health check</dt><dd><a href="/health">View service health</a></dd></div>
+    <article class="admin-panel admin-system-panel" aria-labelledby="health-storage-title">
+      <div class="admin-system-panel-topline">
+        <p class="admin-eyebrow">Service status</p>
+        <span class="admin-health-badge" role="status">
+          <span class="w-2 h-2 rounded-full bg-[#2f7d4a]" aria-hidden="true"></span>
+          {{ health_info.status|capitalize }}
+        </span>
+      </div>
+      <h2 id="health-storage-title" class="font-heading text-2xl font-bold text-[#063154]">Health and storage</h2>
+      <dl class="admin-system-list" aria-label="Service health and storage details">
+        <div><dt>Database status</dt><dd>{{ health_info.database|capitalize }}</dd></div>
+        <div><dt>Models health</dt><dd>{{ health_info.models_loaded_count }} of {{ health_info.models_expected_count }} loaded</dd></div>
+        <div><dt>Application uptime</dt><dd>{{ uptime }}</dd></div>
         <div><dt>Database</dt><dd>{{ 'Supabase Postgres' if database_backend == 'postgres' else database_size ~ ' bytes' }}</dd></div>
-        <div><dt>Guest data retention</dt><dd>{{ retention_days }} days</dd></div>
-        <div><dt>Loaded models</dt><dd>{{ model_names.values()|join(', ') }}</dd></div>
+        <div><dt>Guest data retention</dt><dd>{{ retention_days }} days{% if last_pruned %} (last startup prune: {{ last_pruned }}){% endif %}</dd></div>
       </dl>
+      <div class="admin-model-section">
+        <h3 class="font-heading text-lg font-bold text-[#063154] mb-3">Clinical prediction models</h3>
+        <div class="admin-model-grid">
+          {% for m in model_details %}
+          <div class="admin-model-card">
+            <div class="admin-model-card-header">
+              <h3>{{ m.title }}</h3>
+              <span class="admin-role-chip {{ 'is-positive' if m.is_loaded else 'is-negative' }}">{{ 'Loaded' if m.is_loaded else 'Missing' }}</span>
+            </div>
+            <p class="admin-model-name">{{ m.name }}</p>
+            <span class="admin-model-status">Status: {{ m.status|capitalize }}</span>
+          </div>
+          {% endfor %}
+        </div>
+      </div>
     </article>
-    <article class="admin-panel">
+    <article class="admin-panel admin-system-panel admin-backup-panel" aria-labelledby="backups-title">
       <p class="admin-eyebrow">Data protection</p>
-      <h2 class="font-heading text-2xl font-bold text-[#063154]">Backups</h2>
+      <h2 id="backups-title" class="font-heading text-2xl font-bold text-[#063154]">Backups</h2>
       {% if database_backend == 'postgres' %}
       <p class="admin-panel-description">Backups are managed in Supabase or with pg_dump.</p>
       {% else %}
       <p class="admin-panel-description">Backups contain private records. Store and share them carefully.</p>
-      <form method="post" action="/admin/system/backup">
-      <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
-      <button class="btn-primary" type="submit">Create backup</button>
+      <form class="admin-backup-form" method="post" action="/admin/system/backup">
+        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+        <button class="btn-primary admin-backup-button" type="submit">Create backup</button>
       </form>
+      <div class="admin-backup-list">
+        <h3 class="font-heading text-lg font-bold text-[#063154] mb-3">Existing backups</h3>
+        <ul class="space-y-2 admin-backup-items">
+          {% for backup in backups %}
+          <li><code>{{ backup.name if backup.name is defined else backup }}</code></li>
+          {% else %}
+          <li>No backups yet.</li>
+          {% endfor %}
+        </ul>
+      </div>
       {% endif %}
     </article>
   </div>
-  {% if database_backend != 'postgres' %}
-  <div class="admin-backup-list">
-    <h2 class="font-heading text-2xl font-bold text-[#063154]">Existing backups</h2>
-    <ul>{% for backup in backups %}<li><code>{{ backup }}</code></li>{% else %}<li>No backups yet.</li>{% endfor %}</ul>
-  </div>
-  {% endif %}
 </section>
 {% endblock %}
