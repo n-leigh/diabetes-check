@@ -1,0 +1,27 @@
+{% extends "base.html" %}
+{% block title %}DiaBeates - Confirm your email{% endblock %}
+{% block content %}
+<section class="max-w-xl mx-auto px-4 py-10 sm:py-16">
+  <div class="health-card p-6 sm:p-10">
+    {% if state == "confirm" %}
+    <h1 class="font-heading text-3xl sm:text-4xl font-bold text-[#014c5e]">Confirm your email</h1>
+    <p class="mt-4 text-[18px]">Click below to finish creating your account.</p>
+    <form method="post" class="mt-8">
+      <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+      <button type="submit" class="btn-primary w-full text-[19px]">Confirm my email</button>
+    </form>
+    {% elif state == "verified" %}
+    <h1 class="font-heading text-3xl sm:text-4xl font-bold text-[#014c5e]">Email confirmed</h1>
+    <p role="alert" class="mt-4 text-[18px]">Your account is ready. You can sign in now.</p>
+    <a href="{{ url_for('login') }}" class="btn-primary mt-8 w-full text-center text-[19px]">Sign in</a>
+    {% elif state == "already_verified" %}
+    <h1 class="font-heading text-3xl sm:text-4xl font-bold text-[#014c5e]">Your email is already confirmed</h1>
+    <a href="{{ url_for('login') }}" class="btn-primary mt-8 w-full text-center text-[19px]">Sign in</a>
+    {% else %}
+    <h1 class="font-heading text-3xl sm:text-4xl font-bold text-[#014c5e]">This link needs replacing</h1>
+    <p role="alert" class="mt-4 text-[18px]">It may be expired, used, or invalid.</p>
+    <a href="{{ url_for('register') }}" class="btn-primary mt-8 w-full text-center text-[19px]">Request a new link</a>
+    {% endif %}
+  </div>
+</section>
+{% endblock %}

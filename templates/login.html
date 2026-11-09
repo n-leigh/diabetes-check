@@ -9,14 +9,21 @@
       {% for error in errors %}<p>{{ error }}</p>{% endfor %}
     </div>
     {% endif %}
+    {% if unverified_email %}
+    <form method="post" action="{{ url_for('resend_verification') }}" class="mt-5">
+      <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+      <input type="hidden" name="email" value="{{ unverified_email }}">
+      <button type="submit" class="btn-secondary w-full text-[18px]">Resend confirmation email</button>
+    </form>
+    {% endif %}
     <form method="post" class="mt-8 space-y-5">
       <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
       <label class="block text-[18px] font-semibold">Email
-        <input type="email" name="email" required value="{{ form_data.get('email', '') }}" class="mt-2 w-full input-field">
+        <input type="email" name="email" required autocomplete="email" value="{{ form_data.get('email', '') }}" class="mt-2 w-full input-field">
       </label>
       <label class="block text-[18px] font-semibold">Password
         <span class="password-field mt-2">
-          <input id="loginPassword" type="password" name="password" required class="w-full input-field">
+          <input id="loginPassword" type="password" name="password" required autocomplete="current-password" class="w-full input-field">
           <button type="button" class="password-visibility-toggle" id="loginPasswordToggle" aria-label="Show password" aria-pressed="false">
             <svg class="password-visibility-icon" data-password-icon="show" viewBox="0 0 24 24" fill="none" stroke="currentColor" aria-hidden="true">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.477 0 8.268 2.943 9.542 7-1.274 4.057-5.065 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"></path>

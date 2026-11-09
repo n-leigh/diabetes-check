@@ -71,6 +71,9 @@
                 aria-hidden="true"></span>
               {{ 'Active' if user.is_active else 'Inactive' }}
             </span>
+            <span class="admin-account-status {{ 'is-active' if user.email_verified_at else 'is-inactive' }}">
+              {{ 'Verified' if user.email_verified_at else 'Unverified' }}
+            </span>
           </td>
           <td data-label="Created"><span class="font-mono text-sm">{{ user.created_at|display_time }}</span></td>
           <td data-label="Last login"><span class="font-mono text-sm">{{ user.last_login_at|display_time if

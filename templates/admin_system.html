@@ -8,112 +8,27 @@
       <h1 class="font-heading text-3xl sm:text-4xl font-bold text-[#063154]">System</h1>
       <p class="admin-intro">Check service health and manage protected backups.</p>
     </div>
-    <a class="admin-back-link" href="/admin">
-      <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
-        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M15 19l-7-7 7-7"></path>
-      </svg>
-      <span>Back to dashboard</span>
-    </a>
   </div>
   {% if backup_message %}
-  <div role="alert" aria-live="polite" class="admin-reset-notice">
-    <div class="flex items-center gap-3">
-      <span
-        class="inline-flex items-center justify-center w-7 h-7 rounded-full bg-[#e4f2e7] text-[#2f7d4a] border border-[#bce0c6] flex-shrink-0"
-        aria-hidden="true">
-        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
-        </svg>
-      </span>
-      <p class="font-semibold text-[#063154] text-sm">{{ backup_message }}</p>
-    </div>
-  </div>
+  <p role="alert" aria-live="polite" class="admin-reset-notice">{{ backup_message }}</p>
   {% endif %}
   <div class="admin-system-grid">
     <article class="admin-panel admin-system-panel" aria-labelledby="health-storage-title">
       <div class="admin-system-panel-topline">
         <p class="admin-eyebrow">Service status</p>
-        <span
-          class="admin-health-badge" role="status">
-          <span class="w-2 h-2 rounded-full bg-[#2f7d4a]" aria-hidden="true"></span> Healthy
+        <span class="admin-health-badge" role="status">
+          <span class="w-2 h-2 rounded-full bg-[#2f7d4a]" aria-hidden="true"></span>
+          {{ health_info.status|capitalize }}
         </span>
       </div>
       <h2 id="health-storage-title" class="font-heading text-2xl font-bold text-[#063154]">Health and storage</h2>
       <dl class="admin-system-list" aria-label="Service health and storage details">
-        <div>
-          <dt class="flex items-center gap-2">
-            <svg class="w-4 h-4 text-[#0b7a85]" fill="none" stroke="currentColor" viewBox="0 0 24 24"
-              aria-hidden="true">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                d="M4 7v10c0 2 1.5 3 3.5 3h9c2 0 3.5-1 3.5-3V7c0-2-1.5-3-3.5-3h-9C5.5 4 4 5 4 7zM4 9c0 1.5 1.5 2.5 3.5 2.5h9c2 0 3.5-1 3.5-2.5M4 14c0 1.5 1.5 2.5 3.5 2.5h9c2 0 3.5-1 3.5-2.5">
-              </path>
-            </svg>
-            Database status
-          </dt>
-          <dd>
-            <span class="admin-role-chip {{ 'is-positive' if health_info.database == 'connected' else 'is-negative' }}">
-              {{ health_info.database|capitalize }}
-            </span>
-          </dd>
-        </div>
-        <div>
-          <dt class="flex items-center gap-2">
-            <svg class="w-4 h-4 text-[#0b7a85]" fill="none" stroke="currentColor" viewBox="0 0 24 24"
-              aria-hidden="true">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                d="M9.75 17L9 20l-1 1h8l-1-1-.75-3M3 13h18M5 17h14a2 2 0 002-2V5a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z">
-              </path>
-            </svg>
-            Models health
-          </dt>
-          <dd>
-            <span
-              class="admin-role-chip {{ 'is-positive' if health_info.models_loaded_count == health_info.models_expected_count else 'is-negative' }}">
-              {{ health_info.models_loaded_count }} of {{ health_info.models_expected_count }} loaded
-            </span>
-            <a href="/health"
-              class="text-sm font-semibold text-[#0b7a85] ml-2 hover:underline inline-flex items-center gap-1">(Raw
-              JSON)</a>
-          </dd>
-        </div>
-        <div>
-          <dt class="flex items-center gap-2">
-            <svg class="w-4 h-4 text-[#0b7a85]" fill="none" stroke="currentColor" viewBox="0 0 24 24"
-              aria-hidden="true">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path>
-            </svg>
-            Application uptime
-          </dt>
-          <dd><strong>{{ uptime }}</strong></dd>
-        </div>
-        <div>
-          <dt class="flex items-center gap-2">
-            <svg class="w-4 h-4 text-[#0b7a85]" fill="none" stroke="currentColor" viewBox="0 0 24 24"
-              aria-hidden="true">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z"></path>
-            </svg>
-            Database size
-          </dt>
-          <dd><strong>{{ database_size }}</strong></dd>
-        </div>
-        <div>
-          <dt class="flex items-center gap-2">
-            <svg class="w-4 h-4 text-[#0b7a85]" fill="none" stroke="currentColor" viewBox="0 0 24 24"
-              aria-hidden="true">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16">
-              </path>
-            </svg>
-            Data retention
-          </dt>
-          <dd class="text-sm">Guest checks are deleted after {{ retention_days }} days. Accounts are kept until deleted.{% if last_pruned is not none and last_pruned > 0 %} <span
-              class="text-[#0b7a85] font-semibold">(Last startup prune: {{ last_pruned }} records)</span>{% endif %}
-          </dd>
-        </div>
+        <div><dt>Database status</dt><dd>{{ health_info.database|capitalize }}</dd></div>
+        <div><dt>Models health</dt><dd>{{ health_info.models_loaded_count }} of {{ health_info.models_expected_count }} loaded</dd></div>
+        <div><dt>Application uptime</dt><dd>{{ uptime }}</dd></div>
+        <div><dt>Database</dt><dd>{{ 'Supabase Postgres' if database_backend == 'postgres' else database_size ~ ' bytes' }}</dd></div>
+        <div><dt>Guest data retention</dt><dd>{{ retention_days }} days{% if last_pruned %} (last startup prune: {{ last_pruned }}){% endif %}</dd></div>
       </dl>
-
       <div class="admin-model-section">
         <h3 class="font-heading text-lg font-bold text-[#063154] mb-3">Clinical prediction models</h3>
         <div class="admin-model-grid">
@@ -121,11 +36,7 @@
           <div class="admin-model-card">
             <div class="admin-model-card-header">
               <h3>{{ m.title }}</h3>
-              {% if m.is_loaded %}
-              <span class="admin-role-chip is-positive">Loaded</span>
-              {% else %}
-              <span class="admin-role-chip is-negative">Missing</span>
-              {% endif %}
+              <span class="admin-role-chip {{ 'is-positive' if m.is_loaded else 'is-negative' }}">{{ 'Loaded' if m.is_loaded else 'Missing' }}</span>
             </div>
             <p class="admin-model-name">{{ m.name }}</p>
             <span class="admin-model-status">Status: {{ m.status|capitalize }}</span>
@@ -137,41 +48,25 @@
     <article class="admin-panel admin-system-panel admin-backup-panel" aria-labelledby="backups-title">
       <p class="admin-eyebrow">Data protection</p>
       <h2 id="backups-title" class="font-heading text-2xl font-bold text-[#063154]">Backups</h2>
+      {% if database_backend == 'postgres' %}
+      <p class="admin-panel-description">Backups are managed in Supabase or with pg_dump.</p>
+      {% else %}
       <p class="admin-panel-description">Backups contain private records. Store and share them carefully.</p>
-      <form class="admin-backup-form" method="post" action="/admin/system/backup" data-confirm-message="Create a new encrypted database backup?">
+      <form class="admin-backup-form" method="post" action="/admin/system/backup">
         <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
-        <button class="btn-primary admin-backup-button" type="submit">
-          <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-              d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z">
-            </path>
-          </svg>
-          Create backup
-        </button>
+        <button class="btn-primary admin-backup-button" type="submit">Create backup</button>
       </form>
       <div class="admin-backup-list">
-        <h3 id="existing-backups-title" class="font-heading text-lg font-bold text-[#063154] mb-3">Existing backups</h3>
-        <ul class="space-y-2 admin-backup-items" tabindex="0" aria-labelledby="existing-backups-title">
+        <h3 class="font-heading text-lg font-bold text-[#063154] mb-3">Existing backups</h3>
+        <ul class="space-y-2 admin-backup-items">
           {% for backup in backups %}
-          <li
-            class="flex items-center justify-between text-sm py-2 px-3 bg-[#fbf6ec] border border-[#e5dcce] rounded-lg">
-            <div class="flex items-center gap-2 min-w-0">
-              <svg class="w-4 h-4 text-[#0b7a85] flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"
-                aria-hidden="true">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                  d="M5 8h14M5 8a2 2 0 110-4h14a2 2 0 110 4M5 8v10a2 2 0 002 2h10a2 2 0 002-2V8m-9 4h4"></path>
-              </svg>
-              <code class="text-xs break-all font-mono">{{ backup.name }}</code>
-            </div>
-            <span
-              class="text-[#4f5b66] font-mono ml-2 whitespace-nowrap text-xs font-semibold px-2 py-0.5 rounded bg-[#fff] border border-[#e5dcce]">{{
-              backup.size }}</span>
-          </li>
+          <li><code>{{ backup.name if backup.name is defined else backup }}</code></li>
           {% else %}
-          <li class="text-[#4f5b66] text-sm py-3 text-center">No backups yet.</li>
+          <li>No backups yet.</li>
           {% endfor %}
         </ul>
       </div>
+      {% endif %}
     </article>
   </div>
 </section>
