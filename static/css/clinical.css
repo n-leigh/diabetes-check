@@ -2705,6 +2705,137 @@ dialog::backdrop {
   background-color: rgba(1, 76, 94, 0.6);
 }
 
+.terms-dialog-open {
+  overflow: hidden;
+}
+
+#terms-dialog {
+  width: min(640px, calc(100vw - 32px));
+  max-width: 640px;
+  max-height: 85vh;
+  overflow: hidden;
+}
+
+.terms-dialog-shell {
+  display: flex;
+  max-height: 85vh;
+  flex-direction: column;
+}
+
+.terms-dialog-header,
+.terms-dialog-footer {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  flex: 0 0 auto;
+  padding: 16px 20px;
+  background-color: var(--white);
+}
+
+.terms-dialog-header {
+  justify-content: space-between;
+  border-bottom: 1px solid var(--border-cream);
+}
+
+.terms-dialog-header h2 {
+  margin: 0;
+  font-size: 1.5rem;
+}
+
+.terms-dialog-close {
+  display: inline-flex;
+  width: 48px;
+  height: 48px;
+  align-items: center;
+  justify-content: center;
+  flex: 0 0 48px;
+  color: var(--navy);
+  background-color: transparent;
+  border: 0;
+  border-radius: 8px;
+  cursor: pointer;
+  font-size: 32px;
+  line-height: 1;
+}
+
+.terms-dialog-close:hover {
+  background-color: var(--teal-light);
+}
+
+.terms-dialog-body {
+  min-height: 0;
+  overflow-y: auto;
+  padding: 20px;
+}
+
+.terms-dialog-footer {
+  justify-content: flex-end;
+  border-top: 1px solid var(--border-cream);
+}
+
+.terms-content {
+  color: var(--ink);
+}
+
+.terms-content h2 {
+  margin: 1.5rem 0 0.5rem;
+  font-size: 1.25rem;
+}
+
+.terms-content h2:first-child {
+  margin-top: 0;
+}
+
+.terms-content p,
+.terms-content ul {
+  margin: 0 0 1rem;
+}
+
+.terms-content ul {
+  padding-left: 1.5rem;
+}
+
+.terms-content li + li {
+  margin-top: 0.5rem;
+}
+
+.terms-meta {
+  color: var(--ink-muted);
+  font-family: var(--font-mono);
+  font-size: 0.85rem;
+}
+
+.terms-page-card {
+  border-color: var(--teal-light);
+}
+
+@media (max-width: 480px) {
+  #terms-dialog {
+    width: calc(100vw - 16px);
+    max-height: calc(100vh - 16px);
+    margin: 8px;
+  }
+
+  .terms-dialog-shell {
+    max-height: calc(100vh - 16px);
+  }
+
+  .terms-dialog-header,
+  .terms-dialog-footer,
+  .terms-dialog-body {
+    padding: 14px 16px;
+  }
+
+  .terms-dialog-footer {
+    flex-direction: column-reverse;
+    align-items: stretch;
+  }
+
+  .terms-dialog-footer button {
+    width: 100%;
+  }
+}
+
 /* Reduced Motion Override */
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after {

@@ -69,7 +69,7 @@ def client():
 # 1. Runtime header assertions — hits real routes, not just static scan.
 # --------------------------------------------------------------------- #
 
-@pytest.mark.parametrize("route", ["/", "/assessment", "/about", "/print"])
+@pytest.mark.parametrize("route", ["/", "/assessment", "/about", "/terms", "/print"])
 def test_csp_header_present_and_strict(client, route):
     resp = client.get(route)
     csp = resp.headers.get("Content-Security-Policy")
