@@ -189,10 +189,24 @@ textarea:focus {
   padding-right: 3.25rem;
 }
 
+/* Hide native Edge / IE password reveal and clear buttons to avoid overlap with custom toggles */
+input::-ms-reveal,
+input::-ms-clear {
+  display: none !important;
+}
+
+input::-webkit-credentials-auto-fill-button {
+  visibility: hidden !important;
+  pointer-events: none !important;
+  position: absolute !important;
+  right: 0 !important;
+}
+
 .password-visibility-toggle {
   position: absolute;
   top: 0;
   right: 0;
+  z-index: 2;
   display: inline-flex;
   width: 48px;
   height: 48px;
@@ -220,12 +234,20 @@ textarea:focus {
   height: 21px;
 }
 
+[hidden] {
+  display: none !important;
+}
+
 .password-helper {
   display: block;
   margin-top: 0.35rem;
   font-size: 0.95rem;
   font-weight: 500;
   line-height: 1.4;
+}
+
+.password-helper[hidden] {
+  display: none !important;
 }
 
 .password-helper-warning {
