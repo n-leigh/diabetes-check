@@ -261,7 +261,12 @@ def test_password_reset_is_single_use_and_hashed(client, user):
         token_hash,
         (datetime.now(timezone.utc) + timedelta(minutes=60)).isoformat(timespec="seconds"),
     )
-    assert client.get(f"/reset-password/{raw_token}").status_code == 200
+    reset_page = client.get(f"/reset-password/{raw_token}")
+    assert reset_page.status_code == 200
+    reset_html = reset_page.get_data(as_text=True)
+    assert "Choose a new password for your DiaBeates account." in reset_html
+    assert "This one-time link expires after 60 minutes." in reset_html
+    assert 'name="csrf_token"' in reset_html
     response = client.post(
         f"/reset-password/{raw_token}",
         data={
@@ -275,6 +280,72 @@ def test_password_reset_is_single_use_and_hashed(client, user):
     assert database.get_valid_password_reset_token(token_hash) is None
     assert token_hash != raw_token
     assert check_password_hash(database.get_user_by_id(user_id)["password_hash"], "ResetStrong9!")
+
+
+def test_admin_reset_action_emails_account_address_without_showing_link(client, admin, user, monkeypatch):
+    _, admin_email = admin
+    user_id, account_email = user
+    sent = {}
+
+    def fake_send_reset_email(email, reset_link, display_name="", minutes=60):
+        sent.update(
+            email=email,
+            reset_link=reset_link,
+            display_name=display_name,
+            minutes=minutes,
+        )
+        return True
+
+    monkeypatch.setattr(app, "_smtp_configured", lambda: True)
+    monkeypatch.setattr(app, "_send_reset_email", fake_send_reset_email)
+    assert _login(client, admin_email).status_code == 302
+
+    response = client.post(
+        f"/admin/users/{user_id}/reset-link",
+        data={"csrf_token": _csrf(client, "/admin/users")},
+        follow_redirects=True,
+    )
+
+    assert response.status_code == 200
+    body = response.get_data(as_text=True)
+    assert sent["email"] == account_email
+    assert sent["display_name"] == "Test User"
+    assert sent["minutes"] == 60
+    assert "Password reset email sent to" in body
+    assert sent["reset_link"] not in body
+
+    token = sent["reset_link"].rsplit("/", 1)[-1]
+    recipient_client = app.app.test_client()
+    reset_page = recipient_client.get(f"/reset-password/{token}")
+    assert reset_page.status_code == 200
+    assert "Choose a new password for your DiaBeates account." in reset_page.get_data(as_text=True)
+
+
+def test_admin_reset_email_failure_invalidates_token(client, admin, user, monkeypatch):
+    _, admin_email = admin
+    user_id, _ = user
+    attempted = {}
+
+    def failed_send(email, reset_link, display_name="", minutes=60):
+        attempted["reset_link"] = reset_link
+        return False
+
+    monkeypatch.setattr(app, "_smtp_configured", lambda: True)
+    monkeypatch.setattr(app, "_send_reset_email", failed_send)
+    assert _login(client, admin_email).status_code == 302
+
+    response = client.post(
+        f"/admin/users/{user_id}/reset-link",
+        data={"csrf_token": _csrf(client, "/admin/users")},
+        follow_redirects=True,
+    )
+
+    assert response.status_code == 200
+    body = response.get_data(as_text=True)
+    assert "Password reset email could not be sent" in body
+    token = attempted["reset_link"].rsplit("/", 1)[-1]
+    token_hash = hashlib.sha256(token.encode("utf-8")).hexdigest()
+    assert database.get_valid_password_reset_token(token_hash) is None
 
 
 def test_admin_routes_and_last_admin_protection(client, admin, user):
@@ -461,7 +532,7 @@ def test_admin_actions_confirmation_and_button_visibility(client, admin, user):
     assert "Last active admin" in html
 
     # Data confirm message checks
-    assert 'data-confirm-message="Create a 60-minute password reset link for this user?"' in html
+    assert 'data-confirm-message="Email a 60-minute password reset link to this account?"' in html
     # Deactivate other user first to check reactivate form
     csrf = _csrf(client, "/admin/users")
     client.post(f"/admin/users/{user_id}/deactivate", data={"csrf_token": csrf})

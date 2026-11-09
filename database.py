@@ -863,6 +863,22 @@ def create_password_reset_token(user_id: int, token_hash: str, expires_at: str) 
         conn.close()
 
 
+def invalidate_password_reset_token(token_hash: str) -> None:
+    conn = get_connection()
+    try:
+        conn.execute(
+            """UPDATE password_reset_tokens SET used_at = ?
+               WHERE token_hash = ? AND used_at IS NULL""",
+            (datetime.now(timezone.utc).isoformat(timespec="seconds"), token_hash),
+        )
+        conn.commit()
+    except Exception:
+        conn.rollback()
+        raise
+    finally:
+        conn.close()
+
+
 def get_valid_password_reset_token(token_hash: str):
     conn = get_connection()
     try:

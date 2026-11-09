@@ -2775,6 +2775,119 @@ dialog::backdrop {
   background-color: rgba(1, 76, 94, 0.6);
 }
 
+.action-confirm-dialog {
+  width: min(440px, calc(100vw - 32px));
+  max-width: 440px;
+  border: 1px solid var(--border-cream);
+  border-radius: 16px;
+  box-shadow: 0 16px 48px rgba(31, 42, 51, 0.22);
+}
+
+.action-confirm-dialog::backdrop {
+  background-color: rgba(31, 42, 51, 0.56);
+}
+
+.action-confirm-panel {
+  overflow: hidden;
+  border-radius: inherit;
+  background-color: var(--white);
+}
+
+.action-confirm-header {
+  display: flex;
+  min-height: 72px;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 12px 20px 12px 24px;
+  background-color: var(--cream);
+  border-bottom: 1px solid var(--border-cream);
+}
+
+.action-confirm-header h2 {
+  margin: 0;
+  font-size: 1.35rem;
+}
+
+.action-confirm-close {
+  display: inline-flex;
+  width: 48px;
+  height: 48px;
+  flex: 0 0 48px;
+  align-items: center;
+  justify-content: center;
+  border: 0;
+  border-radius: 8px;
+  color: var(--ink-muted);
+  background-color: transparent;
+  cursor: pointer;
+  font-size: 28px;
+  line-height: 1;
+}
+
+.action-confirm-close:hover {
+  color: var(--navy);
+  background-color: var(--teal-light);
+}
+
+.action-confirm-content {
+  padding: 24px;
+  color: var(--ink);
+  font-size: 1rem;
+}
+
+.action-confirm-content p {
+  margin: 0;
+}
+
+.action-confirm-footer {
+  display: flex;
+  justify-content: flex-end;
+  gap: 12px;
+  padding: 16px 24px 20px;
+  border-top: 1px solid var(--border-cream);
+  background-color: var(--white);
+}
+
+.action-confirm-footer button {
+  min-width: 112px;
+}
+
+.action-confirm-footer .action-confirm-danger {
+  color: var(--white);
+  background-color: var(--status-doctor-text);
+  border-color: var(--status-doctor-text);
+}
+
+.action-confirm-footer .action-confirm-danger:hover {
+  background-color: var(--status-doctor-text);
+  border-color: var(--status-doctor-text);
+}
+
+@media (max-width: 480px) {
+  .action-confirm-dialog {
+    width: calc(100vw - 24px);
+    margin: auto;
+  }
+
+  .action-confirm-header {
+    padding-left: 18px;
+  }
+
+  .action-confirm-content {
+    padding: 20px 18px;
+  }
+
+  .action-confirm-footer {
+    flex-direction: column-reverse;
+    padding: 14px 18px 18px;
+  }
+
+  .action-confirm-footer button {
+    width: 100%;
+  }
+}
+
 /* Reduced Motion Override */
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after {
