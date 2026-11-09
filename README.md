@@ -53,6 +53,13 @@ Password reset email delivery is configured through `SMTP_HOST`, `SMTP_PORT`,
 to `.env` and set these values for production email delivery. If SMTP is not
 configured, debug mode logs a reset link; production shows `ADMIN_CONTACT_TEXT`.
 
+Email confirmation is required by default. Set `REQUIRE_EMAIL_VERIFICATION=true`
+in every shared deployment. Set `BASE_URL` to the URL groupmates use to open the
+site, not `127.0.0.1` or `localhost`; confirmation links sent to other devices
+cannot use a loopback address. The email-verification routes and templates must
+be present in the deployed branch, and the email-verification migration must be
+applied before registration is enabled.
+
 ## Run Locally
 
 ```powershell
