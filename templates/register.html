@@ -31,14 +31,14 @@
             </svg>
           </button>
         </span>
-        <span id="passwordStrengthMessage" class="password-helper password-helper-warning" role="status" aria-live="polite" hidden>Use at least 8 characters.</span>
+        <span id="passwordStrengthMessage" class="password-helper password-helper-warning hidden" role="status" aria-live="polite" hidden>Use at least 8 characters.</span>
       </label>
       <label class="block text-[18px] font-semibold" for="confirmPassword">Confirm password
         <span class="password-field mt-2">
           <input id="confirmPassword" type="password" name="confirm_password" minlength="8" maxlength="128" required autocomplete="new-password" class="w-full input-field" aria-describedby="confirmPasswordMessage">
           <button type="button" class="password-visibility-toggle" id="confirmPasswordToggle" aria-label="Show password" aria-pressed="false">
             <svg class="password-visibility-icon" data-password-icon="show" viewBox="0 0 24 24" fill="none" stroke="currentColor" aria-hidden="true">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.477 0 8.268 2.943 9.542 7-1.274 4.057-5.065 7-9.542 7-4.477 0-8.268 2.943-9.542 7-4.477 0-8.268-2.943-9.542-7z"></path>
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.477 0 8.268 2.943 9.542 7-1.274 4.057-5.065 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"></path>
               <circle cx="12" cy="12" r="3" stroke-width="2"></circle>
             </svg>
             <svg class="password-visibility-icon hidden" data-password-icon="hide" viewBox="0 0 24 24" fill="none" stroke="currentColor" aria-hidden="true">
@@ -46,7 +46,7 @@
             </svg>
           </button>
         </span>
-        <span id="confirmPasswordMessage" class="password-helper password-helper-warning" role="alert" aria-live="polite" hidden>Passwords do not match.</span>
+        <span id="confirmPasswordMessage" class="password-helper password-helper-warning hidden" role="alert" aria-live="polite" hidden>Passwords do not match.</span>
       </label>
       <label class="flex gap-3 items-start text-[17px] leading-relaxed">
         <input type="checkbox" name="consent" value="1" required class="mt-1.5">

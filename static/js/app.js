@@ -45,6 +45,8 @@ document.addEventListener('DOMContentLoaded', () => {
 
       passwordStrengthMessage.hidden = !passwordTooShort;
       confirmPasswordMessage.hidden = !passwordsDoNotMatch;
+      passwordStrengthMessage.classList.toggle('hidden', !passwordTooShort);
+      confirmPasswordMessage.classList.toggle('hidden', !passwordsDoNotMatch);
       confirmPassword.setCustomValidity(passwordsDoNotMatch ? 'Passwords do not match.' : '');
       registerPassword.classList.toggle('password-input-warning', passwordTooShort);
       confirmPassword.classList.toggle('password-input-warning', passwordsDoNotMatch);
