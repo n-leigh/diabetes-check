@@ -60,6 +60,10 @@ cannot use a loopback address. The email-verification routes and templates must
 be present in the deployed branch, and the email-verification migration must be
 applied before registration is enabled.
 
+For local development without working email delivery, set
+`REQUIRE_EMAIL_VERIFICATION=false` in `.env` only when using a local SQLite
+database. Do not use this setting with PostgreSQL or on a shared/production site.
+
 ## Run Locally
 
 ```powershell

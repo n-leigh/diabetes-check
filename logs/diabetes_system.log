@@ -4388,3 +4388,131 @@ HINT:  No operator matches the given name and argument types. You might need to 
 2026-11-09 15:58:29,204 - werkzeug - INFO - 127.0.0.1 - - [09/Nov/2026 15:58:29] "[36mGET /static/css/tailwind.min.css HTTP/1.1[0m" 304 -
 2026-11-09 15:58:29,208 - werkzeug - INFO - 127.0.0.1 - - [09/Nov/2026 15:58:29] "[36mGET /static/css/clinical.css HTTP/1.1[0m" 304 -
 >>>>>>> 66d23ed1aac3d6760f680cf88b2a2c12715bf718
+2026-11-09 16:29:28,439 - DiaBeates - INFO - Database initialized successfully with non-destructive WAL mode.
+2026-11-09 16:29:28,919 - DiaBeates - INFO - Loaded clinical models summary: ['cardiovascular', 'general_burden', 'neuropathy_mobility', 'retinopathy']
+2026-11-09 16:29:29,580 - werkzeug - INFO - [31m[1mWARNING: This is a development server. Do not use it in a production deployment. Use a production WSGI server instead.[0m
+ * Running on http://127.0.0.1:5000
+2026-11-09 16:29:29,581 - werkzeug - INFO - [33mPress CTRL+C to quit[0m
+2026-11-09 16:30:31,759 - flask_wtf.csrf - INFO - The CSRF session token is missing.
+2026-11-09 16:30:31,759 - DiaBeates - WARNING - CSRF validation failed: The CSRF session token is missing.
+2026-11-09 16:30:31,929 - werkzeug - INFO - 127.0.0.1 - - [09/Nov/2026 16:30:31] "[31m[1mPOST /register HTTP/1.1[0m" 400 -
+2026-11-09 16:30:32,160 - werkzeug - INFO - 127.0.0.1 - - [09/Nov/2026 16:30:32] "[36mGET /static/css/tailwind.min.css HTTP/1.1[0m" 304 -
+2026-11-09 16:30:32,167 - werkzeug - INFO - 127.0.0.1 - - [09/Nov/2026 16:30:32] "[36mGET /static/css/clinical.css HTTP/1.1[0m" 304 -
+2026-11-09 16:30:32,170 - werkzeug - INFO - 127.0.0.1 - - [09/Nov/2026 16:30:32] "[36mGET /static/js/app.js HTTP/1.1[0m" 304 -
+2026-11-09 16:30:32,173 - werkzeug - INFO - 127.0.0.1 - - [09/Nov/2026 16:30:32] "GET /static/js/assessment.js HTTP/1.1" 200 -
+2026-11-09 16:30:32,178 - werkzeug - INFO - 127.0.0.1 - - [09/Nov/2026 16:30:32] "[36mGET /static/logo.png HTTP/1.1[0m" 304 -
+2026-11-09 16:30:32,278 - werkzeug - INFO - 127.0.0.1 - - [09/Nov/2026 16:30:32] "[36mGET /static/fonts/source-sans-3-500.woff2 HTTP/1.1[0m" 304 -
+2026-11-09 16:30:32,279 - werkzeug - INFO - 127.0.0.1 - - [09/Nov/2026 16:30:32] "[36mGET /static/fonts/fraunces-700.woff2 HTTP/1.1[0m" 304 -
+2026-11-09 16:30:32,284 - werkzeug - INFO - 127.0.0.1 - - [09/Nov/2026 16:30:32] "[36mGET /static/fonts/source-sans-3-600.woff2 HTTP/1.1[0m" 304 -
+2026-11-09 16:30:32,291 - werkzeug - INFO - 127.0.0.1 - - [09/Nov/2026 16:30:32] "[36mGET /static/fonts/source-sans-3-400.woff2 HTTP/1.1[0m" 304 -
+2026-11-09 16:30:32,293 - werkzeug - INFO - 127.0.0.1 - - [09/Nov/2026 16:30:32] "[36mGET /static/fonts/ibm_plex_mono-600-normal.woff2 HTTP/1.1[0m" 304 -
+2026-11-09 16:30:32,340 - werkzeug - INFO - 127.0.0.1 - - [09/Nov/2026 16:30:32] "[36mGET /static/logo.png HTTP/1.1[0m" 304 -
+2026-11-09 16:30:34,636 - werkzeug - INFO - 127.0.0.1 - - [09/Nov/2026 16:30:34] "GET /login HTTP/1.1" 200 -
+2026-11-09 16:30:34,663 - werkzeug - INFO - 127.0.0.1 - - [09/Nov/2026 16:30:34] "[36mGET /static/css/tailwind.min.css HTTP/1.1[0m" 304 -
+2026-11-09 16:30:34,693 - werkzeug - INFO - 127.0.0.1 - - [09/Nov/2026 16:30:34] "[36mGET /static/css/clinical.css HTTP/1.1[0m" 304 -
+2026-11-09 16:30:34,698 - werkzeug - INFO - 127.0.0.1 - - [09/Nov/2026 16:30:34] "[36mGET /static/js/app.js HTTP/1.1[0m" 304 -
+2026-11-09 16:30:34,702 - werkzeug - INFO - 127.0.0.1 - - [09/Nov/2026 16:30:34] "[36mGET /static/logo.png HTTP/1.1[0m" 304 -
+2026-11-09 16:30:34,713 - werkzeug - INFO - 127.0.0.1 - - [09/Nov/2026 16:30:34] "[36mGET /static/fonts/fraunces-700.woff2 HTTP/1.1[0m" 304 -
+2026-11-09 16:30:34,720 - werkzeug - INFO - 127.0.0.1 - - [09/Nov/2026 16:30:34] "[36mGET /static/fonts/source-sans-3-500.woff2 HTTP/1.1[0m" 304 -
+2026-11-09 16:30:34,729 - werkzeug - INFO - 127.0.0.1 - - [09/Nov/2026 16:30:34] "[36mGET /static/fonts/source-sans-3-600.woff2 HTTP/1.1[0m" 304 -
+2026-11-09 16:30:34,752 - werkzeug - INFO - 127.0.0.1 - - [09/Nov/2026 16:30:34] "[36mGET /static/fonts/source-sans-3-400.woff2 HTTP/1.1[0m" 304 -
+2026-11-09 16:30:42,536 - werkzeug - INFO - 127.0.0.1 - - [09/Nov/2026 16:30:42] "GET /register HTTP/1.1" 200 -
+2026-11-09 16:30:42,553 - werkzeug - INFO - 127.0.0.1 - - [09/Nov/2026 16:30:42] "[36mGET /static/css/tailwind.min.css HTTP/1.1[0m" 304 -
+2026-11-09 16:30:42,565 - werkzeug - INFO - 127.0.0.1 - - [09/Nov/2026 16:30:42] "[36mGET /static/css/clinical.css HTTP/1.1[0m" 304 -
+2026-11-09 16:30:42,575 - werkzeug - INFO - 127.0.0.1 - - [09/Nov/2026 16:30:42] "[36mGET /static/js/app.js HTTP/1.1[0m" 304 -
+2026-11-09 16:30:42,577 - werkzeug - INFO - 127.0.0.1 - - [09/Nov/2026 16:30:42] "[36mGET /static/logo.png HTTP/1.1[0m" 304 -
+2026-11-09 16:30:42,588 - werkzeug - INFO - 127.0.0.1 - - [09/Nov/2026 16:30:42] "[36mGET /static/fonts/fraunces-700.woff2 HTTP/1.1[0m" 304 -
+2026-11-09 16:30:42,596 - werkzeug - INFO - 127.0.0.1 - - [09/Nov/2026 16:30:42] "[36mGET /static/fonts/source-sans-3-500.woff2 HTTP/1.1[0m" 304 -
+2026-11-09 16:30:42,609 - werkzeug - INFO - 127.0.0.1 - - [09/Nov/2026 16:30:42] "[36mGET /static/fonts/source-sans-3-600.woff2 HTTP/1.1[0m" 304 -
+2026-11-09 16:30:42,611 - werkzeug - INFO - 127.0.0.1 - - [09/Nov/2026 16:30:42] "[36mGET /static/fonts/source-sans-3-400.woff2 HTTP/1.1[0m" 304 -
+2026-11-09 16:31:18,319 - DiaBeates - WARNING - Verification email delivery failed for a pending account.
+2026-11-09 16:31:18,322 - werkzeug - INFO - 127.0.0.1 - - [09/Nov/2026 16:31:18] "POST /register HTTP/1.1" 200 -
+2026-11-09 16:31:18,349 - werkzeug - INFO - 127.0.0.1 - - [09/Nov/2026 16:31:18] "[36mGET /static/css/tailwind.min.css HTTP/1.1[0m" 304 -
+2026-11-09 16:31:18,354 - werkzeug - INFO - 127.0.0.1 - - [09/Nov/2026 16:31:18] "[36mGET /static/css/clinical.css HTTP/1.1[0m" 304 -
+2026-11-09 16:31:18,361 - werkzeug - INFO - 127.0.0.1 - - [09/Nov/2026 16:31:18] "[36mGET /static/js/app.js HTTP/1.1[0m" 304 -
+2026-11-09 16:31:18,366 - werkzeug - INFO - 127.0.0.1 - - [09/Nov/2026 16:31:18] "[36mGET /static/logo.png HTTP/1.1[0m" 304 -
+2026-11-09 16:31:18,386 - werkzeug - INFO - 127.0.0.1 - - [09/Nov/2026 16:31:18] "[36mGET /static/fonts/fraunces-700.woff2 HTTP/1.1[0m" 304 -
+2026-11-09 16:31:18,388 - werkzeug - INFO - 127.0.0.1 - - [09/Nov/2026 16:31:18] "[36mGET /static/fonts/source-sans-3-500.woff2 HTTP/1.1[0m" 304 -
+2026-11-09 16:31:18,395 - werkzeug - INFO - 127.0.0.1 - - [09/Nov/2026 16:31:18] "[36mGET /static/fonts/source-sans-3-600.woff2 HTTP/1.1[0m" 304 -
+2026-11-09 16:31:18,399 - werkzeug - INFO - 127.0.0.1 - - [09/Nov/2026 16:31:18] "[36mGET /static/fonts/source-sans-3-400.woff2 HTTP/1.1[0m" 304 -
+2026-11-09 16:33:07,169 - DiaBeates - WARNING - Verification email delivery failed for a pending account.
+2026-11-09 16:33:07,171 - werkzeug - INFO - 127.0.0.1 - - [09/Nov/2026 16:33:07] "POST /register HTTP/1.1" 200 -
+2026-11-09 16:33:07,198 - werkzeug - INFO - 127.0.0.1 - - [09/Nov/2026 16:33:07] "[36mGET /static/css/tailwind.min.css HTTP/1.1[0m" 304 -
+2026-11-09 16:33:07,208 - werkzeug - INFO - 127.0.0.1 - - [09/Nov/2026 16:33:07] "[36mGET /static/css/clinical.css HTTP/1.1[0m" 304 -
+2026-11-09 16:33:07,218 - werkzeug - INFO - 127.0.0.1 - - [09/Nov/2026 16:33:07] "[36mGET /static/js/app.js HTTP/1.1[0m" 304 -
+2026-11-09 16:33:07,259 - werkzeug - INFO - 127.0.0.1 - - [09/Nov/2026 16:33:07] "[36mGET /static/logo.png HTTP/1.1[0m" 304 -
+2026-11-09 16:33:07,267 - werkzeug - INFO - 127.0.0.1 - - [09/Nov/2026 16:33:07] "[36mGET /static/fonts/fraunces-700.woff2 HTTP/1.1[0m" 304 -
+2026-11-09 16:33:07,300 - werkzeug - INFO - 127.0.0.1 - - [09/Nov/2026 16:33:07] "[36mGET /static/fonts/source-sans-3-500.woff2 HTTP/1.1[0m" 304 -
+2026-11-09 16:33:07,301 - werkzeug - INFO - 127.0.0.1 - - [09/Nov/2026 16:33:07] "[36mGET /static/fonts/source-sans-3-400.woff2 HTTP/1.1[0m" 304 -
+2026-11-09 16:33:07,302 - werkzeug - INFO - 127.0.0.1 - - [09/Nov/2026 16:33:07] "[36mGET /static/fonts/source-sans-3-600.woff2 HTTP/1.1[0m" 304 -
+2026-11-09 16:42:12,153 - DiaBeates - WARNING - Verification email delivery failed for a pending account.
+2026-11-09 16:42:12,181 - werkzeug - INFO - 127.0.0.1 - - [09/Nov/2026 16:42:12] "POST /register HTTP/1.1" 200 -
+2026-11-09 16:42:12,209 - werkzeug - INFO - 127.0.0.1 - - [09/Nov/2026 16:42:12] "GET /static/css/tailwind.min.css HTTP/1.1" 200 -
+2026-11-09 16:42:12,212 - werkzeug - INFO - 127.0.0.1 - - [09/Nov/2026 16:42:12] "GET /static/css/clinical.css HTTP/1.1" 200 -
+2026-11-09 16:42:12,215 - werkzeug - INFO - 127.0.0.1 - - [09/Nov/2026 16:42:12] "GET /static/js/app.js HTTP/1.1" 200 -
+2026-11-09 16:42:12,233 - werkzeug - INFO - 127.0.0.1 - - [09/Nov/2026 16:42:12] "[36mGET /static/logo.png HTTP/1.1[0m" 304 -
+2026-11-09 16:42:12,253 - werkzeug - INFO - 127.0.0.1 - - [09/Nov/2026 16:42:12] "[36mGET /static/fonts/fraunces-700.woff2 HTTP/1.1[0m" 304 -
+2026-11-09 16:42:12,255 - werkzeug - INFO - 127.0.0.1 - - [09/Nov/2026 16:42:12] "[36mGET /static/fonts/source-sans-3-500.woff2 HTTP/1.1[0m" 304 -
+2026-11-09 16:42:12,263 - werkzeug - INFO - 127.0.0.1 - - [09/Nov/2026 16:42:12] "[36mGET /static/fonts/source-sans-3-600.woff2 HTTP/1.1[0m" 304 -
+2026-11-09 16:42:12,268 - werkzeug - INFO - 127.0.0.1 - - [09/Nov/2026 16:42:12] "[36mGET /static/fonts/source-sans-3-400.woff2 HTTP/1.1[0m" 304 -
+2026-11-09 16:42:12,289 - werkzeug - INFO - 127.0.0.1 - - [09/Nov/2026 16:42:12] "[36mGET /static/logo.png HTTP/1.1[0m" 304 -
+2026-11-09 16:51:58,709 - DiaBeates - INFO - Database initialized successfully with non-destructive WAL mode.
+2026-11-09 16:51:59,333 - DiaBeates - INFO - Loaded clinical models summary: ['cardiovascular', 'general_burden', 'neuropathy_mobility', 'retinopathy']
+2026-11-09 17:05:14,443 - werkzeug - INFO - 127.0.0.1 - - [09/Nov/2026 17:05:14] "GET /register HTTP/1.1" 200 -
+2026-11-09 17:06:08,584 - DiaBeates - INFO - Database initialized successfully with non-destructive WAL mode.
+2026-11-09 17:06:09,506 - DiaBeates - INFO - Loaded clinical models summary: ['cardiovascular', 'general_burden', 'neuropathy_mobility', 'retinopathy']
+2026-11-09 17:06:16,004 - flask_wtf.csrf - INFO - The CSRF token is missing.
+2026-11-09 17:06:16,004 - DiaBeates - WARNING - CSRF validation failed: The CSRF token is missing.
+2026-11-09 17:06:16,008 - DiaBeates - INFO - Rule matrix assessment completed
+2026-11-09 17:16:05,761 - DiaBeates - WARNING - Verification email delivery failed for a pending account.
+2026-11-09 17:16:05,763 - werkzeug - INFO - 127.0.0.1 - - [09/Nov/2026 17:16:05] "POST /register HTTP/1.1" 200 -
+2026-11-09 17:16:05,800 - werkzeug - INFO - 127.0.0.1 - - [09/Nov/2026 17:16:05] "[36mGET /static/css/tailwind.min.css HTTP/1.1[0m" 304 -
+2026-11-09 17:16:05,804 - werkzeug - INFO - 127.0.0.1 - - [09/Nov/2026 17:16:05] "[36mGET /static/logo.png HTTP/1.1[0m" 304 -
+2026-11-09 17:16:05,813 - werkzeug - INFO - 127.0.0.1 - - [09/Nov/2026 17:16:05] "[36mGET /static/js/app.js HTTP/1.1[0m" 304 -
+2026-11-09 17:16:05,815 - werkzeug - INFO - 127.0.0.1 - - [09/Nov/2026 17:16:05] "[36mGET /static/css/clinical.css HTTP/1.1[0m" 304 -
+2026-11-09 17:16:05,841 - werkzeug - INFO - 127.0.0.1 - - [09/Nov/2026 17:16:05] "[36mGET /static/fonts/fraunces-700.woff2 HTTP/1.1[0m" 304 -
+2026-11-09 17:16:05,843 - werkzeug - INFO - 127.0.0.1 - - [09/Nov/2026 17:16:05] "[36mGET /static/fonts/source-sans-3-500.woff2 HTTP/1.1[0m" 304 -
+2026-11-09 17:16:05,845 - werkzeug - INFO - 127.0.0.1 - - [09/Nov/2026 17:16:05] "[36mGET /static/fonts/source-sans-3-600.woff2 HTTP/1.1[0m" 304 -
+2026-11-09 17:16:05,855 - werkzeug - INFO - 127.0.0.1 - - [09/Nov/2026 17:16:05] "[36mGET /static/fonts/source-sans-3-400.woff2 HTTP/1.1[0m" 304 -
+2026-11-09 17:16:05,875 - werkzeug - INFO - 127.0.0.1 - - [09/Nov/2026 17:16:05] "[36mGET /static/logo.png HTTP/1.1[0m" 304 -
+2026-11-09 17:18:06,994 - DiaBeates - WARNING - Verification email delivery failed for a pending account.
+2026-11-09 17:18:06,997 - werkzeug - INFO - 127.0.0.1 - - [09/Nov/2026 17:18:06] "POST /register HTTP/1.1" 200 -
+2026-11-09 17:18:07,023 - werkzeug - INFO - 127.0.0.1 - - [09/Nov/2026 17:18:07] "[36mGET /static/css/tailwind.min.css HTTP/1.1[0m" 304 -
+2026-11-09 17:18:07,037 - werkzeug - INFO - 127.0.0.1 - - [09/Nov/2026 17:18:07] "[36mGET /static/css/clinical.css HTTP/1.1[0m" 304 -
+2026-11-09 17:18:07,058 - werkzeug - INFO - 127.0.0.1 - - [09/Nov/2026 17:18:07] "[36mGET /static/js/app.js HTTP/1.1[0m" 304 -
+2026-11-09 17:18:07,063 - werkzeug - INFO - 127.0.0.1 - - [09/Nov/2026 17:18:07] "[36mGET /static/logo.png HTTP/1.1[0m" 304 -
+2026-11-09 17:18:07,078 - werkzeug - INFO - 127.0.0.1 - - [09/Nov/2026 17:18:07] "[36mGET /static/fonts/fraunces-700.woff2 HTTP/1.1[0m" 304 -
+2026-11-09 17:18:07,090 - werkzeug - INFO - 127.0.0.1 - - [09/Nov/2026 17:18:07] "[36mGET /static/fonts/source-sans-3-500.woff2 HTTP/1.1[0m" 304 -
+2026-11-09 17:18:07,094 - werkzeug - INFO - 127.0.0.1 - - [09/Nov/2026 17:18:07] "[36mGET /static/fonts/source-sans-3-600.woff2 HTTP/1.1[0m" 304 -
+2026-11-09 17:18:07,098 - werkzeug - INFO - 127.0.0.1 - - [09/Nov/2026 17:18:07] "[36mGET /static/fonts/source-sans-3-400.woff2 HTTP/1.1[0m" 304 -
+2026-11-09 17:18:15,859 - werkzeug - INFO - 127.0.0.1 - - [09/Nov/2026 17:18:15] "GET /login HTTP/1.1" 200 -
+2026-11-09 17:18:15,884 - werkzeug - INFO - 127.0.0.1 - - [09/Nov/2026 17:18:15] "[36mGET /static/css/tailwind.min.css HTTP/1.1[0m" 304 -
+2026-11-09 17:18:15,887 - werkzeug - INFO - 127.0.0.1 - - [09/Nov/2026 17:18:15] "[36mGET /static/css/clinical.css HTTP/1.1[0m" 304 -
+2026-11-09 17:18:15,896 - werkzeug - INFO - 127.0.0.1 - - [09/Nov/2026 17:18:15] "[36mGET /static/js/app.js HTTP/1.1[0m" 304 -
+2026-11-09 17:18:15,910 - werkzeug - INFO - 127.0.0.1 - - [09/Nov/2026 17:18:15] "[36mGET /static/logo.png HTTP/1.1[0m" 304 -
+2026-11-09 17:18:15,922 - werkzeug - INFO - 127.0.0.1 - - [09/Nov/2026 17:18:15] "[36mGET /static/fonts/fraunces-700.woff2 HTTP/1.1[0m" 304 -
+2026-11-09 17:18:15,927 - werkzeug - INFO - 127.0.0.1 - - [09/Nov/2026 17:18:15] "[36mGET /static/fonts/source-sans-3-500.woff2 HTTP/1.1[0m" 304 -
+2026-11-09 17:18:15,935 - werkzeug - INFO - 127.0.0.1 - - [09/Nov/2026 17:18:15] "[36mGET /static/fonts/source-sans-3-600.woff2 HTTP/1.1[0m" 304 -
+2026-11-09 17:18:15,940 - werkzeug - INFO - 127.0.0.1 - - [09/Nov/2026 17:18:15] "[36mGET /static/fonts/source-sans-3-400.woff2 HTTP/1.1[0m" 304 -
+2026-11-09 17:18:15,961 - werkzeug - INFO - 127.0.0.1 - - [09/Nov/2026 17:18:15] "[36mGET /static/logo.png HTTP/1.1[0m" 304 -
+2026-11-09 17:18:19,465 - werkzeug - INFO - 127.0.0.1 - - [09/Nov/2026 17:18:19] "GET /register HTTP/1.1" 200 -
+2026-11-09 17:18:19,488 - werkzeug - INFO - 127.0.0.1 - - [09/Nov/2026 17:18:19] "[36mGET /static/css/clinical.css HTTP/1.1[0m" 304 -
+2026-11-09 17:18:19,490 - werkzeug - INFO - 127.0.0.1 - - [09/Nov/2026 17:18:19] "[36mGET /static/css/tailwind.min.css HTTP/1.1[0m" 304 -
+2026-11-09 17:18:19,493 - werkzeug - INFO - 127.0.0.1 - - [09/Nov/2026 17:18:19] "[36mGET /static/js/app.js HTTP/1.1[0m" 304 -
+2026-11-09 17:18:19,507 - werkzeug - INFO - 127.0.0.1 - - [09/Nov/2026 17:18:19] "[36mGET /static/logo.png HTTP/1.1[0m" 304 -
+2026-11-09 17:18:19,516 - werkzeug - INFO - 127.0.0.1 - - [09/Nov/2026 17:18:19] "[36mGET /static/fonts/fraunces-700.woff2 HTTP/1.1[0m" 304 -
+2026-11-09 17:18:19,524 - werkzeug - INFO - 127.0.0.1 - - [09/Nov/2026 17:18:19] "[36mGET /static/fonts/source-sans-3-500.woff2 HTTP/1.1[0m" 304 -
+2026-11-09 17:18:19,528 - werkzeug - INFO - 127.0.0.1 - - [09/Nov/2026 17:18:19] "[36mGET /static/fonts/source-sans-3-600.woff2 HTTP/1.1[0m" 304 -
+2026-11-09 17:18:19,531 - werkzeug - INFO - 127.0.0.1 - - [09/Nov/2026 17:18:19] "[36mGET /static/fonts/source-sans-3-400.woff2 HTTP/1.1[0m" 304 -
+2026-11-09 17:18:28,704 - DiaBeates - WARNING - Verification email delivery failed for a pending account.
+2026-11-09 17:18:28,706 - werkzeug - INFO - 127.0.0.1 - - [09/Nov/2026 17:18:28] "POST /register HTTP/1.1" 200 -
+2026-11-09 17:19:00,598 - DiaBeates - WARNING - Verification email delivery failed for a pending account.
+2026-11-09 17:19:00,600 - werkzeug - INFO - 127.0.0.1 - - [09/Nov/2026 17:19:00] "POST /register HTTP/1.1" 200 -
+2026-11-09 17:19:00,630 - werkzeug - INFO - 127.0.0.1 - - [09/Nov/2026 17:19:00] "[36mGET /static/css/tailwind.min.css HTTP/1.1[0m" 304 -
+2026-11-09 17:19:00,643 - werkzeug - INFO - 127.0.0.1 - - [09/Nov/2026 17:19:00] "[36mGET /static/css/clinical.css HTTP/1.1[0m" 304 -
+2026-11-09 17:19:00,648 - werkzeug - INFO - 127.0.0.1 - - [09/Nov/2026 17:19:00] "[36mGET /static/js/app.js HTTP/1.1[0m" 304 -
+2026-11-09 17:19:00,652 - werkzeug - INFO - 127.0.0.1 - - [09/Nov/2026 17:19:00] "[36mGET /static/logo.png HTTP/1.1[0m" 304 -
+2026-11-09 17:19:00,691 - werkzeug - INFO - 127.0.0.1 - - [09/Nov/2026 17:19:00] "[36mGET /static/fonts/source-sans-3-500.woff2 HTTP/1.1[0m" 304 -
+2026-11-09 17:19:00,694 - werkzeug - INFO - 127.0.0.1 - - [09/Nov/2026 17:19:00] "[36mGET /static/fonts/fraunces-700.woff2 HTTP/1.1[0m" 304 -
+2026-11-09 17:19:00,695 - werkzeug - INFO - 127.0.0.1 - - [09/Nov/2026 17:19:00] "[36mGET /static/fonts/source-sans-3-600.woff2 HTTP/1.1[0m" 304 -
+2026-11-09 17:19:00,707 - werkzeug - INFO - 127.0.0.1 - - [09/Nov/2026 17:19:00] "[36mGET /static/fonts/source-sans-3-400.woff2 HTTP/1.1[0m" 304 -

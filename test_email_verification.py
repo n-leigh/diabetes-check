@@ -1,6 +1,8 @@
 import hashlib
+import logging
 import os
 import re
+import smtplib
 import tempfile
 
 os.environ["DB_BACKEND"] = "sqlite"
@@ -98,6 +100,55 @@ def test_unverified_reregistration_replaces_token_and_blocks_login(client):
         (database.get_user_by_email("pending@example.test")["id"],),
     ).fetchone()[0]
     assert count == 1
+
+
+def test_unverified_reregistration_auto_verifies_when_verification_is_disabled(client, monkeypatch):
+    client.environ_base["REMOTE_ADDR"] = "192.0.2.1"
+    user_id = database.create_user(
+        "local@example.test", "StrongTestPass9!", "First", email_verified_at=None
+    )
+    raw_token = "pending-token"
+    token_hash = hashlib.sha256(raw_token.encode("utf-8")).hexdigest()
+    database.create_email_verification_token(user_id, token_hash, "2999-01-01T00:00:00+00:00")
+
+    monkeypatch.setenv("REQUIRE_EMAIL_VERIFICATION", "false")
+    response = _register(client, "local@example.test", "Local User")
+
+    assert response.status_code == 302
+    assert response.headers["Location"].endswith("/login")
+    assert not client.sent_verification_links
+    row = database.get_user_by_email("local@example.test")
+    assert row["email_verified_at"] is not None
+    token = database.get_connection().execute(
+        "SELECT used_at FROM email_verification_tokens WHERE user_id = ? AND token_hash = ?",
+        (row["id"], token_hash),
+    ).fetchone()
+    assert token["used_at"] is not None
+    response = client.post(
+        "/login",
+        data={
+            "csrf_token": _csrf(client, "/login"),
+            "email": "local@example.test",
+            "password": "StrongTestPass9!",
+        },
+    )
+    assert response.status_code == 302
+
+
+def test_verification_delivery_failure_logs_error_type_without_details(client, monkeypatch, caplog):
+    client.environ_base["REMOTE_ADDR"] = "192.0.2.2"
+
+    def fail_delivery(email, display_name, verification_link):
+        raise smtplib.SMTPAuthenticationError(535, b"authentication failed")
+
+    monkeypatch.setattr(app, "_send_verification_email", fail_delivery)
+    with caplog.at_level(logging.WARNING, logger="DiaBeates"):
+        response = _register(client, "smtp-failure@example.test")
+
+    assert response.status_code == 200
+    assert "SMTPAuthenticationError" not in response.get_data(as_text=True)
+    assert "SMTPAuthenticationError" in caplog.text
+    assert "authentication failed" not in caplog.text
 
 
 def test_password_reset_marks_email_verified():
