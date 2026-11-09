@@ -1,0 +1,8 @@
+{% extends "emails/base.html" %}
+{% block title %}Welcome to DiaBeates{% endblock %}
+{% block content %}
+<font color="#0b7a85" face="Arial, Helvetica, sans-serif" size="2"><strong>EMAIL CONFIRMED</strong></font>
+<h1 style="margin:12px 0 16px; color:#063154; font-family:Georgia, 'Times New Roman', serif; font-size:30px; line-height:1.2;">Welcome, {{ display_name }}</h1>
+<p style="margin:0 0 16px; color:#1f2a33; font-family:Arial, Helvetica, sans-serif; font-size:16px; line-height:1.6;">Your email is confirmed. You can now sign in to DiaBeates.</p>
+<p style="margin:0; color:#4f5b66; font-family:Arial, Helvetica, sans-serif; font-size:14px; line-height:1.6;">We do not include health information in email.</p>
+{% endblock %}

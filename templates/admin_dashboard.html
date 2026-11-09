@@ -3,29 +3,54 @@
 {% block content %}
 <section class="admin-page max-w-6xl mx-auto px-4 py-10">
   <div class="admin-page-heading">
-    <p class="admin-eyebrow">Service operations</p>
+    <p class="admin-eyebrow"><span class="admin-eyebrow-dot" aria-hidden="true"></span> Service operations</p>
     <h1 class="font-heading text-3xl sm:text-4xl font-bold text-[#063154]">Admin dashboard</h1>
     <p class="admin-intro">A quick view of account growth and service use.</p>
   </div>
   <div class="admin-metric-grid">
     <article class="admin-metric">
-      <p class="admin-metric-label">Accounts</p>
+      <div class="admin-metric-header">
+        <p class="admin-metric-label">Accounts</p>
+        <span class="admin-metric-icon" aria-hidden="true">
+          <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"></path>
+          </svg>
+        </span>
+      </div>
       <p class="admin-metric-value">{{ dashboard.users_total }}</p>
       <p class="admin-metric-note">All registered accounts</p>
     </article>
     <article class="admin-metric">
-      <p class="admin-metric-label">New accounts</p>
+      <div class="admin-metric-header">
+        <p class="admin-metric-label">New accounts</p>
+        <span class="admin-metric-icon" aria-hidden="true">
+          <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M18 9v3m0 0v3m0-3h3m-3 0h-3m-2-5a4 4 0 11-8 0 4 4 0 018 0zM3 20a6 6 0 0112 0v1H3v-1z"></path>
+          </svg>
+        </span>
+      </div>
       <p class="admin-metric-value">{{ dashboard.new_users }}</p>
       <p class="admin-metric-note">Created in the last 7 days</p>
     </article>
     <article class="admin-metric">
-      <p class="admin-metric-label">Checks completed</p>
+      <div class="admin-metric-header">
+        <p class="admin-metric-label">Checks completed</p>
+        <span class="admin-metric-icon" aria-hidden="true">
+          <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+          </svg>
+        </span>
+      </div>
       <p class="admin-metric-value">{{ dashboard.assessments_total }}</p>
       <p class="admin-metric-note">Service-wide total</p>
     </article>
   </div>
   <aside class="admin-privacy-note" role="note">
-    <span class="admin-privacy-mark" aria-hidden="true">i</span>
+    <span class="admin-privacy-mark" aria-hidden="true">
+      <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"></path>
+      </svg>
+    </span>
     <p><strong>Privacy first.</strong> Only group totals appear here. Counts under five are hidden.</p>
   </aside>
   <div class="admin-panel-grid">
@@ -43,36 +68,184 @@
           <h3>{{ title }}</h3>
           <div class="admin-status-values">
             {% for status, value in counts.items() %}
-            <span class="admin-status-value"><span>{{ status }}</span><strong>{{ value }}</strong></span>
+            {% set s_lower = status|lower %}
+            {% set status_class = 'is-status-low' if ('low' in s_lower or 'good' in s_lower) else ('is-status-moderate' if ('moderate' in s_lower or 'check' in s_lower) else ('is-status-high' if ('high' in s_lower or 'doctor' in s_lower) else '')) %}
+            <span class="admin-status-value {{ status_class }}"><span>{{ status }}</span><strong>{{ value }}</strong></span>
             {% endfor %}
           </div>
         </div>
         {% endfor %}
       </div>
+      <p class="text-xs text-[#4f5b66] mt-4">If any group has fewer than 5 people, all three are hidden.</p>
       <div class="admin-feedback-rate">
-        <span>Helpful feedback</span>
+        <span class="flex items-center gap-2">
+          <svg class="w-4 h-4 text-[#0b7a85]" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 10h4.764a2 2 0 011.789 2.894l-3.5 7A2 2 0 0115.263 21h-4.017c-.163 0-.326-.02-.485-.06L7 20m7-10V5a2 2 0 00-2-2h-.095c-.5 0-.905.405-.905.905 0 .714-.211 1.412-.608 2.006L7 11v9m7-10h-2M7 20H5a2 2 0 01-2-2v-6a2 2 0 012-2h2.5"></path>
+          </svg>
+          Helpful feedback
+        </span>
         <strong>{{ dashboard.feedback_helpful_rate }}</strong>
       </div>
     </article>
-    <article class="admin-panel">
+    <article class="admin-panel admin-activity-panel">
       <div class="admin-panel-heading">
         <div>
           <p class="admin-eyebrow">Recent activity</p>
           <h2 class="font-heading text-2xl font-bold text-[#063154]">Checks per day</h2>
         </div>
-        <span class="admin-period-label">Last 30 days</span>
+        <span class="admin-period-label">
+          <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"></path>
+          </svg>
+          Last 30 days
+        </span>
       </div>
-      <p class="admin-panel-description">Daily totals below five are hidden.</p>
-      <div class="admin-activity-chart" role="list" aria-label="Daily check totals for the last 30 days">
-        {% for day in dashboard.days %}
-        <div class="admin-activity-row" role="listitem">
-          <time datetime="{{ day.date }}">{{ day.date[5:] }}</time>
-          <progress max="100" value="{{ day.bar_width }}" aria-label="{{ day.date }}: {{ day.display_count }} checks">{{ day.bar_width }}%</progress>
-          <span class="admin-activity-count">{{ day.display_count }}</span>
+      <p class="admin-panel-description">Daily check activity over the last 30 days. Daily totals below five are protected for privacy.</p>
+
+      <figure class="admin-chart-figure" role="region" aria-label="Daily checks over the last 30 days">
+        <div class="admin-chart-legend-strip">
+          <span class="admin-chart-legend-item">
+            <span class="admin-legend-dot is-active" aria-hidden="true"></span>
+            Active (&ge;5 checks)
+          </span>
+          <span class="admin-chart-legend-item">
+            <span class="admin-legend-dot is-suppressed" aria-hidden="true"></span>
+            &lt;5 checks (protected)
+          </span>
+          <span class="admin-chart-hint">Hover or tab bars to inspect</span>
         </div>
-        {% endfor %}
+
+        <svg viewBox="0 0 620 340" class="admin-daily-svg" role="img" aria-label="Interactive bar chart: 30-day screening activity">
+          <defs>
+            <linearGradient id="tealBarGradient" x1="0" y1="0" x2="0" y2="1">
+              <stop offset="0%" stop-color="#0b7a85" />
+              <stop offset="100%" stop-color="#08616a" />
+            </linearGradient>
+          </defs>
+
+          <!-- Y-Axis Gridlines & Reference Labels -->
+          <line x1="52" y1="35" x2="604" y2="35" stroke="#f3e9d6" stroke-width="1" />
+          <text x="46" y="39" text-anchor="end" fill="#4f5b66" font-size="12" font-family="'IBM Plex Mono', monospace">25+</text>
+
+          <line x1="52" y1="95" x2="604" y2="95" stroke="#f3e9d6" stroke-width="1" />
+          <text x="46" y="99" text-anchor="end" fill="#4f5b66" font-size="12" font-family="'IBM Plex Mono', monospace">20</text>
+
+          <line x1="52" y1="175" x2="604" y2="175" stroke="#f3e9d6" stroke-width="1" />
+          <text x="46" y="179" text-anchor="end" fill="#4f5b66" font-size="12" font-family="'IBM Plex Mono', monospace">10</text>
+
+          <!-- Privacy Threshold Line (5 checks) -->
+          <line x1="52" y1="225" x2="604" y2="225" stroke="#f4d99f" stroke-dasharray="4 3" stroke-width="1.5" />
+          <text x="46" y="229" text-anchor="end" fill="#a86a0a" font-weight="700" font-size="12" font-family="'IBM Plex Mono', monospace">5</text>
+          <rect x="56" y="209" width="225" height="18" rx="3" fill="#fbeed0" />
+          <text x="62" y="222" fill="#a86a0a" font-size="11" font-weight="600" font-family="'Source Sans 3', sans-serif">Privacy threshold (counts &lt; 5 protected)</text>
+
+          <!-- Chart Baseline Axis (0 checks) -->
+          <line x1="52" y1="275" x2="604" y2="275" stroke="#e5dcce" stroke-width="2" />
+          <text x="46" y="279" text-anchor="end" fill="#8c97a0" font-size="12" font-family="'IBM Plex Mono', monospace">0</text>
+
+          <!-- 30 Vertical Column Bars -->
+          {% for day in dashboard.days %}
+            {% set x_pos = 55 + (loop.index0 * 545 // 30) %}
+            {% if day.bar_width > 0 %}
+              {% set bar_h = [((day.bar_width * 2.38)|round|int), 238]|min %}
+              {% set bar_y = 275 - bar_h %}
+              <g class="admin-chart-bar-group" tabindex="0" role="graphics-symbol" aria-label="{{ day.date }}: {{ day.display_count }} checks" data-tooltip-date="{{ day.date }}" data-tooltip-value="{{ day.display_count }} checks">
+                <rect x="{{ x_pos }}" y="{{ bar_y }}" width="14" height="{{ bar_h }}" rx="3.5" fill="url(#tealBarGradient)" class="admin-bar-rect admin-bar-active" />
+              </g>
+            {% else %}
+              <g class="admin-chart-bar-group" tabindex="0" role="graphics-symbol" aria-label="{{ day.date }}: under 5 checks (privacy protected)" data-tooltip-date="{{ day.date }}" data-tooltip-value="Under 5 checks" data-tooltip-note="Protected for privacy">
+                <rect x="{{ x_pos }}" y="269" width="14" height="6" rx="3" fill="#e5dcce" class="admin-bar-rect admin-bar-suppressed" />
+              </g>
+            {% endif %}
+          {% endfor %}
+
+          <!-- X-Axis Timeline Dates -->
+          {% if dashboard.days|length >= 30 %}
+            <text x="55" y="305" fill="#4f5b66" font-size="12" font-weight="600" font-family="'IBM Plex Mono', monospace">{{ dashboard.days[0].date[5:] }}</text>
+            <text x="230" y="305" fill="#4f5b66" font-size="12" font-weight="600" font-family="'IBM Plex Mono', monospace">{{ dashboard.days[10].date[5:] }}</text>
+            <text x="415" y="305" fill="#4f5b66" font-size="12" font-weight="600" font-family="'IBM Plex Mono', monospace">{{ dashboard.days[20].date[5:] }}</text>
+            <text x="568" y="305" fill="#4f5b66" font-size="12" font-weight="600" font-family="'IBM Plex Mono', monospace">{{ dashboard.days[29].date[5:] }}</text>
+          {% endif %}
+        </svg>
+        <div class="admin-chart-tooltip" id="adminChartTooltip" role="status" aria-live="polite" aria-hidden="true">
+          <strong class="admin-chart-tooltip-date"></strong>
+          <span class="admin-chart-tooltip-value"></span>
+          <small class="admin-chart-tooltip-note"></small>
+        </div>
+
+        <!-- Screen reader accessible table -->
+        <div class="sr-only">
+          <h3>Daily check totals for the last 30 days</h3>
+          <ul>
+            {% for day in dashboard.days %}
+            <li>
+              <time datetime="{{ day.date }}">{{ day.date }}</time>: {{ day.display_count }} checks.
+              <progress max="100" value="{{ day.bar_width }}" aria-label="{{ day.date }}: {{ day.display_count }} checks">{{ day.bar_width }}%</progress>
+            </li>
+            {% endfor %}
+          </ul>
+        </div>
+      </figure>
+
+      <div class="admin-activity-stats-grid">
+        <div class="admin-activity-stat">
+          <span class="admin-activity-stat-label">30-day window</span>
+          <strong class="admin-activity-stat-value">{{ dashboard.days[0].date[5:] }} &ndash; {{ dashboard.days[29].date[5:] }}</strong>
+        </div>
+        <div class="admin-activity-stat">
+          <span class="admin-activity-stat-label">Privacy protection</span>
+          <strong class="admin-activity-stat-value text-[#a86a0a]">Counts &lt; 5 hidden</strong>
+        </div>
+        <div class="admin-activity-stat">
+          <span class="admin-activity-stat-label">Total checks</span>
+          <strong class="admin-activity-stat-value text-[#063154]">{{ dashboard.assessments_total }}</strong>
+        </div>
+      </div>
+    </article>
+  </div>
+  <div class="admin-more-tools mt-8">
+    <article class="admin-panel">
+      <div class="admin-panel-heading">
+        <div>
+          <p class="admin-eyebrow">Administration</p>
+          <h2 class="font-heading text-2xl font-bold text-[#063154]">More tools</h2>
+        </div>
+      </div>
+      <p class="admin-panel-description">Review operational activity, check technical health, or export summary numbers.</p>
+      <div class="admin-tools-grid">
+        <a class="admin-tool-card" href="/admin/audit">
+          <span class="admin-tool-card-icon" aria-hidden="true">
+            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4"></path>
+            </svg>
+          </span>
+          <strong>Audit log</strong>
+          <span>Review account and security events.</span>
+        </a>
+        <a class="admin-tool-card" href="/admin/system">
+          <span class="admin-tool-card-icon" aria-hidden="true">
+            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 12h14M5 12a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v4a2 2 0 01-2 2M5 12a2 2 0 00-2 2v4a2 2 0 002 2h14a2 2 0 002-2v-4a2 2 0 00-2-2m-2-4h.01M17 16h.01"></path>
+            </svg>
+          </span>
+          <strong>System</strong>
+          <span>Check service health, models, and backups.</span>
+        </a>
+        <a class="admin-tool-card" href="/admin/export.csv">
+          <span class="admin-tool-card-icon" aria-hidden="true">
+            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"></path>
+            </svg>
+          </span>
+          <strong>Download summary CSV</strong>
+          <span>Export aggregate service metrics.</span>
+        </a>
       </div>
     </article>
   </div>
 </section>
+{% endblock %}
+
+{% block extra_scripts %}
+<script src="{{ url_for('static', filename='js/admin_dashboard.js') }}"></script>
 {% endblock %}

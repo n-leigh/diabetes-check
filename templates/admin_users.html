@@ -4,61 +4,132 @@
 <section class="admin-page max-w-6xl mx-auto px-4 py-10">
   <div class="admin-page-heading admin-page-heading-row">
     <div>
-      <p class="admin-eyebrow">Account support</p>
+      <p class="admin-eyebrow"><span class="admin-eyebrow-dot" aria-hidden="true"></span> Account support</p>
       <h1 class="font-heading text-3xl sm:text-4xl font-bold text-[#063154]">Accounts</h1>
       <p class="admin-intro">Manage sign-in access. Health checks stay private.</p>
     </div>
-    <a class="admin-back-link" href="/admin">Back to dashboard</a>
+    <a class="admin-back-link" href="/admin">
+      <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M15 19l-7-7 7-7"></path>
+      </svg>
+      <span>Back to dashboard</span>
+    </a>
   </div>
   {% if reset_link %}
   <div role="alert" aria-live="polite" class="admin-reset-notice">
-    <div>
-      <strong>One-time password reset link</strong>
-      <p>Share it privately. It expires in 60 minutes.</p>
+    <div class="flex items-start gap-3">
+      <span
+        class="inline-flex items-center justify-center w-8 h-8 rounded-full bg-[#fbeed0] text-[#a86a0a] border border-[#f4d99f] flex-shrink-0"
+        aria-hidden="true">
+        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+            d="M15 7a2 2 0 012 2m4 0a6 6 0 01-7.743 5.743L11 17H9v2H7v2H4a1 1 0 01-1-1v-2.586a1 1 0 01.293-.707l5.964-5.964A6 6 0 1121 9z">
+          </path>
+        </svg>
+      </span>
+      <div>
+        <strong>One-time password reset link</strong>
+        <p>Share it privately. It expires in 60 minutes.</p>
+      </div>
     </div>
     <code class="break-all">{{ reset_link }}</code>
   </div>
   {% endif %}
   <div class="admin-table-wrap">
     <table class="admin-table">
-      <thead><tr><th scope="col">Account</th><th scope="col">Role</th><th scope="col">Status</th><th scope="col">Created</th><th scope="col">Last login</th><th scope="col">Actions</th></tr></thead>
+      <caption class="sr-only">User account access and role management</caption>
+      <thead>
+        <tr>
+          <th scope="col">Account</th>
+          <th scope="col">Role</th>
+          <th scope="col">Status</th>
+          <th scope="col">Created</th>
+          <th scope="col">Last login</th>
+          <th scope="col">Actions</th>
+        </tr>
+      </thead>
       <tbody>
-      {% for user in users %}
-      <tr>
-        <td data-label="Account"><strong>{{ user.display_name }}</strong><span>{{ user.email }}</span></td>
-        <td data-label="Role"><span class="admin-role-chip">{{ user.role }}</span></td>
-        <td data-label="Status"><span class="admin-account-status {{ 'is-active' if user.is_active else 'is-inactive' }}">{{ 'Active' if user.is_active else 'Inactive' }}</span></td>
-        <td data-label="Created">{{ user.created_at|display_time }}</td>
-        <td data-label="Last login">{{ user.last_login_at|display_time if user.last_login_at else 'Not yet' }}</td>
-        <td data-label="Actions">
-          <div class="admin-user-actions">
-            {% if user.is_active %}
-            <form method="post" action="/admin/users/{{ user.id }}/deactivate" data-confirm-message="Deactivate this user?">
-              <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
-              <button class="admin-action-button" type="submit">Deactivate</button>
-            </form>
-            {% else %}
-            <form method="post" action="/admin/users/{{ user.id }}/reactivate">
-              <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
-              <button class="admin-action-button" type="submit">Reactivate</button>
-            </form>
-            {% endif %}
-            <form method="post" action="/admin/users/{{ user.id }}/reset-link">
-              <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
-              <button class="admin-action-button" type="submit">Reset link</button>
-            </form>
-            {% if user.id != current_user.id %}
-            <form method="post" action="/admin/users/{{ user.id }}/delete" data-confirm-message="Delete this user and saved checks?">
-              <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
-              <button class="admin-action-button is-danger" type="submit">Delete</button>
-            </form>
-            {% endif %}
-          </div>
-        </td>
-      </tr>
-      {% else %}
-      <tr><td class="admin-empty-state" colspan="6">No accounts have been created yet.</td></tr>
-      {% endfor %}
+        {% for user in users %}
+        {% set is_self = (user.id == current_user.id) %}
+        {% set is_last_active_admin = (user.role == 'admin' and user.is_active and active_admin_count <= 1) %} <tr>
+          <td data-label="Account">
+            <div class="flex items-center gap-3">
+              <span class="account-avatar flex-shrink-0" aria-hidden="true">{{ user.display_name[:1]|upper }}</span>
+              <div>
+                <strong>{{ user.display_name }}</strong>
+                <span>{{ user.email }}</span>
+              </div>
+            </div>
+          </td>
+          <td data-label="Role">
+            <span class="admin-role-chip {{ 'is-admin' if user.role == 'admin' else 'is-user' }}">{{ user.role }}</span>
+          </td>
+          <td data-label="Status">
+            <span class="admin-account-status {{ 'is-active' if user.is_active else 'is-inactive' }}">
+              <span
+                class="inline-block w-1.5 h-1.5 rounded-full {{ 'bg-[#2f7d4a]' if user.is_active else 'bg-[#4f5b66]' }}"
+                aria-hidden="true"></span>
+              {{ 'Active' if user.is_active else 'Inactive' }}
+            </span>
+            <span class="admin-account-status {{ 'is-active' if user.email_verified_at else 'is-inactive' }}">
+              {{ 'Verified' if user.email_verified_at else 'Unverified' }}
+            </span>
+          </td>
+          <td data-label="Created"><span class="font-mono text-sm">{{ user.created_at|display_time }}</span></td>
+          <td data-label="Last login"><span class="font-mono text-sm">{{ user.last_login_at|display_time if
+              user.last_login_at else 'Not yet' }}</span></td>
+          <td data-label="Actions">
+            <div class="admin-user-actions">
+              {% if is_last_active_admin %}
+              <span class="admin-note-text">Last active admin</span>
+              {% else %}
+              {% if not is_self %}
+              {% if user.is_active %}
+              <form method="post" action="/admin/users/{{ user.id }}/deactivate"
+                data-confirm-message="Deactivate this user?">
+                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                <button class="admin-action-button" type="submit">Deactivate</button>
+              </form>
+              {% else %}
+              <form method="post" action="/admin/users/{{ user.id }}/reactivate"
+                data-confirm-message="Reactivate this user?">
+                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                <button class="admin-action-button" type="submit">Reactivate</button>
+              </form>
+              {% endif %}
+              {% endif %}
+              {% endif %}
+              <form method="post" action="/admin/users/{{ user.id }}/reset-link"
+                data-confirm-message="Create a 60-minute password reset link for this user?">
+                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                <button class="admin-action-button" type="submit">Reset link</button>
+              </form>
+              {% if not is_self and not is_last_active_admin %}
+              <form method="post" action="/admin/users/{{ user.id }}/delete"
+                data-confirm-message="Delete this user and saved checks?">
+                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                <button class="admin-action-button is-danger" type="submit">Delete</button>
+              </form>
+              {% endif %}
+            </div>
+          </td>
+          </tr>
+          {% else %}
+          <tr>
+            <td class="admin-empty-state" colspan="6">
+              <div class="flex flex-col items-center justify-center py-4">
+                <span class="admin-empty-state-icon" aria-hidden="true">
+                  <svg class="w-7 h-7" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.75"
+                      d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z">
+                    </path>
+                  </svg>
+                </span>
+                <p class="font-bold text-[#063154] text-base mb-1">No accounts have been created yet.</p>
+              </div>
+            </td>
+          </tr>
+          {% endfor %}
       </tbody>
     </table>
   </div>

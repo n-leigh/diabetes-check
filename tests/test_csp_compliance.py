@@ -54,6 +54,9 @@ EXTERNAL_IMG_PATTERN = re.compile(r'<img[^>]+(?:src|srcset)=["\'][^"\']*(?:https
 def all_template_files():
     return sorted(TEMPLATES_DIR.rglob("*.html"))
 
+def browser_template_files():
+    return [path for path in all_template_files() if "emails" not in path.parts]
+
 
 @pytest.fixture
 def client():
@@ -120,7 +123,7 @@ def test_template_has_no_external_domains(template_path):
         )
 
 
-@pytest.mark.parametrize("template_path", all_template_files())
+@pytest.mark.parametrize("template_path", browser_template_files())
 def test_template_has_no_inline_style_blocks(template_path):
     content = template_path.read_text(encoding="utf-8")
     assert not INLINE_STYLE_BLOCK_RE.search(content), (
@@ -128,7 +131,7 @@ def test_template_has_no_inline_style_blocks(template_path):
     )
 
 
-@pytest.mark.parametrize("template_path", all_template_files())
+@pytest.mark.parametrize("template_path", browser_template_files())
 def test_template_has_no_inline_style_attributes(template_path):
     content = template_path.read_text(encoding="utf-8")
     match = INLINE_STYLE_ATTR_RE.search(content)

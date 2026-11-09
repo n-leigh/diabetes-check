@@ -7,6 +7,130 @@ document.addEventListener('DOMContentLoaded', () => {
 
   // 1. Wizard Step Navigation Logic
   let currentStep = 1;
+  const draftStorageKey = 'diabeates:assessment-draft:v1';
+  const draftMaxAgeMs = 7 * 24 * 60 * 60 * 1000;
+  let draftSaveTimer = null;
+  let isRestoringDraft = false;
+  const touchedFields = new Set();
+
+  function setDraftActionVisible(visible) {
+    const actions = document.getElementById('draftActions');
+    if (actions) actions.classList.toggle('hidden', !visible);
+  }
+
+  function hasAssessmentAnswers() {
+    const form = document.getElementById('assessmentForm');
+    if (!form) return false;
+
+    return Array.from(form.elements).some((field) => {
+      if (!field.name || field.name === 'csrf_token' || field.type === 'submit' ||
+          field.type === 'button') return false;
+      if (field.type === 'checkbox' || field.type === 'radio') return field.checked;
+      if (field.type === 'range') {
+        return touchedFields.has(field.name) || field.value !== field.defaultValue;
+      }
+      return field.value !== '';
+    });
+  }
+
+  function updateClearDraftButtonState() {
+    const clearDraftBtn = document.getElementById('clearDraftBtn');
+    if (clearDraftBtn) clearDraftBtn.disabled = !hasAssessmentAnswers();
+  }
+
+  function setDraftStatus(message, isError) {
+    const status = document.getElementById('draftStatus');
+    if (!status) return;
+    status.textContent = message;
+    status.classList.toggle('text-[#b03a2e]', Boolean(isError));
+    status.classList.toggle('text-[#4f5b66]', !isError);
+  }
+
+  function readDraft() {
+    try {
+      const rawDraft = window.localStorage.getItem(draftStorageKey);
+      if (!rawDraft) return null;
+      const draft = JSON.parse(rawDraft);
+      if (!draft || draft.version !== 1 || Date.now() - draft.savedAt > draftMaxAgeMs) {
+        window.localStorage.removeItem(draftStorageKey);
+        return null;
+      }
+      return draft;
+    } catch (error) {
+      setDraftStatus('Progress could not be restored on this device.', true);
+      return null;
+    }
+  }
+
+  function collectDraft() {
+    const form = document.getElementById('assessmentForm');
+    if (!form) return null;
+
+    const fields = {};
+    let hasAnswers = false;
+    Array.from(form.elements).forEach((field) => {
+      if (!field.name || field.name === 'csrf_token' || field.type === 'submit' ||
+          field.type === 'button') return;
+      if (field.type === 'checkbox' || field.type === 'radio') {
+        fields[field.name] = field.checked;
+        hasAnswers = hasAnswers || field.checked;
+      } else if (field.type === 'range') {
+        fields[field.name] = field.value;
+        hasAnswers = hasAnswers || touchedFields.has(field.name) ||
+          field.value !== field.defaultValue;
+      } else {
+        fields[field.name] = field.value;
+        hasAnswers = hasAnswers || field.value !== '';
+      }
+    });
+
+    const labsToggle = document.getElementById('hasLabsToggle');
+    return hasAnswers ? {
+      version: 1,
+      savedAt: Date.now(),
+      step: currentStep,
+      labsOpen: Boolean(labsToggle && labsToggle.checked),
+      fields
+    } : null;
+  }
+
+  function saveDraft() {
+    if (isRestoringDraft) return;
+    const draft = collectDraft();
+    try {
+      if (draft) {
+        window.localStorage.setItem(draftStorageKey, JSON.stringify(draft));
+        setDraftActionVisible(true);
+        updateClearDraftButtonState();
+        setDraftStatus('Saved on this device just now.', false);
+      } else {
+        window.localStorage.removeItem(draftStorageKey);
+        setDraftActionVisible(false);
+        updateClearDraftButtonState();
+      }
+    } catch (error) {
+      setDraftStatus('Progress could not be saved on this device.', true);
+    }
+  }
+
+  function queueDraftSave() {
+    if (draftSaveTimer) window.clearTimeout(draftSaveTimer);
+    draftSaveTimer = window.setTimeout(() => {
+      draftSaveTimer = null;
+      saveDraft();
+    }, 250);
+  }
+
+  function clearDraft() {
+    if (draftSaveTimer) window.clearTimeout(draftSaveTimer);
+    try {
+      window.localStorage.removeItem(draftStorageKey);
+      setDraftActionVisible(false);
+      updateClearDraftButtonState();
+    } catch (error) {
+      setDraftStatus('The submitted check could not clear its local draft.', true);
+    }
+  }
 
   function updateProgressBar(step) {
     const bar = document.getElementById('stepProgressBar');
@@ -42,6 +166,7 @@ document.addEventListener('DOMContentLoaded', () => {
     if (s3) s3.classList.toggle('hidden', step !== 3);
     currentStep = step;
     updateProgressBar(step);
+    queueDraftSave();
     window.scrollTo({ top: 0, behavior: 'smooth' });
   }
 
@@ -413,11 +538,93 @@ document.addEventListener('DOMContentLoaded', () => {
   // 5. Submit Button Loading State
   const assessmentForm = document.getElementById('assessmentForm');
   const submitBtn = document.getElementById('submitBtn');
+  const clearDraftBtn = document.getElementById('clearDraftBtn');
+
+  function resetAssessment() {
+    clearDraft();
+    touchedFields.clear();
+    isRestoringDraft = true;
+    assessmentForm.reset();
+    isRestoringDraft = false;
+
+    document.querySelectorAll('.choice-tile input[type="checkbox"]').forEach((checkbox) => {
+      updateTile(checkbox);
+    });
+    if (hasLabsToggle && labsPanel) {
+      hasLabsToggle.checked = false;
+      labsPanel.classList.add('hidden');
+    }
+    ['PhysHlth', 'MentHlth', 'BMI'].forEach((fieldId) => {
+      const field = document.getElementById(fieldId);
+      if (field) field.dispatchEvent(new Event('input', { bubbles: true }));
+    });
+    goToStep(1);
+    updateClearDraftButtonState();
+    setDraftStatus('Saved answers cleared. You can enter a new check.', false);
+  }
+
+  if (clearDraftBtn && assessmentForm) {
+    clearDraftBtn.addEventListener('click', resetAssessment);
+  }
+
   if (assessmentForm && submitBtn) {
     assessmentForm.addEventListener('submit', function () {
+      clearDraft();
       submitBtn.disabled = true;
       submitBtn.textContent = 'Checking your results...';
       submitBtn.classList.add('opacity-75');
     });
+  }
+
+  // Save unfinished answers locally so navigation or a later return cannot lose them.
+  if (assessmentForm) {
+    assessmentForm.addEventListener('input', (event) => {
+      if (event.target.name) touchedFields.add(event.target.name);
+      updateClearDraftButtonState();
+      queueDraftSave();
+    });
+    assessmentForm.addEventListener('change', (event) => {
+      if (event.target.name) touchedFields.add(event.target.name);
+      updateClearDraftButtonState();
+      queueDraftSave();
+    });
+    window.addEventListener('beforeunload', saveDraft);
+
+    const draft = readDraft();
+    if (draft && draft.fields) {
+      isRestoringDraft = true;
+      Array.from(assessmentForm.elements).forEach((field) => {
+        if (!field.name || field.name === 'csrf_token' || !(field.name in draft.fields)) return;
+        if (field.type === 'checkbox' || field.type === 'radio') {
+          field.checked = Boolean(draft.fields[field.name]);
+        } else {
+          field.value = draft.fields[field.name];
+        }
+        if (field.type !== 'range' || field.value !== field.defaultValue) {
+          touchedFields.add(field.name);
+        }
+      });
+      isRestoringDraft = false;
+
+      document.querySelectorAll('.choice-tile input[type="checkbox"]').forEach((checkbox) => {
+        updateTile(checkbox);
+      });
+      if (hasLabsToggle && labsPanel) {
+        hasLabsToggle.checked = Boolean(draft.labsOpen);
+        labsPanel.classList.toggle('hidden', !hasLabsToggle.checked);
+      }
+      const restoredStep = Number(draft.step);
+      if (restoredStep >= 1 && restoredStep <= 3) goToStep(restoredStep);
+      const restoredBmi = document.getElementById('BMI');
+      if (restoredBmi) {
+        restoredBmi.dispatchEvent(new Event('input', { bubbles: true }));
+        restoredBmi.dispatchEvent(new Event('change', { bubbles: true }));
+      }
+      setDraftStatus('Your unfinished answers were restored from this device.', false);
+      setDraftActionVisible(hasAssessmentAnswers());
+    } else {
+      setDraftActionVisible(false);
+    }
+    updateClearDraftButtonState();
   }
 });

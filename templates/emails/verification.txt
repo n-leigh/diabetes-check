@@ -1,0 +1,10 @@
+DiaBeates
+
+One quick step to finish creating your account, {{ display_name }}.
+
+Confirm your email address:
+{{ verification_link }}
+
+This link works once and expires in 24 hours.
+
+Did not sign up? You can ignore this email. The account will not be activated and is removed automatically.

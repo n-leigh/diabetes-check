@@ -39,7 +39,7 @@ from dotenv import load_dotenv
 import joblib
 import numpy as np
 import pandas as pd
-from flask import Flask, render_template, request, redirect, url_for, session, abort, jsonify
+from flask import Flask, current_app, render_template, request, redirect, url_for, session, abort, jsonify
 from flask_wtf.csrf import CSRFProtect, CSRFError
 from flask_limiter import Limiter
 from flask_limiter.util import get_remote_address
@@ -57,6 +57,7 @@ load_dotenv(os.path.join(os.path.dirname(os.path.abspath(__file__)), ".env"))
 import database
 
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
+APP_STARTED_AT = datetime.now(timezone.utc)
 load_dotenv(os.path.join(BASE_DIR, ".env"))
 
 # ===== LOGGING CONFIGURATION =====
@@ -137,6 +138,9 @@ class AuthUser(UserMixin):
         self.display_name = row["display_name"]
         self.role = row["role"]
         self.is_active = bool(row["is_active"])
+        self._password_fingerprint = hashlib.sha256(
+            row["password_hash"].encode("utf-8")
+        ).hexdigest()
 
     @property
     def is_active(self):
@@ -146,17 +150,27 @@ class AuthUser(UserMixin):
     def is_active(self, value):
         self._is_active = bool(value)
 
+    def get_id(self):
+        return f"{self.id}:{self._password_fingerprint}"
+
 
 @login_manager.user_loader
 def load_user(user_id):
     try:
-        row = database.get_user_by_id(int(user_id))
+        raw_id, fingerprint = str(user_id).split(":", 1)
+        row = database.get_user_by_id(int(raw_id))
     except (TypeError, ValueError):
         return None
-    return AuthUser(row) if row else None
+    if not row:
+        return None
+    expected = hashlib.sha256(row["password_hash"].encode("utf-8")).hexdigest()
+    return AuthUser(row) if secrets.compare_digest(expected, fingerprint) else None
 
 
 _DUMMY_PASSWORD_HASH = generate_password_hash("dummy-password-for-timing", method="scrypt")
+_verification_resend_lock = threading.Lock()
+_verification_resend_times = {}
+_verification_resend_history = {}
 COMMON_PASSWORDS = {
     "123456", "123456789", "12345", "password", "password1", "12345678",
     "qwerty", "abc123", "111111", "123123", "admin", "letmein",
@@ -207,6 +221,63 @@ def _admin_count(value):
     return str(value) if value >= 5 else "<5"
 
 
+def format_file_size(size_bytes: int) -> str:
+    """Format bytes into human-readable units (KB/MB)."""
+    if size_bytes >= 1024 * 1024:
+        return f"{size_bytes / (1024 * 1024):.1f} MB"
+    if size_bytes >= 1024:
+        return f"{size_bytes / 1024:.1f} KB"
+    return f"{size_bytes} bytes"
+
+
+def _format_uptime(started_at) -> str:
+    """Format process uptime into plain-language days and hours."""
+    delta = datetime.now(timezone.utc) - started_at
+    days = delta.days
+    hours = delta.seconds // 3600
+    return f"Running for {days} days {hours} hours"
+
+
+def _admin_feedback_tally():
+    """Compute aggregate helpful vs unhelpful feedback with small-cell suppression."""
+    conn = database.get_connection()
+    try:
+        feedback_total = conn.execute("SELECT COUNT(*) FROM feedback").fetchone()[0]
+        helpful_total = conn.execute("SELECT COUNT(*) FROM feedback WHERE helpful = 1").fetchone()[0]
+        unhelpful_total = feedback_total - helpful_total
+        # Statistical disclosure control: if either helpful or unhelpful count is < 5,
+        # suppress both counts so the small count cannot be calculated from the total.
+        if helpful_total < 5 or unhelpful_total < 5:
+            yes_display = "<5"
+            no_display = "<5"
+        else:
+            yes_display = str(helpful_total)
+            no_display = str(unhelpful_total)
+        return {
+            "yes": yes_display,
+            "no": no_display,
+            "text": f"Helpful: {yes_display} yes / {no_display} no",
+        }
+    finally:
+        conn.close()
+
+
+def _sanitize_csv_cell(value):
+    """Neutralize potential CSV formula injection (=, +, -, @)."""
+    s = str(value) if value is not None else ""
+    if s and s[0] in ("=", "+", "-", "@"):
+        return f"'{s}"
+    return s
+
+
+ADMIN_DOMAIN_TITLES = (
+    ("cardiovascular", "Heart"),
+    ("general_burden", "Kidneys"),
+    ("neuropathy_mobility", "Nerves and feet"),
+    ("retinopathy", "Eyes"),
+)
+
+
 def _admin_dashboard_data():
     conn = database.get_connection()
     try:
@@ -225,24 +296,35 @@ def _admin_dashboard_data():
         else:
             feedback_helpful_rate = f"{helpful_total / feedback_total:.0%}"
         status_counts = {}
-        for category, title in (
-            ("cardiovascular", "Heart"),
-            ("general_burden", "Kidneys"),
-            ("neuropathy_mobility", "Nerves and feet"),
-            ("retinopathy", "Eyes"),
-        ):
+        for category, title in ADMIN_DOMAIN_TITLES:
             rows = conn.execute(
                 """SELECT rule_label, COUNT(*) AS total FROM risk_results
                    WHERE category = ? GROUP BY rule_label""",
                 (category,),
             ).fetchall()
-            status_counts[title] = {
-                label: "<5"
-                for label in ("Good", "Check", "See a doctor")
+            raw_counts = {
+                "Good": 0,
+                "Check": 0,
+                "See a doctor": 0,
             }
             for row in rows:
                 label = get_status_presentation(row["rule_label"])["label"]
-                status_counts[title][label] = _admin_count(row["total"])
+                raw_counts[label] = row["total"]
+
+            # Statistical disclosure control / Tightened secondary suppression rule (Requirement 3.1f / Item 4):
+            # If ANY status cell in a domain is below 5, display all three cells for that domain as "<5".
+            # This completely prevents deriving any hidden small count from domain or platform totals.
+            if any(count < 5 for count in raw_counts.values()):
+                status_counts[title] = {
+                    "Good": "<5",
+                    "Check": "<5",
+                    "See a doctor": "<5",
+                }
+            else:
+                status_counts[title] = {
+                    label: str(count)
+                    for label, count in raw_counts.items()
+                }
         days = []
         for offset in range(29, -1, -1):
             day = (now - timedelta(days=offset)).date()
@@ -350,8 +432,15 @@ def set_security_headers(response):
     if not DEBUG:
         response.headers["Strict-Transport-Security"] = "max-age=31536000; includeSubDomains"
 
-    # Enforce strict Cache-Control for sensitive clinical routes
-    if request.path == "/predict" or request.path.startswith("/print") or request.path.startswith("/history") or request.path.startswith("/result"):
+    # Enforce strict Cache-Control for sensitive clinical and admin routes
+    if (
+        request.path == "/predict"
+        or request.path.startswith("/print")
+        or request.path.startswith("/history")
+        or request.path.startswith("/result")
+        or request.path == "/admin"
+        or request.path.startswith("/admin/")
+    ):
         response.headers["Cache-Control"] = "no-store, no-cache, must-revalidate, max-age=0"
         response.headers["Pragma"] = "no-cache"
 
@@ -368,6 +457,10 @@ limiter = Limiter(
 database.init_db()
 database.verify_database_integrity()
 logger.info("Database initialized successfully with non-destructive WAL mode.")
+LIVE_DB_CHECKS = (
+    os.getenv("ALLOW_LIVE_DB_CHECKS") == "1"
+    and os.getenv("LIVE_DB_BACKUP_CONFIRMED") == "1"
+)
 try:
     RETENTION_DAYS = int(os.getenv("RETENTION_DAYS", "90"))
 except ValueError:
@@ -378,14 +471,23 @@ if RETENTION_DAYS < 1:
     logger.warning("RETENTION_DAYS must be >= 1; falling back to 90.")
     RETENTION_DAYS = 90
 
-try:
-    pruned_count = database.prune_expired_assessments(days=RETENTION_DAYS)
-except Exception:
-    logger.exception("Failed to prune expired assessments")
-    pruned_count = 0
-
-if pruned_count:
-    logger.info("Expired assessments pruned: %d", pruned_count)
+LAST_PRUNED_COUNT = 0
+if not LIVE_DB_CHECKS:
+    try:
+        pruned_count = database.prune_expired_assessments(days=RETENTION_DAYS)
+    except Exception:
+        logger.exception("Failed to prune expired assessments")
+        pruned_count = 0
+    LAST_PRUNED_COUNT = pruned_count
+    if pruned_count:
+        logger.info("Expired assessments pruned: %d", pruned_count)
+    try:
+        pruned_unverified = database.prune_unverified_accounts(days=7)
+    except Exception:
+        logger.exception("Failed to prune stale unverified accounts")
+        pruned_unverified = 0
+    if pruned_unverified:
+        logger.info("Stale unverified accounts pruned: %d", pruned_unverified)
 
 CATEGORIES = ["cardiovascular", "neuropathy_mobility", "general_burden", "retinopathy"]
 FEATURE_COLUMNS = [
@@ -423,35 +525,147 @@ for cat in CATEGORIES:
         logger.warning(f"Model file not found for '{cat}' at {path}")
 
 
-def _send_reset_email(email, reset_link):
-        smtp_host = os.getenv("SMTP_HOST", "").strip()
-        smtp_port = int(os.getenv("SMTP_PORT", "587"))
-        smtp_user = os.getenv("SMTP_USER", "").strip()
-        smtp_password = os.getenv("SMTP_PASSWORD", "")
-        smtp_from = os.getenv("SMTP_FROM", "").strip()
-        if not smtp_host or not smtp_from:
-            if DEBUG:
-                logger.info("Password reset link for configured debug delivery: %s", reset_link)
-                return True
+def _send_reset_email(email, reset_link, display_name=""):
+    smtp_host = os.getenv("SMTP_HOST", "").strip()
+    smtp_port = int(os.getenv("SMTP_PORT", "587"))
+    smtp_user = os.getenv("SMTP_USER", "").strip()
+    smtp_password = os.getenv("SMTP_PASSWORD", "")
+    smtp_from = os.getenv("SMTP_FROM", "").strip()
+    if not smtp_host or not smtp_from:
+        if DEBUG:
+            logger.info("Password reset link for configured debug delivery: %s", reset_link)
+            return True
+        return False
+    message = EmailMessage()
+    message["Subject"] = "Reset your DiaBeates password"
+    message["From"] = smtp_from
+    message["To"] = email
+    message.set_content(render_template("emails/password_reset.txt", display_name=display_name, reset_link=reset_link, minutes=30))
+    message.add_alternative(render_template("emails/password_reset.html", display_name=display_name, reset_link=reset_link, minutes=30), subtype="html")
+    with smtplib.SMTP(smtp_host, smtp_port, timeout=10) as server:
+        server.starttls()
+        if smtp_user:
+            server.login(smtp_user, smtp_password)
+        server.send_message(message)
+    return True
+
+
+def _send_email_template(email, subject, html_template, text_template, **context):
+    if not _smtp_configured():
+        return False
+    message = EmailMessage()
+    message["Subject"] = subject
+    message["From"] = os.getenv("SMTP_FROM", "").strip()
+    message["To"] = email
+    message.set_content(render_template(text_template, **context))
+    message.add_alternative(render_template(html_template, **context), subtype="html")
+    with smtplib.SMTP(os.getenv("SMTP_HOST", "").strip(), int(os.getenv("SMTP_PORT", "587")), timeout=10) as server:
+        server.starttls()
+        server.login(os.getenv("SMTP_USER", "").strip(), os.getenv("SMTP_PASSWORD", ""))
+        server.send_message(message)
+    return True
+
+
+def _send_email_async(email, subject, html_template, text_template, **context):
+    application = current_app._get_current_object()
+
+    def deliver():
+        try:
+            with application.app_context():
+                _send_email_template(email, subject, html_template, text_template, **context)
+        except (OSError, smtplib.SMTPException, ValueError):
+            logger.warning("Non-critical email delivery failed for configured account notification.")
+    threading.Thread(
+        target=deliver,
+        daemon=True,
+    ).start()
+
+
+def _datetime_pht():
+    return datetime.now(timezone.utc).astimezone(DISPLAY_ZONE).strftime("%Y-%m-%d %H:%M PHT")
+
+
+def _smtp_configured():
+    return all(os.getenv(name, "").strip() for name in (
+        "SMTP_HOST", "SMTP_PORT", "SMTP_USER", "SMTP_PASSWORD", "SMTP_FROM"
+    ))
+
+
+def _email_verification_required():
+    value = os.getenv("REQUIRE_EMAIL_VERIFICATION")
+    if value is None or not value.strip():
+        return _smtp_configured()
+    return value.strip().lower() in {"1", "true", "yes", "on"}
+
+
+def _verification_link(token):
+    base_url = os.getenv("BASE_URL", "").strip().rstrip("/")
+    path = url_for("verify_email", token=token)
+    return f"{base_url}{path}" if base_url else url_for("verify_email", token=token, _external=True)
+
+
+def _site_link(path):
+    base_url = os.getenv("BASE_URL", "").strip().rstrip("/")
+    return f"{base_url}{path}" if base_url else path
+
+
+def _send_verification_email(email, display_name, verification_link):
+    if not _smtp_configured():
+        return False
+    message = EmailMessage()
+    message["Subject"] = "Confirm your DiaBeates email"
+    message["From"] = os.getenv("SMTP_FROM", "").strip()
+    message["To"] = email
+    message.set_content(render_template("emails/verification.txt", display_name=display_name, verification_link=verification_link))
+    message.add_alternative(render_template("emails/verification.html", display_name=display_name, verification_link=verification_link), subtype="html")
+    with smtplib.SMTP(os.getenv("SMTP_HOST", "").strip(), int(os.getenv("SMTP_PORT", "587")), timeout=10) as server:
+        server.starttls()
+        server.login(os.getenv("SMTP_USER", "").strip(), os.getenv("SMTP_PASSWORD", ""))
+        server.send_message(message)
+    return True
+
+
+def _send_welcome_email(email, display_name):
+    return _send_email_template(
+        email, "Welcome to DiaBeates", "emails/welcome.html", "emails/welcome.txt",
+        display_name=display_name,
+    )
+
+
+def _create_verification_message(user_id, email, display_name):
+    raw_token = secrets.token_urlsafe(32)
+    database.create_email_verification_token(
+        user_id,
+        hashlib.sha256(raw_token.encode("utf-8")).hexdigest(),
+        (datetime.now(timezone.utc) + timedelta(hours=24)).isoformat(timespec="seconds"),
+    )
+    return _send_verification_email(email, display_name, _verification_link(raw_token))
+
+
+def _resend_allowed(email):
+    now = datetime.now(timezone.utc).timestamp()
+    with _verification_resend_lock:
+        last_sent = _verification_resend_times.get(email)
+        history = [timestamp for timestamp in _verification_resend_history.get(email, []) if now - timestamp < 3600]
+        if (last_sent and now - last_sent < 60) or len(history) >= 5:
             return False
-        message = EmailMessage()
-        message["Subject"] = "DiaBeates password reset"
-        message["From"] = smtp_from
-        message["To"] = email
-        message.set_content(f"Use this link within 60 minutes to reset your password:\n\n{reset_link}")
-        with smtplib.SMTP(smtp_host, smtp_port, timeout=10) as server:
-            server.starttls()
-            if smtp_user:
-                server.login(smtp_user, smtp_password)
-            server.send_message(message)
+        _verification_resend_times[email] = now
+        history.append(now)
+        _verification_resend_history[email] = history
         return True
 
 
+if not _smtp_configured() and not _email_verification_required():
+    logger.warning("SMTP is not fully configured; new accounts will be auto-verified.")
+elif not _smtp_configured() and _email_verification_required():
+    logger.warning("Email verification is required but SMTP is not fully configured; registration is disabled.")
+
+
 def _reset_link(token):
-        base_url = os.getenv("BASE_URL", "").strip().rstrip("/")
-        if base_url:
-            return f"{base_url}{url_for('reset_password', token=token)}"
-        return url_for("reset_password", token=token, _external=True)
+    base_url = os.getenv("BASE_URL", "").strip().rstrip("/")
+    if base_url:
+        return f"{base_url}{url_for('reset_password', token=token)}"
+    return url_for("reset_password", token=token, _external=True)
 
 
 def _post_auth_redirect(next_url=None):
@@ -509,7 +723,7 @@ def register():
         return _post_auth_redirect(request.args.get("next"))
     errors = []
     if request.method == "POST":
-        display_name = request.form.get("nickname", "").strip()
+        display_name = re.sub(r"[\r\n]+", " ", request.form.get("nickname", "").strip())
         email = request.form.get("email", "").strip().lower()
         password = request.form.get("password", "")
         confirm_password = request.form.get("confirm_password", "")
@@ -524,22 +738,53 @@ def register():
             errors.append("Passwords do not match.")
         if not consent:
             errors.append("Please agree to the Privacy Notice.")
+        if _email_verification_required() and not _smtp_configured():
+            errors.append("Email sign-up is temporarily unavailable. Please try again later.")
         if not errors:
-            try:
-                user_id = database.create_user(email, password, display_name)
-            except sqlite3.IntegrityError:
+            existing = database.get_user_by_email(email)
+            if existing and existing["email_verified_at"]:
                 errors.append("That email is already registered.")
             else:
-                guest_sid = session.get("session_id")
-                session.clear()
-                session["session_id"] = str(uuid.uuid4())
-                session.permanent = True
-                if guest_sid:
-                    session["claim_sid"] = guest_sid
-                user = load_user(user_id)
-                login_user(user, remember=False)
-                database.log_audit("login_success", str(user_id), user_id, get_remote_address())
-                return _post_auth_redirect(request.args.get("next"))
+                try:
+                    if existing:
+                        user_id = existing["id"]
+                        conn = database.get_connection()
+                        try:
+                            conn.execute(
+                                "UPDATE users SET display_name = ?, password_hash = ?, email_verified_at = NULL, "
+                                "consent_at = ?, consent_version = ?, created_at = ? WHERE id = ?",
+                                (display_name, generate_password_hash(password, method="scrypt"),
+                                 datetime.now(timezone.utc).isoformat(timespec="seconds"), "1.0",
+                                 datetime.now(timezone.utc).isoformat(timespec="seconds"), user_id),
+                            )
+                            conn.commit()
+                        finally:
+                            conn.close()
+                        raw_token = secrets.token_urlsafe(32)
+                        database.create_email_verification_token(
+                            user_id,
+                            hashlib.sha256(raw_token.encode("utf-8")).hexdigest(),
+                            (datetime.now(timezone.utc) + timedelta(hours=24)).isoformat(timespec="seconds"),
+                        )
+                        sent = _send_verification_email(email, display_name, _verification_link(raw_token))
+                    else:
+                        verified_at = None if _email_verification_required() else datetime.now(timezone.utc).isoformat(timespec="seconds")
+                        user_id = database.create_user(email, password, display_name, email_verified_at=verified_at)
+                        sent = True if verified_at else _create_verification_message(user_id, email, display_name)
+                except (OSError, smtplib.SMTPException, ValueError):
+                    logger.warning("Verification email delivery failed for a pending account.")
+                    sent = False
+                except sqlite3.IntegrityError:
+                    errors.append("That email is already registered.")
+                else:
+                    if not sent and _email_verification_required():
+                        errors.append("We could not send the confirmation email. Please try again.")
+                    elif _email_verification_required():
+                        database.log_audit("verification_sent", str(user_id), None, get_remote_address())
+                        session["pending_verification_email"] = email
+                        return redirect(url_for("check_email"))
+                    else:
+                        return redirect(url_for("login"))
     return render_template("register.html", errors=errors, form_data=request.form)
 
 
@@ -575,6 +820,9 @@ def login():
             elif row:
                 database.log_audit("login_failed", str(row["id"]), None, get_remote_address())
             errors.append("Email or password is incorrect.")
+        elif not row["email_verified_at"]:
+            errors.append("Please confirm your email first.")
+            session["pending_verification_email"] = email
         else:
             guest_sid = session.get("session_id")
             session.clear()
@@ -587,7 +835,64 @@ def login():
             login_user(user, remember=remember and user.role != "admin")
             database.log_audit("login_success", str(user.id), user.id, get_remote_address())
             return _post_auth_redirect(request.args.get("next"))
-    return render_template("login.html", errors=errors, form_data=request.form)
+    return render_template(
+        "login.html",
+        errors=errors,
+        form_data=request.form,
+        unverified_email=session.get("pending_verification_email") if any(
+            "confirm your email" in error.lower() for error in errors
+        ) else None,
+    )
+
+
+@app.get("/check-email")
+def check_email():
+    email = session.get("pending_verification_email")
+    if not email:
+        return redirect(url_for("register"))
+    return render_template("check_email.html", email=email)
+
+
+@app.post("/resend-verification")
+@limiter.limit("5 per hour")
+def resend_verification():
+    email = request.form.get("email", "").strip().lower()
+    row = database.get_user_by_email(email)
+    if row and not row["email_verified_at"] and _resend_allowed(email):
+        try:
+            if _create_verification_message(row["id"], row["email"], row["display_name"]):
+                database.log_audit("verification_sent", str(row["id"]), None, get_remote_address())
+                database.log_audit("resend_requested", str(row["id"]), None, get_remote_address())
+        except (OSError, smtplib.SMTPException, ValueError):
+            logger.warning("Verification resend failed for a pending account.")
+    session["pending_verification_email"] = email
+    return render_template("check_email.html", email=email, resend_submitted=True)
+
+
+@app.route("/verify-email/<token>", methods=["GET", "POST"])
+def verify_email(token):
+    token_row = database.get_email_verification_token(
+        hashlib.sha256(token.encode("utf-8")).hexdigest()
+    )
+    if request.method == "GET":
+        if not token_row:
+            return render_template("verify_email.html", state="invalid")
+        user = database.get_user_by_id(token_row["user_id"])
+        if user and user["email_verified_at"]:
+            return render_template("verify_email.html", state="already_verified")
+        return render_template("verify_email.html", state="confirm", token=token)
+    if not token_row:
+        return render_template("verify_email.html", state="invalid")
+    verified_at = datetime.now(timezone.utc).isoformat(timespec="seconds")
+    if not database.consume_email_verification_token(token_row["id"], token_row["user_id"], verified_at):
+        return render_template("verify_email.html", state="invalid")
+    user = database.get_user_by_id(token_row["user_id"])
+    database.log_audit("verified", str(token_row["user_id"]), None, get_remote_address())
+    try:
+        _send_welcome_email(user["email"], user["display_name"])
+    except (OSError, smtplib.SMTPException, ValueError):
+        logger.warning("Welcome email delivery failed after verification.")
+    return render_template("verify_email.html", state="verified")
 
 
 @app.post("/logout")
@@ -595,7 +900,10 @@ def login():
 def logout():
     user_id = current_user.id
     logout_user()
+    remember_action = session.pop("_remember", None)
     session.clear()
+    if remember_action:
+        session["_remember"] = remember_action
     database.log_audit("logout", str(user_id), user_id, get_remote_address())
     return redirect(url_for("index"))
 
@@ -614,7 +922,7 @@ def account():
 @app.post("/account/profile")
 @login_required
 def account_profile():
-    display_name = request.form.get("nickname", "").strip()
+    display_name = re.sub(r"[\r\n]+", " ", request.form.get("nickname", "").strip())
     if not display_name or len(display_name) > 40:
         return redirect(url_for("account", message="Enter a nickname from 1 to 40 characters."))
     conn = database.get_connection()
@@ -642,6 +950,12 @@ def account_password():
     else:
         database.update_password(current_user.id, new_password)
         database.log_audit("password_changed", str(current_user.id), current_user.id, get_remote_address())
+        _send_email_async(
+            row["email"], "Your DiaBeates password was changed",
+            "emails/password_changed.html", "emails/password_changed.txt",
+            display_name=row["display_name"], datetime_pht=_datetime_pht(),
+            reset_link=_site_link("/forgot-password"),
+        )
         message = "Your password was changed."
     return redirect(url_for("account", message=message))
 
@@ -653,8 +967,16 @@ def account_delete():
     if not check_password_hash(row["password_hash"], request.form.get("current_password", "")):
         return redirect(url_for("account", message="Your current password is incorrect."))
     user_id = current_user.id
+    deleted_email = row["email"]
+    deleted_name = row["display_name"]
     database.log_audit("account_deleted", str(user_id), user_id, get_remote_address())
     database.delete_user_account(user_id)
+    _send_email_async(
+        deleted_email, "Your DiaBeates account was deleted",
+        "emails/account_deleted.html", "emails/account_deleted.txt",
+        display_name=deleted_name, datetime_pht=_datetime_pht(),
+        assessment_link=_site_link("/assessment"),
+    )
     logout_user()
     session.clear()
     return redirect(url_for("index", deleted="1"))
@@ -663,12 +985,15 @@ def account_delete():
 @app.get("/account/export")
 @login_required
 def account_export():
+    user_row = database.get_user_by_id(current_user.id)
     records = database.get_all_assessments(
         session_id=session["session_id"], user_id=current_user.id, limit=10000, sort_order="asc"
     )
     payload = {
         "nickname": current_user.display_name,
         "email": current_user.email,
+        "email_verified_at": user_row["email_verified_at"],
+        "email_notifications": bool(user_row["email_notifications"]),
         "assessments": records,
     }
     response = app.response_class(
@@ -679,10 +1004,34 @@ def account_export():
     return response
 
 
+@app.post("/account/email-notifications")
+@login_required
+def account_email_notifications():
+    database.set_email_notifications(current_user.id, request.form.get("email_notifications") == "1")
+    return redirect(url_for("account", message="Email preferences were saved."))
+
+
 @app.get("/admin")
 @admin_required
 def admin_dashboard():
     return render_template("admin_dashboard.html", dashboard=_admin_dashboard_data())
+
+
+KNOWN_AUDIT_ACTIONS = [
+    "login_success",
+    "login_failed",
+    "lockout",
+    "logout",
+    "password_changed",
+    "password_reset_requested",
+    "password_reset_completed",
+    "account_deleted",
+    "admin_user_deactivated",
+    "admin_user_reactivated",
+    "admin_user_deleted",
+    "admin_reset_link_created",
+    "admin_backup_created",
+]
 
 
 @app.get("/admin/users")
@@ -691,13 +1040,18 @@ def admin_users():
     conn = database.get_connection()
     try:
         users = [dict(row) for row in conn.execute(
-            """SELECT id, display_name, email, role, is_active, created_at, last_login_at
+            """SELECT id, display_name, email, role, is_active, email_verified_at, created_at, last_login_at
                FROM users ORDER BY id DESC"""
         ).fetchall()]
     finally:
         conn.close()
     reset_link = session.pop("admin_reset_link", None)
-    return render_template("admin_users.html", users=users, reset_link=reset_link)
+    return render_template(
+        "admin_users.html",
+        users=users,
+        reset_link=reset_link,
+        active_admin_count=_active_admin_count(),
+    )
 
 
 def _active_admin_count():
@@ -777,18 +1131,37 @@ def admin_reset_link(user_id):
 @app.get("/admin/feedback")
 @admin_required
 def admin_feedback():
+    page = max(1, request.args.get("page", 1, type=int))
+    per_page = 50
+    offset = (page - 1) * per_page
     conn = database.get_connection()
     try:
-        feedback = [dict(row) for row in conn.execute(
-            """SELECT helpful, comment, created_at, NULL AS name FROM feedback
-               UNION ALL
-               SELECT NULL AS helpful, message AS comment, created_at, name
-               FROM feedback_submissions
-               ORDER BY created_at DESC LIMIT 200"""
-        ).fetchall()]
+        max_allowed = max(0, 200 - offset)
+        fetch_limit = min(per_page + 1, max_allowed)
+        if fetch_limit > 0:
+            raw_feedback = [dict(row) for row in conn.execute(
+                """SELECT helpful, comment, created_at, NULL AS name FROM feedback
+                   UNION ALL
+                   SELECT NULL AS helpful, message AS comment, created_at, name
+                   FROM feedback_submissions
+                   ORDER BY created_at DESC LIMIT ? OFFSET ?""",
+                (fetch_limit, offset),
+            ).fetchall()]
+        else:
+            raw_feedback = []
     finally:
         conn.close()
-    return render_template("admin_feedback.html", feedback=feedback)
+
+    has_next = len(raw_feedback) > per_page and (offset + per_page < 200)
+    feedback = raw_feedback[:per_page]
+    return render_template(
+        "admin_feedback.html",
+        feedback=feedback,
+        tally=_admin_feedback_tally(),
+        page=page,
+        has_next=has_next,
+        has_prev=(page > 1),
+    )
 
 
 @app.get("/admin/audit")
@@ -796,40 +1169,86 @@ def admin_feedback():
 def admin_audit():
     page = max(1, request.args.get("page", 1, type=int))
     action = request.args.get("action", "").strip()
-    offset = (page - 1) * 50
+    per_page = 50
+    offset = (page - 1) * per_page
     conn = database.get_connection()
     try:
         where = "WHERE action = ?" if action else ""
-        params = (action, 50, offset) if action else (50, offset)
-        audit = [dict(row) for row in conn.execute(
+        params = (action, per_page + 1, offset) if action else (per_page + 1, offset)
+        raw_audit = [dict(row) for row in conn.execute(
             f"""SELECT id, actor_user_id, action, target, created_at
                 FROM audit_log {where} ORDER BY id DESC LIMIT ? OFFSET ?""",
             params,
         ).fetchall()]
     finally:
         conn.close()
-    return render_template("admin_audit.html", audit=audit, action=action, page=page)
+    has_next = len(raw_audit) > per_page
+    audit = raw_audit[:per_page]
+    return render_template(
+        "admin_audit.html",
+        audit=audit,
+        action=action,
+        page=page,
+        has_next=has_next,
+        has_prev=(page > 1),
+        known_actions=KNOWN_AUDIT_ACTIONS,
+    )
 
 
 @app.get("/admin/system")
 @admin_required
 def admin_system():
+    if database.DB_BACKEND == "postgres":
+        return render_template(
+            "admin_system.html",
+            backups=[],
+            database_size=None,
+            database_backend="postgres",
+            model_names=MODEL_NAMES,
+            retention_days=RETENTION_DAYS,
+            backup_message=session.pop("backup_message", None),
+        )
     backups_dir = os.path.join(BASE_DIR, "backups")
     os.makedirs(backups_dir, exist_ok=True)
-    backups = sorted(
-        [name for name in os.listdir(backups_dir) if name.endswith(".zip")],
-        reverse=True,
-    )
+    backups = []
+    for name in sorted(os.listdir(backups_dir), reverse=True):
+        if name.endswith(".zip"):
+            bpath = os.path.join(backups_dir, name)
+            try:
+                bsize = format_file_size(os.path.getsize(bpath))
+            except OSError:
+                bsize = "Unknown size"
+            backups.append({"name": name, "size": bsize})
+
     try:
-        database_size = os.path.getsize(database.DB_PATH)
+        database_size = format_file_size(os.path.getsize(database.DB_PATH))
     except OSError:
-        database_size = 0
+        database_size = "0 bytes"
+
+    health_info = _system_health_status()
+    uptime = _format_uptime(APP_STARTED_AT)
+
+    model_details = []
+    for cat, title in ADMIN_DOMAIN_TITLES:
+        model_details.append({
+            "category": cat,
+            "title": title,
+            "name": MODEL_NAMES.get(cat, "Unknown model"),
+            "status": CLINICAL_METRICS.get(cat, {}).get("model_status", "validated"),
+            "is_loaded": cat in MODELS,
+        })
+
     return render_template(
         "admin_system.html",
         backups=backups,
         database_size=database_size,
+        health_info=health_info,
+        uptime=uptime,
+        model_details=model_details,
+        database_backend=database.DB_BACKEND,
         model_names=MODEL_NAMES,
         retention_days=RETENTION_DAYS,
+        last_pruned=LAST_PRUNED_COUNT,
         backup_message=session.pop("backup_message", None),
     )
 
@@ -837,6 +1256,9 @@ def admin_system():
 @app.post("/admin/system/backup")
 @admin_required
 def admin_backup():
+    if database.DB_BACKEND == "postgres":
+        session["backup_message"] = "Backups are managed in Supabase or with pg_dump."
+        return redirect(url_for("admin_system"))
     backups_dir = os.path.join(BASE_DIR, "backups")
     os.makedirs(backups_dir, exist_ok=True)
     stamp = datetime.now(timezone.utc).strftime("%Y%m%d-%H%M%S")
@@ -858,16 +1280,20 @@ def admin_backup():
 @admin_required
 def admin_export_csv():
     dashboard = _admin_dashboard_data()
+    now_iso = datetime.now(timezone.utc).isoformat(timespec="seconds")
     output = io.StringIO()
     writer = csv.writer(output)
-    writer.writerow(["metric", "value"])
-    writer.writerow(["total_users", dashboard["users_total"]])
-    writer.writerow(["new_users_last_7_days", dashboard["new_users"]])
-    writer.writerow(["total_assessments", dashboard["assessments_total"]])
-    writer.writerow(["helpful_feedback_rate", dashboard["feedback_helpful_rate"]])
+    writer.writerow([_sanitize_csv_cell("metric"), _sanitize_csv_cell("value")])
+    writer.writerow([_sanitize_csv_cell("generated_at"), _sanitize_csv_cell(now_iso)])
+    writer.writerow([_sanitize_csv_cell("suppression_note"), _sanitize_csv_cell("Counts below 5 are shown as <5")])
+    writer.writerow([_sanitize_csv_cell("total_users"), _sanitize_csv_cell(dashboard["users_total"])])
+    writer.writerow([_sanitize_csv_cell("new_users_last_7_days"), _sanitize_csv_cell(dashboard["new_users"])])
+    writer.writerow([_sanitize_csv_cell("total_assessments"), _sanitize_csv_cell(dashboard["assessments_total"])])
+    writer.writerow([_sanitize_csv_cell("helpful_feedback_rate"), _sanitize_csv_cell(dashboard["feedback_helpful_rate"])])
     for title, counts in dashboard["status_counts"].items():
         for status, value in counts.items():
-            writer.writerow([f"{title.lower()}_{status.lower().replace(' ', '_')}", value])
+            key = f"{title.lower()}_{status.lower().replace(' ', '_')}"
+            writer.writerow([_sanitize_csv_cell(key), _sanitize_csv_cell(value)])
     response = app.response_class(output.getvalue(), mimetype="text/csv")
     response.headers["Content-Disposition"] = "attachment; filename=diabeates-admin-summary.csv"
     return response
@@ -956,11 +1382,11 @@ def forgot_password():
             database.create_password_reset_token(
                 row["id"],
                 hashlib.sha256(raw_token.encode("utf-8")).hexdigest(),
-                (datetime.now(timezone.utc) + timedelta(minutes=60)).isoformat(timespec="seconds"),
+                (datetime.now(timezone.utc) + timedelta(minutes=30)).isoformat(timespec="seconds"),
             )
             link = _reset_link(raw_token)
             try:
-                sent = _send_reset_email(row["email"], link)
+                sent = _send_reset_email(row["email"], link, row["display_name"])
             except (OSError, smtplib.SMTPException, ValueError):
                 logger.exception("Password reset email delivery failed")
                 sent = False
@@ -995,9 +1421,19 @@ def reset_password(token):
         elif password != confirm_password:
             errors.append("Passwords do not match.")
         else:
-            database.complete_password_reset(token_row["id"], token_row["user_id"], password)
-            database.log_audit("password_reset_completed", str(token_row["user_id"]), token_row["user_id"], get_remote_address())
-            return redirect(url_for("login"))
+            if not database.complete_password_reset(token_row["id"], token_row["user_id"], password):
+                errors.append("This reset link is invalid or expired.")
+            else:
+                database.mark_email_verified(token_row["user_id"])
+                database.log_audit("password_reset_completed", str(token_row["user_id"]), token_row["user_id"], get_remote_address())
+                user = database.get_user_by_id(token_row["user_id"])
+                _send_email_async(
+                    user["email"], "Your DiaBeates password was changed",
+                    "emails/password_changed.html", "emails/password_changed.txt",
+                    display_name=user["display_name"], datetime_pht=_datetime_pht(),
+                    reset_link=_site_link("/forgot-password"),
+                )
+                return redirect(url_for("login"))
     return render_template("reset_password.html", errors=errors, invalid=token_row is None)
 
 
@@ -1041,27 +1477,44 @@ def report():
     return render_template("report_viewer.html")
 
 
-@app.route("/health", methods=["GET"])
-@limiter.exempt
-def health():
+def _system_health_status():
     db_ok = True
+    migration_pending = False
     try:
         conn = database.get_connection()
         conn.execute("SELECT 1").fetchone()
         conn.close()
+        migration_pending = not database.check_email_verification_schema()
     except Exception as e:
         logger.error(f"Health check DB probe failed: {e}")
         db_ok = False
 
     models_loaded = list(MODELS.keys())
-    healthy = db_ok and len(models_loaded) == len(CATEGORIES)
+    healthy = db_ok and not migration_pending and len(models_loaded) == len(CATEGORIES)
     status_code = 200 if healthy else 503
     return {
         "status": "healthy" if healthy else "degraded",
         "database": "connected" if db_ok else "unreachable",
+        "reason": "database migration pending" if migration_pending else None,
         "models_loaded": models_loaded,
+        "models_loaded_count": len(models_loaded),
+        "models_expected_count": len(CATEGORIES),
         "models_expected": CATEGORIES,
         "rule_version": RULE_VERSION,
+    }
+
+
+@app.route("/health", methods=["GET"])
+@limiter.exempt
+def health():
+    info = _system_health_status()
+    status_code = 200 if info["status"] == "healthy" else 503
+    return {
+        "status": info["status"],
+        "database": info["database"],
+        "models_loaded": info["models_loaded"],
+        "models_expected": info["models_expected"],
+        "rule_version": info["rule_version"],
     }, status_code
 
 
@@ -1114,7 +1567,7 @@ def explain_patient_risk(patient: dict) -> dict:
             "badge": "bg-amber-100 text-amber-800 border-amber-200",
             "detail": "Promotes atherogenic arterial lipid accumulation."
         })
-    bmi = patient.get("BMI", 0)
+    bmi = patient.get("BMI") or 0
     if bmi >= 30:
         drivers["cardiovascular"].append({
             "factor": f"Obesity (BMI {bmi})",
@@ -1129,7 +1582,7 @@ def explain_patient_risk(patient: dict) -> dict:
             "badge": "bg-slate-100 text-slate-700 border-slate-200",
             "detail": "Mild elevated metabolic and cardiovascular strain."
         })
-    age_band = patient.get("Age", 0)
+    age_band = patient.get("Age") or 0
     if age_band >= 9:
         drivers["cardiovascular"].append({
             "factor": "Age ≥60 years",
@@ -1153,7 +1606,7 @@ def explain_patient_risk(patient: dict) -> dict:
             "badge": "bg-red-100 text-red-700 border-red-200",
             "detail": "Primary hemodynamic risk driver for glomerular hyperfiltration and renal decline."
         })
-    gen_hlth = patient.get("GenHlth", 1)
+    gen_hlth = patient.get("GenHlth") or 1
     if gen_hlth >= 4:
         drivers["general_burden"].append({
             "factor": "Fair / Poor General Health",
@@ -1175,7 +1628,7 @@ def explain_patient_risk(patient: dict) -> dict:
             "badge": "bg-amber-100 text-amber-800 border-amber-200",
             "detail": "Accelerates microvascular renal arteriosclerosis."
         })
-    if patient.get("MentHlth", 0) >= 15:
+    if (patient.get("MentHlth") or 0) >= 15:
         drivers["general_burden"].append({
             "factor": "Frequent Mental Distress",
             "impact": "Mild",
@@ -1198,7 +1651,7 @@ def explain_patient_risk(patient: dict) -> dict:
             "badge": "bg-red-100 text-red-700 border-red-200",
             "detail": "Cardinal functional sign of lower-extremity peripheral diabetic neuropathy."
         })
-    phys_hlth = patient.get("PhysHlth", 0)
+    phys_hlth = patient.get("PhysHlth") or 0
     if phys_hlth >= 15:
         drivers["neuropathy_mobility"].append({
             "factor": f"Severe Physical Deficit ({phys_hlth} days/mo)",
@@ -1236,7 +1689,7 @@ def explain_patient_risk(patient: dict) -> dict:
         })
 
     # Diabetic Retinopathy & Vision Loss drivers (ADA / UKPDS)
-    dur = patient.get("DiabetesDuration", 0)
+    dur = patient.get("DiabetesDuration") or 0
     if dur >= 3:
         drivers["retinopathy"].append({
             "factor": "Diabetes Duration ≥10 Years",
@@ -1357,6 +1810,16 @@ def predict():
             model_names=MODEL_NAMES,
             rule_version=RULE_VERSION,
         )
+        if current_user.is_authenticated:
+            saved_user = database.get_user_by_id(current_user.id)
+            if saved_user["email_notifications"]:
+                _send_email_async(
+                    saved_user["email"], "Your check was saved",
+                    "emails/check_saved.html", "emails/check_saved.txt",
+                    display_name=saved_user["display_name"],
+                    datetime_pht=_datetime_pht(),
+                    history_link=_site_link("/history"),
+                )
 
     recommendations = build_recommendations(rule_results, lab_assessment, patient)
     patient_drivers = explain_patient_risk(patient)

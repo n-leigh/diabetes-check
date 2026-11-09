@@ -1,0 +1,7 @@
+DiaBeates
+
+Your account has been deleted.
+As requested, we permanently deleted your DiaBeates account and your saved checks on {{ datetime_pht }}.
+You can still do a check as a guest anytime: {{ assessment_link }}
+If you did not request this, contact the site administrator.
+DiaBeates is a screening tool, not a diagnosis.
