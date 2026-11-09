@@ -5143,3 +5143,97 @@ HINT:  No operator matches the given name and argument types. You might need to 
 2026-11-09 20:21:41,931 - werkzeug - INFO - 127.0.0.1 - - [09/Nov/2026 20:21:41] "[36mGET /static/css/clinical.css HTTP/1.1[0m" 304 -
 2026-11-09 20:21:41,946 - werkzeug - INFO - 127.0.0.1 - - [09/Nov/2026 20:21:41] "[36mGET /static/js/app.js HTTP/1.1[0m" 304 -
 2026-11-09 20:21:41,965 - werkzeug - INFO - 127.0.0.1 - - [09/Nov/2026 20:21:41] "[36mGET /static/logo.png HTTP/1.1[0m" 304 -
+2026-11-09 20:44:39,191 - werkzeug - INFO - 127.0.0.1 - - [09/Nov/2026 20:44:39] "GET /admin/users HTTP/1.1" 200 -
+2026-11-09 20:44:39,620 - werkzeug - INFO - 127.0.0.1 - - [09/Nov/2026 20:44:39] "[36mGET /static/js/app.js HTTP/1.1[0m" 304 -
+2026-11-09 20:44:39,620 - werkzeug - INFO - 127.0.0.1 - - [09/Nov/2026 20:44:39] "[36mGET /static/css/clinical.css HTTP/1.1[0m" 304 -
+2026-11-09 20:44:39,633 - werkzeug - INFO - 127.0.0.1 - - [09/Nov/2026 20:44:39] "[36mGET /static/logo.png HTTP/1.1[0m" 304 -
+2026-11-09 20:44:39,653 - werkzeug - INFO - 127.0.0.1 - - [09/Nov/2026 20:44:39] "[36mGET /static/css/tailwind.min.css HTTP/1.1[0m" 304 -
+2026-11-09 21:02:06,740 - werkzeug - INFO - 127.0.0.1 - - [09/Nov/2026 21:02:06] "GET /admin HTTP/1.1" 200 -
+2026-11-09 21:02:07,177 - werkzeug - INFO - 127.0.0.1 - - [09/Nov/2026 21:02:07] "[36mGET /static/css/clinical.css HTTP/1.1[0m" 304 -
+2026-11-09 21:02:07,203 - werkzeug - INFO - 127.0.0.1 - - [09/Nov/2026 21:02:07] "[36mGET /static/css/tailwind.min.css HTTP/1.1[0m" 304 -
+2026-11-09 21:02:07,221 - werkzeug - INFO - 127.0.0.1 - - [09/Nov/2026 21:02:07] "[36mGET /static/js/app.js HTTP/1.1[0m" 304 -
+2026-11-09 21:02:07,332 - werkzeug - INFO - 127.0.0.1 - - [09/Nov/2026 21:02:07] "[36mGET /static/js/admin_dashboard.js HTTP/1.1[0m" 304 -
+2026-11-09 21:02:07,384 - werkzeug - INFO - 127.0.0.1 - - [09/Nov/2026 21:02:07] "[36mGET /static/logo.png HTTP/1.1[0m" 304 -
+2026-11-09 21:02:10,114 - DiaBeates - ERROR - Unexpected server error
+Traceback (most recent call last):
+  File "C:\Users\carlo\AppData\Local\Programs\Python\Python311\Lib\site-packages\flask\app.py", line 917, in full_dispatch_request
+    rv = self.dispatch_request()
+         ^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\carlo\AppData\Local\Programs\Python\Python311\Lib\site-packages\flask\app.py", line 902, in dispatch_request
+    return self.ensure_sync(self.view_functions[rule.endpoint])(**view_args)  # type: ignore[no-any-return]
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\carlo\AppData\Local\Programs\Python\Python311\Lib\site-packages\flask_login\utils.py", line 290, in decorated_view
+    return current_app.ensure_sync(func)(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\carlo\Documents\htdocs\diabetes-check\app.py", line 216, in wrapped
+    return view(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\carlo\Documents\htdocs\diabetes-check\app.py", line 1207, in admin_system
+    return render_template(
+           ^^^^^^^^^^^^^^^^
+  File "C:\Users\carlo\AppData\Local\Programs\Python\Python311\Lib\site-packages\flask\templating.py", line 151, in render_template
+    return _render(app, template, context)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\carlo\AppData\Local\Programs\Python\Python311\Lib\site-packages\flask\templating.py", line 132, in _render
+    rv = template.render(context)
+         ^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\carlo\AppData\Local\Programs\Python\Python311\Lib\site-packages\jinja2\environment.py", line 1295, in render
+    self.environment.handle_exception()
+  File "C:\Users\carlo\AppData\Local\Programs\Python\Python311\Lib\site-packages\jinja2\environment.py", line 942, in handle_exception
+    raise rewrite_traceback_stack(source=source)
+  File "C:\Users\carlo\Documents\htdocs\diabetes-check\templates\admin_system.html", line 1, in top-level template code
+    {% extends "base.html" %}
+  File "C:\Users\carlo\Documents\htdocs\diabetes-check\templates\base.html", line 194, in top-level template code
+    {% block content %}{% endblock %}
+    ^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\carlo\Documents\htdocs\diabetes-check\templates\admin_system.html", line 27, in block 'content'
+    {{ health_info.status|capitalize }}
+    ^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\carlo\AppData\Local\Programs\Python\Python311\Lib\site-packages\jinja2\environment.py", line 490, in getattr
+    return getattr(obj, attribute)
+           ^^^^^^^^^^^^^^^^^^^^^^^
+jinja2.exceptions.UndefinedError: 'health_info' is undefined
+2026-11-09 21:02:10,386 - werkzeug - INFO - 127.0.0.1 - - [09/Nov/2026 21:02:10] "[35m[1mGET /admin/system HTTP/1.1[0m" 500 -
+2026-11-09 21:02:10,667 - werkzeug - INFO - 127.0.0.1 - - [09/Nov/2026 21:02:10] "[36mGET /static/css/tailwind.min.css HTTP/1.1[0m" 304 -
+2026-11-09 21:02:10,680 - werkzeug - INFO - 127.0.0.1 - - [09/Nov/2026 21:02:10] "[36mGET /static/js/app.js HTTP/1.1[0m" 304 -
+2026-11-09 21:02:10,685 - werkzeug - INFO - 127.0.0.1 - - [09/Nov/2026 21:02:10] "[36mGET /static/css/clinical.css HTTP/1.1[0m" 304 -
+2026-11-09 21:02:10,696 - werkzeug - INFO - 127.0.0.1 - - [09/Nov/2026 21:02:10] "[36mGET /static/logo.png HTTP/1.1[0m" 304 -
+2026-11-09 21:02:10,829 - werkzeug - INFO - 127.0.0.1 - - [09/Nov/2026 21:02:10] "[36mGET /static/js/assessment.js HTTP/1.1[0m" 304 -
+2026-11-09 21:02:14,881 - werkzeug - INFO - 127.0.0.1 - - [09/Nov/2026 21:02:14] "GET /admin HTTP/1.1" 200 -
+2026-11-09 21:02:15,135 - werkzeug - INFO - 127.0.0.1 - - [09/Nov/2026 21:02:15] "[36mGET /static/css/clinical.css HTTP/1.1[0m" 304 -
+2026-11-09 21:02:15,145 - werkzeug - INFO - 127.0.0.1 - - [09/Nov/2026 21:02:15] "[36mGET /static/css/tailwind.min.css HTTP/1.1[0m" 304 -
+2026-11-09 21:02:15,162 - werkzeug - INFO - 127.0.0.1 - - [09/Nov/2026 21:02:15] "[36mGET /static/js/app.js HTTP/1.1[0m" 304 -
+2026-11-09 21:02:15,168 - werkzeug - INFO - 127.0.0.1 - - [09/Nov/2026 21:02:15] "[36mGET /static/js/admin_dashboard.js HTTP/1.1[0m" 304 -
+2026-11-09 21:02:15,171 - werkzeug - INFO - 127.0.0.1 - - [09/Nov/2026 21:02:15] "[36mGET /static/logo.png HTTP/1.1[0m" 304 -
+2026-11-09 21:02:22,821 - werkzeug - INFO - 127.0.0.1 - - [09/Nov/2026 21:02:22] "GET /admin/export.csv HTTP/1.1" 200 -
+2026-11-09 21:05:25,852 - werkzeug - INFO - 127.0.0.1 - - [09/Nov/2026 21:05:25] "GET /admin/users HTTP/1.1" 200 -
+2026-11-09 21:05:26,149 - werkzeug - INFO - 127.0.0.1 - - [09/Nov/2026 21:05:26] "[36mGET /static/css/tailwind.min.css HTTP/1.1[0m" 304 -
+2026-11-09 21:05:26,162 - werkzeug - INFO - 127.0.0.1 - - [09/Nov/2026 21:05:26] "[36mGET /static/logo.png HTTP/1.1[0m" 304 -
+2026-11-09 21:05:26,163 - werkzeug - INFO - 127.0.0.1 - - [09/Nov/2026 21:05:26] "[36mGET /static/js/app.js HTTP/1.1[0m" 304 -
+2026-11-09 21:05:26,171 - werkzeug - INFO - 127.0.0.1 - - [09/Nov/2026 21:05:26] "[36mGET /static/css/clinical.css HTTP/1.1[0m" 304 -
+2026-11-09 22:23:59,600 - werkzeug - INFO - 127.0.0.1 - - [09/Nov/2026 22:23:59] "[32mPOST /admin/users/5/reset-link HTTP/1.1[0m" 302 -
+2026-11-09 22:23:59,761 - werkzeug - INFO - 127.0.0.1 - - [09/Nov/2026 22:23:59] "GET /login?next=/admin HTTP/1.1" 200 -
+2026-11-09 22:23:59,860 - werkzeug - INFO - 127.0.0.1 - - [09/Nov/2026 22:23:59] "[36mGET /static/css/tailwind.min.css HTTP/1.1[0m" 304 -
+2026-11-09 22:23:59,870 - werkzeug - INFO - 127.0.0.1 - - [09/Nov/2026 22:23:59] "[36mGET /static/js/app.js HTTP/1.1[0m" 304 -
+2026-11-09 22:23:59,874 - werkzeug - INFO - 127.0.0.1 - - [09/Nov/2026 22:23:59] "[36mGET /static/css/clinical.css HTTP/1.1[0m" 304 -
+2026-11-09 22:23:59,950 - werkzeug - INFO - 127.0.0.1 - - [09/Nov/2026 22:23:59] "[36mGET /static/logo.png HTTP/1.1[0m" 304 -
+2026-11-09 22:24:00,077 - werkzeug - INFO - 127.0.0.1 - - [09/Nov/2026 22:24:00] "[36mGET /static/css/tailwind.min.css HTTP/1.1[0m" 304 -
+2026-11-09 22:24:00,150 - werkzeug - INFO - 127.0.0.1 - - [09/Nov/2026 22:24:00] "[36mGET /static/css/clinical.css HTTP/1.1[0m" 304 -
+2026-11-09 22:24:15,612 - werkzeug - INFO - 127.0.0.1 - - [09/Nov/2026 22:24:15] "[32mPOST /login?next=/admin HTTP/1.1[0m" 302 -
+2026-11-09 22:24:18,429 - werkzeug - INFO - 127.0.0.1 - - [09/Nov/2026 22:24:18] "GET /admin HTTP/1.1" 200 -
+2026-11-09 22:24:18,762 - werkzeug - INFO - 127.0.0.1 - - [09/Nov/2026 22:24:18] "[36mGET /static/css/tailwind.min.css HTTP/1.1[0m" 304 -
+2026-11-09 22:24:18,939 - werkzeug - INFO - 127.0.0.1 - - [09/Nov/2026 22:24:18] "[36mGET /static/css/clinical.css HTTP/1.1[0m" 304 -
+2026-11-09 22:24:19,114 - werkzeug - INFO - 127.0.0.1 - - [09/Nov/2026 22:24:19] "[36mGET /static/js/app.js HTTP/1.1[0m" 304 -
+2026-11-09 22:24:19,185 - werkzeug - INFO - 127.0.0.1 - - [09/Nov/2026 22:24:19] "[36mGET /static/logo.png HTTP/1.1[0m" 304 -
+2026-11-09 22:24:19,292 - werkzeug - INFO - 127.0.0.1 - - [09/Nov/2026 22:24:19] "[36mGET /static/js/admin_dashboard.js HTTP/1.1[0m" 304 -
+2026-11-09 22:24:27,131 - werkzeug - INFO - 127.0.0.1 - - [09/Nov/2026 22:24:27] "GET /admin/users HTTP/1.1" 200 -
+2026-11-09 22:24:27,425 - werkzeug - INFO - 127.0.0.1 - - [09/Nov/2026 22:24:27] "[36mGET /static/css/clinical.css HTTP/1.1[0m" 304 -
+2026-11-09 22:24:27,434 - werkzeug - INFO - 127.0.0.1 - - [09/Nov/2026 22:24:27] "[36mGET /static/css/tailwind.min.css HTTP/1.1[0m" 304 -
+2026-11-09 22:24:27,446 - werkzeug - INFO - 127.0.0.1 - - [09/Nov/2026 22:24:27] "[36mGET /static/js/app.js HTTP/1.1[0m" 304 -
+2026-11-09 22:24:27,594 - werkzeug - INFO - 127.0.0.1 - - [09/Nov/2026 22:24:27] "[36mGET /static/logo.png HTTP/1.1[0m" 304 -
+2026-11-09 22:25:28,399 - werkzeug - INFO - 127.0.0.1 - - [09/Nov/2026 22:25:28] "[32mPOST /admin/users/3/reset-link HTTP/1.1[0m" 302 -
+2026-11-09 22:25:28,948 - werkzeug - INFO - 127.0.0.1 - - [09/Nov/2026 22:25:28] "GET /admin/users HTTP/1.1" 200 -
+2026-11-09 22:25:29,181 - werkzeug - INFO - 127.0.0.1 - - [09/Nov/2026 22:25:29] "[36mGET /static/css/tailwind.min.css HTTP/1.1[0m" 304 -
+2026-11-09 22:25:29,206 - werkzeug - INFO - 127.0.0.1 - - [09/Nov/2026 22:25:29] "[36mGET /static/css/clinical.css HTTP/1.1[0m" 304 -
+2026-11-09 22:25:29,212 - werkzeug - INFO - 127.0.0.1 - - [09/Nov/2026 22:25:29] "[36mGET /static/logo.png HTTP/1.1[0m" 304 -
+2026-11-09 22:25:29,222 - werkzeug - INFO - 127.0.0.1 - - [09/Nov/2026 22:25:29] "[36mGET /static/js/app.js HTTP/1.1[0m" 304 -
