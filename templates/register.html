@@ -49,12 +49,30 @@
         <span id="confirmPasswordMessage" class="password-helper password-helper-warning" role="alert" aria-live="polite" hidden>Passwords do not match.</span>
       </label>
       <label class="flex gap-3 items-start text-[17px] leading-relaxed">
-        <input type="checkbox" name="consent" value="1" required class="mt-1.5">
-        <span>I agree to the <a class="underline text-[#0b7a85]" href="/privacy">Privacy Notice</a>. I understand my results are saved to my account.</span>
+        <input id="consent" type="checkbox" name="consent" value="1" required class="mt-1.5">
+        <span>I agree to the <a id="terms-link" class="underline text-[#0b7a85]" href="/terms">Terms &amp; Conditions</a>. I understand my results are saved to my account.</span>
       </label>
       <button type="submit" class="btn-primary w-full text-[19px]">Create account</button>
     </form>
     <p class="mt-6 text-[17px] text-[#4f5b66]">Already have an account? <a class="underline text-[#0b7a85]" href="/login">Sign in.</a></p>
   </div>
 </section>
+<dialog id="terms-dialog" aria-labelledby="terms-dialog-title">
+  <div class="terms-dialog-shell">
+    <header class="terms-dialog-header">
+      <h2 id="terms-dialog-title" class="font-heading text-2xl sm:text-3xl">Terms &amp; Conditions</h2>
+      <button id="terms-dialog-close" type="button" class="terms-dialog-close" aria-label="Close Terms &amp; Conditions">&times;</button>
+    </header>
+    <div class="terms-dialog-body" role="region" aria-label="Terms &amp; Conditions text" tabindex="0">
+      {% include "_terms_content.html" %}
+    </div>
+    <footer class="terms-dialog-footer">
+      <button id="terms-dialog-cancel" type="button" class="btn-secondary">Close</button>
+      <button id="terms-dialog-agree" type="button" class="btn-primary">I agree</button>
+    </footer>
+  </div>
+</dialog>
+{% endblock %}
+{% block extra_scripts %}
+<script src="{{ url_for('static', filename='js/terms_modal.js') }}"></script>
 {% endblock %}

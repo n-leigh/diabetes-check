@@ -119,8 +119,46 @@ def test_register_requires_consent_and_rejects_weak_password(client):
     )
     body = response.get_data(as_text=True)
     assert response.status_code == 200
-    assert "Please agree to the Privacy Notice." in body
+    assert "Please agree to the Terms &amp; Conditions." in body
     assert "Use a password with 8 to 128 characters." in body
+
+
+def test_terms_page_is_public_and_registration_uses_current_consent_version(client):
+    terms_response = client.get("/terms")
+    assert terms_response.status_code == 200
+    terms_body = terms_response.get_data(as_text=True)
+    assert "Terms &amp; Conditions" in terms_body
+    assert "What DiaBeates does" in terms_body
+    assert "Your information" in terms_body
+
+    register_body = client.get("/register").get_data(as_text=True)
+    assert 'href="/terms"' in register_body
+    assert 'id="terms-dialog"' in register_body
+    assert 'href="/privacy">Privacy Notice</a>' not in register_body
+
+    original_required = app._email_verification_required
+    email = f"terms-{uuid.uuid4().hex}@example.test"
+    app._email_verification_required = lambda: False
+    try:
+        response = client.post(
+            "/register",
+            data={
+                "csrf_token": _csrf(client, "/register"),
+                "nickname": "Terms Test",
+                "email": email,
+                "password": PASSWORD,
+                "confirm_password": PASSWORD,
+                "consent": "1",
+            },
+            follow_redirects=False,
+        )
+    finally:
+        app._email_verification_required = original_required
+
+    assert response.status_code == 302
+    created = database.get_user_by_email(email)
+    assert created["consent_version"] == app.TERMS_VERSION
+    database.delete_user_account(created["id"])
 
 
 def test_login_generic_failure_and_open_redirect(client, user):

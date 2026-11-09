@@ -471,6 +471,10 @@ if RETENTION_DAYS < 1:
     logger.warning("RETENTION_DAYS must be >= 1; falling back to 90.")
     RETENTION_DAYS = 90
 
+TERMS_VERSION = "terms-2026-11"
+TERMS_EFFECTIVE_DATE = "November 9, 2026"
+TERMS_CONTACT_EMAIL = os.getenv("TERMS_CONTACT_EMAIL", "").strip() or "the site administrator"
+
 LAST_PRUNED_COUNT = 0
 if not LIVE_DB_CHECKS:
     try:
@@ -737,7 +741,7 @@ def register():
         if password != confirm_password:
             errors.append("Passwords do not match.")
         if not consent:
-            errors.append("Please agree to the Privacy Notice.")
+            errors.append("Please agree to the Terms & Conditions.")
         if _email_verification_required() and not _smtp_configured():
             errors.append("Email sign-up is temporarily unavailable. Please try again later.")
         if not errors:
@@ -754,7 +758,7 @@ def register():
                                 "UPDATE users SET display_name = ?, password_hash = ?, email_verified_at = NULL, "
                                 "consent_at = ?, consent_version = ?, created_at = ? WHERE id = ?",
                                 (display_name, generate_password_hash(password, method="scrypt"),
-                                 datetime.now(timezone.utc).isoformat(timespec="seconds"), "1.0",
+                                 datetime.now(timezone.utc).isoformat(timespec="seconds"), TERMS_VERSION,
                                  datetime.now(timezone.utc).isoformat(timespec="seconds"), user_id),
                             )
                             conn.commit()
@@ -769,7 +773,13 @@ def register():
                         sent = _send_verification_email(email, display_name, _verification_link(raw_token))
                     else:
                         verified_at = None if _email_verification_required() else datetime.now(timezone.utc).isoformat(timespec="seconds")
-                        user_id = database.create_user(email, password, display_name, email_verified_at=verified_at)
+                        user_id = database.create_user(
+                            email,
+                            password,
+                            display_name,
+                            consent_version=TERMS_VERSION,
+                            email_verified_at=verified_at,
+                        )
                         sent = True if verified_at else _create_verification_message(user_id, email, display_name)
                 except (OSError, smtplib.SMTPException, ValueError):
                     logger.warning("Verification email delivery failed for a pending account.")
@@ -785,7 +795,15 @@ def register():
                         return redirect(url_for("check_email"))
                     else:
                         return redirect(url_for("login"))
-    return render_template("register.html", errors=errors, form_data=request.form)
+    return render_template(
+        "register.html",
+        errors=errors,
+        form_data=request.form,
+        retention_days=RETENTION_DAYS,
+        effective_date=TERMS_EFFECTIVE_DATE,
+        terms_version=TERMS_VERSION,
+        contact=TERMS_CONTACT_EMAIL,
+    )
 
 
 @app.route("/login", methods=["GET", "POST"])
@@ -911,6 +929,17 @@ def logout():
 @app.route("/privacy", methods=["GET"])
 def privacy():
     return render_template("privacy.html")
+
+
+@app.route("/terms", methods=["GET"])
+def terms():
+    return render_template(
+        "terms.html",
+        retention_days=RETENTION_DAYS,
+        effective_date=TERMS_EFFECTIVE_DATE,
+        terms_version=TERMS_VERSION,
+        contact=TERMS_CONTACT_EMAIL,
+    )
 
 
 @app.route("/account", methods=["GET"])
