@@ -13,9 +13,8 @@ document.addEventListener('DOMContentLoaded', () => {
     });
   }
 
-  const passwordInput = document.getElementById('loginPassword');
-  const passwordToggle = document.getElementById('loginPasswordToggle');
-  if (passwordInput && passwordToggle) {
+  const setupPasswordToggle = (passwordInput, passwordToggle) => {
+    if (!passwordInput || !passwordToggle) return;
     const showIcon = passwordToggle.querySelector('[data-password-icon="show"]');
     const hideIcon = passwordToggle.querySelector('[data-password-icon="hide"]');
     passwordToggle.addEventListener('click', () => {
@@ -27,6 +26,33 @@ document.addEventListener('DOMContentLoaded', () => {
       if (hideIcon) hideIcon.classList.toggle('hidden', isVisible);
       passwordInput.focus();
     });
+  };
+
+  setupPasswordToggle(document.getElementById('loginPassword'), document.getElementById('loginPasswordToggle'));
+  setupPasswordToggle(document.getElementById('registerPassword'), document.getElementById('registerPasswordToggle'));
+  setupPasswordToggle(document.getElementById('confirmPassword'), document.getElementById('confirmPasswordToggle'));
+
+  const registerPassword = document.getElementById('registerPassword');
+  const confirmPassword = document.getElementById('confirmPassword');
+  const passwordStrengthMessage = document.getElementById('passwordStrengthMessage');
+  const confirmPasswordMessage = document.getElementById('confirmPasswordMessage');
+  if (registerPassword && confirmPassword && passwordStrengthMessage && confirmPasswordMessage) {
+    const updatePasswordMessages = () => {
+      const password = registerPassword.value;
+      const confirmation = confirmPassword.value;
+      const passwordTooShort = password.length > 0 && password.length < 8;
+      const passwordsDoNotMatch = confirmation.length > 0 && password !== confirmation;
+
+      passwordStrengthMessage.hidden = !passwordTooShort;
+      confirmPasswordMessage.hidden = !passwordsDoNotMatch;
+      confirmPassword.setCustomValidity(passwordsDoNotMatch ? 'Passwords do not match.' : '');
+      registerPassword.classList.toggle('password-input-warning', passwordTooShort);
+      confirmPassword.classList.toggle('password-input-warning', passwordsDoNotMatch);
+    };
+
+    registerPassword.addEventListener('input', updatePasswordMessages);
+    confirmPassword.addEventListener('input', updatePasswordMessages);
+    updatePasswordMessages();
   }
 
   document.addEventListener('submit', (event) => {

@@ -163,6 +163,14 @@
         <a href="/history/{{ r.id }}" class="btn-primary text-[16px] py-2 px-4 flex-1 text-center">
           View results
         </a>
+        <form action="/history/{{ r.id }}/archive" method="post" class="inline">
+          <input type="hidden" name="csrf_token" value="{{ csrf_token() }}" />
+          <input type="hidden" name="archived" value="{{ '0' if show_archived else '1' }}" />
+          <input type="hidden" name="from" value="{{ 'archived' if show_archived else 'active' }}" />
+          <button type="submit" class="btn-secondary text-[16px] py-2 px-3">
+            {{ 'Unarchive' if show_archived else 'Archive' }}
+          </button>
+        </form>
         <button type="button" class="btn-secondary text-[16px] py-2 px-3 text-[#b03a2e] js-delete-trigger" data-id="{{ r.id }}" data-index="{{ r.display_index }}" data-date="{{ r.created_at|display_time }}">
           Delete
         </button>
@@ -259,6 +267,8 @@
               </a>
               <form action="/history/{{ r.id }}/archive" method="post" class="inline">
                 <input type="hidden" name="csrf_token" value="{{ csrf_token() }}" />
+                <input type="hidden" name="archived" value="{{ '0' if show_archived else '1' }}" />
+                <input type="hidden" name="from" value="{{ 'archived' if show_archived else 'active' }}" />
                 <button type="submit" class="btn-secondary text-[15px] py-1.5 px-3 min-h-[38px] inline-flex items-center">
                   {{ 'Unarchive' if show_archived else 'Archive' }}
                 </button>
