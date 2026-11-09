@@ -8,6 +8,12 @@
       <h1 class="font-heading text-3xl sm:text-4xl font-bold text-[#063154]">System</h1>
       <p class="admin-intro">Check service health and manage protected backups.</p>
     </div>
+    <a class="admin-back-link" href="/admin">
+      <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"></path>
+      </svg>
+      Back to dashboard
+    </a>
   </div>
   {% if backup_message %}
   <p role="alert" aria-live="polite" class="admin-reset-notice">{{ backup_message }}</p>

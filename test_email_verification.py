@@ -115,3 +115,13 @@ def test_password_reset_marks_email_verified():
     )
     database.mark_email_verified(user_id)
     assert database.get_user_by_id(user_id)["email_verified_at"] is not None
+
+
+def test_email_verification_defaults_to_required(monkeypatch):
+    monkeypatch.delenv("REQUIRE_EMAIL_VERIFICATION", raising=False)
+    assert app._email_verification_required() is True
+
+
+def test_email_verification_can_be_explicitly_disabled(monkeypatch):
+    monkeypatch.setenv("REQUIRE_EMAIL_VERIFICATION", "false")
+    assert app._email_verification_required() is False

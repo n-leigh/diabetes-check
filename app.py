@@ -594,7 +594,7 @@ def _smtp_configured():
 def _email_verification_required():
     value = os.getenv("REQUIRE_EMAIL_VERIFICATION")
     if value is None or not value.strip():
-        return _smtp_configured()
+        return True
     return value.strip().lower() in {"1", "true", "yes", "on"}
 
 
