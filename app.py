@@ -738,8 +738,7 @@ def register():
             errors.append("Passwords do not match.")
         if not consent:
             errors.append("Please agree to the Privacy Notice.")
-        verification_required = _email_verification_required()
-        if verification_required and not _smtp_configured():
+        if _email_verification_required() and not _smtp_configured():
             errors.append("Email sign-up is temporarily unavailable. Please try again later.")
         if not errors:
             existing = database.get_user_by_email(email)
@@ -761,33 +760,26 @@ def register():
                             conn.commit()
                         finally:
                             conn.close()
-                        if verification_required:
-                            raw_token = secrets.token_urlsafe(32)
-                            database.create_email_verification_token(
-                                user_id,
-                                hashlib.sha256(raw_token.encode("utf-8")).hexdigest(),
-                                (datetime.now(timezone.utc) + timedelta(hours=24)).isoformat(timespec="seconds"),
-                            )
-                            sent = _send_verification_email(email, display_name, _verification_link(raw_token))
-                        else:
-                            database.mark_email_verified(user_id)
-                            sent = True
+                        raw_token = secrets.token_urlsafe(32)
+                        database.create_email_verification_token(
+                            user_id,
+                            hashlib.sha256(raw_token.encode("utf-8")).hexdigest(),
+                            (datetime.now(timezone.utc) + timedelta(hours=24)).isoformat(timespec="seconds"),
+                        )
+                        sent = _send_verification_email(email, display_name, _verification_link(raw_token))
                     else:
-                        verified_at = None if verification_required else datetime.now(timezone.utc).isoformat(timespec="seconds")
+                        verified_at = None if _email_verification_required() else datetime.now(timezone.utc).isoformat(timespec="seconds")
                         user_id = database.create_user(email, password, display_name, email_verified_at=verified_at)
                         sent = True if verified_at else _create_verification_message(user_id, email, display_name)
-                except (OSError, smtplib.SMTPException, ValueError) as error:
-                    logger.warning(
-                        "Verification email delivery failed for a pending account (%s).",
-                        type(error).__name__,
-                    )
+                except (OSError, smtplib.SMTPException, ValueError):
+                    logger.warning("Verification email delivery failed for a pending account.")
                     sent = False
                 except sqlite3.IntegrityError:
                     errors.append("That email is already registered.")
                 else:
-                    if not sent and verification_required:
+                    if not sent and _email_verification_required():
                         errors.append("We could not send the confirmation email. Please try again.")
-                    elif verification_required:
+                    elif _email_verification_required():
                         database.log_audit("verification_sent", str(user_id), None, get_remote_address())
                         session["pending_verification_email"] = email
                         return redirect(url_for("check_email"))

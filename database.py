@@ -30,6 +30,7 @@ import getpass
 import platform
 import secrets
 import sqlite3
+import socket
 import shutil
 import subprocess
 from datetime import datetime, timedelta, timezone
@@ -114,15 +115,47 @@ def _get_postgres_pool():
         max_size = int(os.getenv("POSTGRES_POOL_MAX_SIZE", "8"))
         if min_size < 1 or max_size < min_size:
             raise RuntimeError("PostgreSQL pool size must satisfy 1 <= min_size <= max_size")
+        conninfo = _postgres_conninfo()
         _postgres_pool = ConnectionPool(
-            conninfo=SUPABASE_DB_URL,
+            conninfo=conninfo,
             min_size=min_size,
             max_size=max_size,
             timeout=float(os.getenv("POSTGRES_POOL_TIMEOUT", "10")),
-            kwargs={"row_factory": _hybrid_row},
+            kwargs={
+                "row_factory": _hybrid_row,
+                "connect_timeout": int(os.getenv("POSTGRES_CONNECT_TIMEOUT", "10")),
+            },
             open=True,
         )
     return _postgres_pool
+
+
+def _postgres_conninfo():
+    """Prefer IPv4 when available, retaining the hostname for TLS verification."""
+    from psycopg.conninfo import conninfo_to_dict, make_conninfo
+
+    params = conninfo_to_dict(SUPABASE_DB_URL)
+    host = params.get("host", "")
+    port = params.get("port", "5432")
+    if params.get("hostaddr") or not host or "," in host or "," in port:
+        return SUPABASE_DB_URL
+
+    try:
+        addresses = socket.getaddrinfo(
+            host,
+            int(port),
+            family=socket.AF_INET,
+            type=socket.SOCK_STREAM,
+        )
+    except socket.gaierror as exc:
+        if exc.errno == socket.EAI_NONAME:
+            return SUPABASE_DB_URL
+        raise
+
+    if not addresses:
+        return SUPABASE_DB_URL
+    params["hostaddr"] = addresses[0][4][0]
+    return make_conninfo(**params)
 
 
 def get_sqlcipher_version() -> str:
