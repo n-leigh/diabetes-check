@@ -264,6 +264,26 @@ def test_ownership_returns_404_for_all_assessment_actions(client, user):
         database.delete_user_account(other_id)
 
 
+def test_history_view_serializes_datetime_created_at(client, monkeypatch):
+    client.get("/assessment")
+    with client.session_transaction() as state:
+        session_id = state["session_id"]
+    assessment_id = _assessment(session_id)
+    get_assessment = database.get_assessment
+
+    def get_assessment_with_datetime(*args, **kwargs):
+        record = get_assessment(*args, **kwargs)
+        if record:
+            record["created_at"] = datetime.fromisoformat(record["created_at"])
+        return record
+
+    monkeypatch.setattr(database, "get_assessment", get_assessment_with_datetime)
+    response = client.get(f"/history/{assessment_id}")
+
+    assert response.status_code == 200
+    assert "Saved Check" in response.get_data(as_text=True)
+
+
 def test_account_export_is_owner_only_and_progress_supports_guest_history(client, user):
     user_id, email = user
     assert client.get("/history/progress").status_code == 200

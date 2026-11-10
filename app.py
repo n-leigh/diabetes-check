@@ -2041,7 +2041,11 @@ def history_detail(assessment_id):
     )
     report_payload = {
         "v": 1,
-        "created_at": record["created_at"],
+        "created_at": (
+            record["created_at"].isoformat()
+            if isinstance(record["created_at"], datetime)
+            else record["created_at"]
+        ),
         "rule_results": record["rule_results"],
         "model_results": record["model_results"],
         "model_confidences": record.get("model_confidences", {}),
