@@ -71,7 +71,7 @@ def get_sample_patient_payload(csrf_token, save_history=False):
 def test_csp_headers_and_no_external_sources():
     """Verify strict Content Security Policy on all public routes."""
     client = app.test_client()
-    routes = ["/", "/assessment", "/about", "/report", "/history"]
+    routes = ["/", "/assessment", "/about", "/report", "/history", "/terms"]
 
     for route in routes:
         res = client.get(route)
@@ -262,4 +262,3 @@ if __name__ == "__main__":
     test_delete_assessment_endpoint()
     test_report_viewer_endpoint()
     print("\n[ALL PRIVACY HARDENING & DATA ISOLATION TESTS PASSED!]")
-

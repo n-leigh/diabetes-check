@@ -15,16 +15,6 @@
       <span>Back to dashboard</span>
     </a>
   </div>
-  {% if admin_error %}
-  <div role="alert" aria-live="polite" class="mb-6 rounded-lg border border-[#f1b8af] bg-[#f9e1dc] p-4 text-[#b03a2e]">
-    <p class="font-semibold">{{ admin_error }}</p>
-  </div>
-  {% endif %}
-  {% if reset_message %}
-  <div role="alert" aria-live="polite" class="admin-reset-notice">
-    <p>{{ reset_message }}</p>
-  </div>
-  {% endif %}
   {% if reset_link %}
   <div role="alert" aria-live="polite" class="admin-reset-notice">
     <div class="flex items-start gap-3">

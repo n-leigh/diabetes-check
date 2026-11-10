@@ -25,7 +25,6 @@ Migrations are additive and preserve existing assessment data.
 import json
 import hashlib
 import os
-import atexit
 import ctypes
 import getpass
 import platform
@@ -53,14 +52,6 @@ PROTECTED_KEY_PATH = os.getenv("DIABEATES_TEST_PROTECTED_KEY_PATH") or os.path.j
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 SCHEMA_VERSION = 7
 _KEY_ENVIRONMENT_VARIABLE = "DIABEATES_DB_KEY"
-
-if "DB_BACKEND" not in os.environ and "SUPABASE_DB_URL" not in os.environ:
-    try:
-        from dotenv import load_dotenv
-        load_dotenv(os.path.join(os.path.dirname(os.path.abspath(__file__)), ".env"))
-    except ImportError:
-        pass
-
 DB_BACKEND = os.getenv("DB_BACKEND", "sqlite").strip().lower()
 SUPABASE_DB_URL = os.getenv("SUPABASE_DB_URL", "").strip()
 _postgres_pool = None
@@ -105,21 +96,9 @@ class _PostgresConnection:
 
     def close(self):
         if not self._closed:
-            try:
-                self._connection.rollback()
-            except Exception:
-                pass
-            try:
-                self._pool.putconn(self._connection)
-            except Exception:
-                pass
+            self._connection.rollback()
+            self._pool.putconn(self._connection)
             self._closed = True
-
-    def __enter__(self):
-        return self
-
-    def __exit__(self, exc_type, exc_val, exc_tb):
-        self.close()
 
 
 def _get_postgres_pool():
@@ -142,12 +121,6 @@ def _get_postgres_pool():
             min_size=min_size,
             max_size=max_size,
             timeout=float(os.getenv("POSTGRES_POOL_TIMEOUT", "10")),
-<<<<<<< Updated upstream
-            max_idle=float(os.getenv("POSTGRES_POOL_MAX_IDLE", "300")),
-            check=ConnectionPool.check_connection,
-=======
-            check=ConnectionPool.check_connection if hasattr(ConnectionPool, "check_connection") else None,
->>>>>>> Stashed changes
             kwargs={
                 "row_factory": _hybrid_row,
                 "connect_timeout": int(os.getenv("POSTGRES_CONNECT_TIMEOUT", "10")),
@@ -157,29 +130,15 @@ def _get_postgres_pool():
     return _postgres_pool
 
 
-def _close_postgres_pool():
-    global _postgres_pool
-    if _postgres_pool is not None:
-        try:
-            _postgres_pool.close()
-        except Exception:
-            pass
-        _postgres_pool = None
-
-
-atexit.register(_close_postgres_pool)
-
-
 def _postgres_conninfo():
     """Prefer IPv4 when available, retaining the hostname for TLS verification."""
     from psycopg.conninfo import conninfo_to_dict, make_conninfo
 
     params = conninfo_to_dict(SUPABASE_DB_URL)
-    params["sslmode"] = "require"
     host = params.get("host", "")
     port = params.get("port", "5432")
     if params.get("hostaddr") or not host or "," in host or "," in port:
-        return make_conninfo(**params)
+        return SUPABASE_DB_URL
 
     try:
         addresses = socket.getaddrinfo(
@@ -190,24 +149,13 @@ def _postgres_conninfo():
         )
     except socket.gaierror as exc:
         if exc.errno == socket.EAI_NONAME:
-            return make_conninfo(**params)
+            return SUPABASE_DB_URL
         raise
 
     if not addresses:
-        return make_conninfo(**params)
+        return SUPABASE_DB_URL
     params["hostaddr"] = addresses[0][4][0]
     return make_conninfo(**params)
-
-
-def get_admin_connection():
-    """
-    Get a database connection for admin operations.
-    Connects to the live Supabase PostgreSQL database using SUPABASE_DB_URL with sslmode=require.
-    Falls back to get_connection() if SUPABASE_DB_URL is not configured or in SQLite test environments.
-    """
-    if SUPABASE_DB_URL and ConnectionPool is not None and DB_BACKEND != "sqlite":
-        return _PostgresConnection(_get_postgres_pool())
-    return get_connection()
 
 
 def get_sqlcipher_version() -> str:
@@ -915,22 +863,6 @@ def create_password_reset_token(user_id: int, token_hash: str, expires_at: str) 
         conn.close()
 
 
-def invalidate_password_reset_token(token_hash: str) -> None:
-    conn = get_connection()
-    try:
-        conn.execute(
-            """UPDATE password_reset_tokens SET used_at = ?
-               WHERE token_hash = ? AND used_at IS NULL""",
-            (datetime.now(timezone.utc).isoformat(timespec="seconds"), token_hash),
-        )
-        conn.commit()
-    except Exception:
-        conn.rollback()
-        raise
-    finally:
-        conn.close()
-
-
 def get_valid_password_reset_token(token_hash: str):
     conn = get_connection()
     try:
@@ -1305,200 +1237,5 @@ def prune_expired_assessments(days: int = 90) -> int:
     except Exception:
         conn.rollback()
         raise
-    finally:
-        conn.close()
-
-
-# ===========================================================================
-# Admin Operations & Data-Fetching Layer (Live Supabase / Degraded Fallback)
-# ===========================================================================
-
-def get_admin_dashboard_metrics(now=None):
-    """
-    Fetch raw aggregate metrics for /admin dashboard from live Supabase / database:
-    - users_total: total registered accounts
-    - new_users: accounts registered in the past 7 days
-    - assessments_total: total completed complication checks
-    - feedback_helpful_rate: % helpful or '<5 responses' if suppressed
-    - status_rows: list of dicts with category, rule_label, total
-    - activity_rows: list of dicts with day_date, total for the last 30 days
-    """
-    now = now or datetime.now(timezone.utc)
-    conn = get_admin_connection()
-    try:
-        users_total = conn.execute("SELECT COUNT(*) FROM users").fetchone()[0]
-
-        seven_days_ago = (now - timedelta(days=7)).isoformat(timespec="seconds")
-        new_users = conn.execute(
-            "SELECT COUNT(*) FROM users WHERE created_at >= ?",
-            (seven_days_ago,),
-        ).fetchone()[0]
-
-        assessments_total = conn.execute("SELECT COUNT(*) FROM assessments").fetchone()[0]
-
-        feedback_total = conn.execute("SELECT COUNT(*) FROM feedback").fetchone()[0]
-        helpful_total = conn.execute(
-            "SELECT COUNT(*) FROM feedback WHERE helpful = ?",
-            (True,),
-        ).fetchone()[0]
-        unhelpful_total = feedback_total - helpful_total
-        if helpful_total < 5 or unhelpful_total < 5:
-            feedback_helpful_rate = "<5 responses"
-        else:
-            feedback_helpful_rate = f"{helpful_total / feedback_total:.0%}"
-
-        status_rows = conn.execute(
-            """SELECT category, rule_label, COUNT(*) AS total
-               FROM risk_results
-               GROUP BY category, rule_label"""
-        ).fetchall()
-
-        thirty_days_ago = (now - timedelta(days=30)).date().isoformat()
-        activity_rows = conn.execute(
-            """SELECT date(created_at) AS day_date, COUNT(*) AS total
-               FROM assessments
-               WHERE date(created_at) >= ?
-               GROUP BY date(created_at)""",
-            (thirty_days_ago,),
-        ).fetchall()
-
-        return {
-            "users_total": users_total,
-            "new_users": new_users,
-            "assessments_total": assessments_total,
-            "feedback_helpful_rate": feedback_helpful_rate,
-            "status_rows": [dict(r) for r in status_rows],
-            "activity_rows": [dict(r) for r in activity_rows],
-        }
-    finally:
-        conn.close()
-
-
-def get_admin_users():
-    """
-    Query the users table for administrative account management:
-    Retrieves user id, display_name, email, role, is_active status,
-    email_verified_at, created_at, and last_login_at.
-    """
-    conn = get_admin_connection()
-    try:
-        cur = conn.execute(
-            """SELECT id, display_name, email, role, is_active, email_verified_at, created_at, last_login_at
-               FROM users ORDER BY id DESC"""
-        )
-        return [dict(row) for row in cur.fetchall()]
-    finally:
-        conn.close()
-
-
-def get_active_admin_count():
-    """Count active administrators."""
-    conn = get_admin_connection()
-    try:
-        return conn.execute(
-            "SELECT COUNT(*) FROM users WHERE role = 'admin' AND is_active = ?",
-            (True,),
-        ).fetchone()[0]
-    finally:
-        conn.close()
-
-
-def set_user_active_status(user_id: int, is_active: bool):
-    """Update user account active/deactivated status."""
-    conn = get_admin_connection()
-    try:
-        conn.execute(
-            "UPDATE users SET is_active = ? WHERE id = ?",
-            (bool(is_active) if DB_BACKEND == "postgres" else int(bool(is_active)), user_id),
-        )
-        conn.commit()
-    finally:
-        conn.close()
-
-
-def get_admin_feedback(page=1, per_page=50, max_items=200):
-    """
-    Retrieve user feedback securely without exposing sensitive patient clinical result details.
-    Unions feedback (assessment ratings) and feedback_submissions (general user messages).
-    """
-    page = max(1, page)
-    offset = (page - 1) * per_page
-    max_allowed = max(0, max_items - offset)
-    fetch_limit = min(per_page + 1, max_allowed)
-    if fetch_limit <= 0:
-        return [], False
-
-    conn = get_admin_connection()
-    try:
-        cur = conn.execute(
-            """SELECT helpful, comment, created_at, NULL AS name FROM feedback
-               UNION ALL
-               SELECT NULL AS helpful, message AS comment, created_at, name
-               FROM feedback_submissions
-               ORDER BY created_at DESC LIMIT ? OFFSET ?""",
-            (fetch_limit, offset),
-        )
-        rows = [dict(row) for row in cur.fetchall()]
-        has_next = len(rows) > per_page and (offset + per_page < max_items)
-        return rows[:per_page], has_next
-    finally:
-        conn.close()
-
-
-def get_admin_feedback_tally():
-    """
-    Compute aggregate helpful vs unhelpful feedback with small-cell suppression (<5).
-    """
-    conn = get_admin_connection()
-    try:
-        feedback_total = conn.execute("SELECT COUNT(*) FROM feedback").fetchone()[0]
-        helpful_total = conn.execute(
-            "SELECT COUNT(*) FROM feedback WHERE helpful = ?", (True,)
-        ).fetchone()[0]
-        unhelpful_total = feedback_total - helpful_total
-        if helpful_total < 5 or unhelpful_total < 5:
-            yes_display = "<5"
-            no_display = "<5"
-        else:
-            yes_display = str(helpful_total)
-            no_display = str(unhelpful_total)
-        return {
-            "yes": yes_display,
-            "no": no_display,
-            "text": f"Helpful: {yes_display} yes / {no_display} no",
-        }
-    finally:
-        conn.close()
-
-
-def get_admin_audit_logs(action=None, sort="desc", page=1, per_page=50):
-    """
-    Query the audit_log table for security and administrative events.
-    Supports filtering by action, sorting (ASC/DESC), and pagination.
-    Excludes network IP addresses to preserve user privacy.
-    """
-    page = max(1, page)
-    offset = (page - 1) * per_page
-    order_dir = "ASC" if str(sort).lower() == "asc" else "DESC"
-
-    conn = get_admin_connection()
-    try:
-        if action:
-            cur = conn.execute(
-                f"""SELECT id, actor_user_id, action, target, created_at
-                    FROM audit_log WHERE action = ?
-                    ORDER BY id {order_dir} LIMIT ? OFFSET ?""",
-                (action, per_page + 1, offset),
-            )
-        else:
-            cur = conn.execute(
-                f"""SELECT id, actor_user_id, action, target, created_at
-                    FROM audit_log
-                    ORDER BY id {order_dir} LIMIT ? OFFSET ?""",
-                (per_page + 1, offset),
-            )
-        rows = [dict(row) for row in cur.fetchall()]
-        has_next = len(rows) > per_page
-        return rows[:per_page], has_next
     finally:
         conn.close()

@@ -119,8 +119,58 @@ def test_register_requires_consent_and_rejects_weak_password(client):
     )
     body = response.get_data(as_text=True)
     assert response.status_code == 200
-    assert "Please agree to the Privacy Notice." in body
+    assert "Please agree to the Terms &amp; Conditions." in body
     assert "Use a password with 8 to 128 characters." in body
+
+
+def test_terms_page_is_public_and_registration_uses_dialog(client):
+    terms_response = client.get("/terms")
+    assert terms_response.status_code == 200
+    terms_body = terms_response.get_data(as_text=True)
+    assert "The short version" in terms_body
+    assert "1. What DiaBeates does" in terms_body
+    assert 'href="/privacy"' in terms_body
+    assert "/static/js/terms_modal.js" not in terms_body
+    assert f"Effective {app.TERMS_EFFECTIVE_DATE} | Version {app.TERMS_VERSION}" in terms_body
+    assert f"older than {app.RETENTION_DAYS} days" in terms_body
+    assert f"after {app.UNVERIFIED_ACCOUNT_RETENTION_DAYS} days" in terms_body
+    assert f"up to {app.ACCOUNT_EXPORT_LIMIT} checks" in terms_body
+    assert app.TERMS_CONTACT in terms_body
+
+    register_body = client.get("/register").get_data(as_text=True)
+    assert re.search(r'I agree to the <a[^>]+href="/terms"', register_body)
+    assert not re.search(r'I agree to the <a[^>]+href="/privacy"', register_body)
+    assert 'id="terms-dialog"' in register_body
+    assert "Terms &amp; Conditions</a>" in register_body
+    assert "/static/js/terms_modal.js" in register_body
+
+
+def test_registration_records_terms_version_without_changing_existing_users(client, monkeypatch):
+    monkeypatch.setattr(app, "_email_verification_required", lambda: False)
+    existing_id = database.create_user(
+        "existing-terms@example.test",
+        PASSWORD,
+        "Existing",
+        consent_version="legacy-terms",
+    )
+    new_email = f"new-{uuid.uuid4().hex}@example.test"
+
+    response = client.post(
+        "/register",
+        data={
+            "csrf_token": _csrf(client, "/register"),
+            "nickname": "New User",
+            "email": new_email,
+            "password": PASSWORD,
+            "confirm_password": PASSWORD,
+            "consent": "1",
+        },
+        follow_redirects=False,
+    )
+    assert response.status_code == 302
+    new_user = database.get_user_by_email(new_email)
+    assert new_user["consent_version"] == app.CONSENT_VERSION
+    assert database.get_user_by_id(existing_id)["consent_version"] == "legacy-terms"
 
 
 def test_login_generic_failure_and_open_redirect(client, user):
@@ -214,58 +264,6 @@ def test_ownership_returns_404_for_all_assessment_actions(client, user):
         database.delete_user_account(other_id)
 
 
-def test_history_view_opens_saved_results(client, user, monkeypatch):
-    user_id, email = user
-    assert _login(client, email).status_code == 302
-    with client.session_transaction() as state:
-        session_id = state["session_id"]
-    assessment_id = _assessment(session_id, user_id=user_id)
-
-    history_response = client.get("/history")
-    history_html = history_response.get_data(as_text=True)
-    assert history_response.status_code == 200
-    assert f'href="/history/{assessment_id}"' in history_html
-
-    get_assessment = database.get_assessment
-
-    def get_assessment_with_datetime(*args, **kwargs):
-        record = get_assessment(*args, **kwargs)
-        record["created_at"] = datetime.now(timezone.utc)
-        return record
-
-    monkeypatch.setattr(app.database, "get_assessment", get_assessment_with_datetime)
-    result_response = client.get(f"/history/{assessment_id}")
-    result_html = result_response.get_data(as_text=True)
-    assert result_response.status_code == 200
-    assert "Saved Check (" in result_html
-    assert "Here is what we found" in result_html
-    assert "Health Risk Check" not in result_html
-    assert f'href="/history" class="text-[19px] font-semibold transition-colors duration-150 py-1.5 text-[#014c5e] border-b-2 border-[#2e7283]"' in result_html
-
-
-def test_archive_button_moves_assessment_to_archived_history(client, user):
-    _, owner_email = user
-    assert _login(client, owner_email).status_code == 302
-    with client.session_transaction() as state:
-        session_id = state["session_id"]
-
-    assessment_id = _assessment(session_id, user_id=user[0])
-    csrf = _csrf(client, "/history")
-    response = client.post(
-        f"/history/{assessment_id}/archive",
-        data={"csrf_token": csrf, "archived": "1", "from": "active"},
-        follow_redirects=True,
-    )
-
-    assert response.status_code == 200
-    active_html = response.get_data(as_text=True)
-    assert f"/history/{assessment_id}/archive" not in active_html
-
-    archived_response = client.get("/history?view=archived")
-    assert archived_response.status_code == 200
-    assert f"/history/{assessment_id}/archive" in archived_response.get_data(as_text=True)
-
-
 def test_account_export_is_owner_only_and_progress_supports_guest_history(client, user):
     user_id, email = user
     assert client.get("/history/progress").status_code == 200
@@ -290,12 +288,7 @@ def test_password_reset_is_single_use_and_hashed(client, user):
         token_hash,
         (datetime.now(timezone.utc) + timedelta(minutes=60)).isoformat(timespec="seconds"),
     )
-    reset_page = client.get(f"/reset-password/{raw_token}")
-    assert reset_page.status_code == 200
-    reset_html = reset_page.get_data(as_text=True)
-    assert "Choose a new password for your DiaBeates account." in reset_html
-    assert "This one-time link expires after 60 minutes." in reset_html
-    assert 'name="csrf_token"' in reset_html
+    assert client.get(f"/reset-password/{raw_token}").status_code == 200
     response = client.post(
         f"/reset-password/{raw_token}",
         data={
@@ -309,72 +302,6 @@ def test_password_reset_is_single_use_and_hashed(client, user):
     assert database.get_valid_password_reset_token(token_hash) is None
     assert token_hash != raw_token
     assert check_password_hash(database.get_user_by_id(user_id)["password_hash"], "ResetStrong9!")
-
-
-def test_admin_reset_action_emails_account_address_without_showing_link(client, admin, user, monkeypatch):
-    _, admin_email = admin
-    user_id, account_email = user
-    sent = {}
-
-    def fake_send_reset_email(email, reset_link, display_name="", minutes=60):
-        sent.update(
-            email=email,
-            reset_link=reset_link,
-            display_name=display_name,
-            minutes=minutes,
-        )
-        return True
-
-    monkeypatch.setattr(app, "_smtp_configured", lambda: True)
-    monkeypatch.setattr(app, "_send_reset_email", fake_send_reset_email)
-    assert _login(client, admin_email).status_code == 302
-
-    response = client.post(
-        f"/admin/users/{user_id}/reset-link",
-        data={"csrf_token": _csrf(client, "/admin/users")},
-        follow_redirects=True,
-    )
-
-    assert response.status_code == 200
-    body = response.get_data(as_text=True)
-    assert sent["email"] == account_email
-    assert sent["display_name"] == "Test User"
-    assert sent["minutes"] == 60
-    assert "Password reset email sent to" in body
-    assert sent["reset_link"] not in body
-
-    token = sent["reset_link"].rsplit("/", 1)[-1]
-    recipient_client = app.app.test_client()
-    reset_page = recipient_client.get(f"/reset-password/{token}")
-    assert reset_page.status_code == 200
-    assert "Choose a new password for your DiaBeates account." in reset_page.get_data(as_text=True)
-
-
-def test_admin_reset_email_failure_invalidates_token(client, admin, user, monkeypatch):
-    _, admin_email = admin
-    user_id, _ = user
-    attempted = {}
-
-    def failed_send(email, reset_link, display_name="", minutes=60):
-        attempted["reset_link"] = reset_link
-        return False
-
-    monkeypatch.setattr(app, "_smtp_configured", lambda: True)
-    monkeypatch.setattr(app, "_send_reset_email", failed_send)
-    assert _login(client, admin_email).status_code == 302
-
-    response = client.post(
-        f"/admin/users/{user_id}/reset-link",
-        data={"csrf_token": _csrf(client, "/admin/users")},
-        follow_redirects=True,
-    )
-
-    assert response.status_code == 200
-    body = response.get_data(as_text=True)
-    assert "Password reset email could not be sent" in body
-    token = attempted["reset_link"].rsplit("/", 1)[-1]
-    token_hash = hashlib.sha256(token.encode("utf-8")).hexdigest()
-    assert database.get_valid_password_reset_token(token_hash) is None
 
 
 def test_admin_routes_and_last_admin_protection(client, admin, user):
@@ -406,8 +333,6 @@ def test_admin_routes_and_last_admin_protection(client, admin, user):
     assert 'href="/assessment"' not in account_page
     assert 'href="/history"' not in account_page
     dashboard = client.get("/admin").get_data(as_text=True)
-    assert "Admin dashboard" in dashboard
-    assert "Health Risk Check" not in dashboard
     assert "Admin workspace" in dashboard
     assert "Individual health checks are not shown here" in dashboard
     assert 'href="/assessment"' not in dashboard
@@ -561,7 +486,7 @@ def test_admin_actions_confirmation_and_button_visibility(client, admin, user):
     assert "Last active admin" in html
 
     # Data confirm message checks
-    assert 'data-confirm-message="Email a 60-minute password reset link to this account?"' in html
+    assert 'data-confirm-message="Create a 60-minute password reset link for this user?"' in html
     # Deactivate other user first to check reactivate form
     csrf = _csrf(client, "/admin/users")
     client.post(f"/admin/users/{user_id}/deactivate", data={"csrf_token": csrf})

@@ -69,7 +69,7 @@ def client():
 # 1. Runtime header assertions — hits real routes, not just static scan.
 # --------------------------------------------------------------------- #
 
-@pytest.mark.parametrize("route", ["/", "/assessment", "/about", "/print"])
+@pytest.mark.parametrize("route", ["/", "/assessment", "/about", "/print", "/terms"])
 def test_csp_header_present_and_strict(client, route):
     resp = client.get(route)
     csp = resp.headers.get("Content-Security-Policy")
@@ -187,3 +187,8 @@ def test_compiled_css_exists():
 def test_app_js_exists():
     js_path = Path(__file__).resolve().parent.parent / "static" / "js" / "app.js"
     assert js_path.exists(), "static/js/app.js missing"
+
+
+def test_terms_modal_js_exists():
+    js_path = Path(__file__).resolve().parent.parent / "static" / "js" / "terms_modal.js"
+    assert js_path.exists(), "static/js/terms_modal.js missing"

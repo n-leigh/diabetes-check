@@ -58,6 +58,7 @@ def test_registration_stores_only_hash_and_get_does_not_consume(client):
     assert response.status_code == 302
     row = database.get_user_by_email("verify@example.test")
     assert row["email_verified_at"] is None
+    assert row["consent_version"] == app.CONSENT_VERSION
     raw_token = client.sent_verification_links[0].rsplit("/", 1)[-1]
     token_hash = hashlib.sha256(raw_token.encode("utf-8")).hexdigest()
     stored = database.get_connection().execute(

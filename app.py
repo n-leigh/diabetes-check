@@ -238,17 +238,28 @@ def _format_uptime(started_at) -> str:
     return f"Running for {days} days {hours} hours"
 
 
-def _sanitize_db_error(exc: Exception) -> str:
-    """Strip passwords, database URLs, and sensitive tokens from database exception messages before logging."""
-    msg = str(exc)
-    msg = re.sub(r'postgres(ql)?://[^:]+:[^@]+@', 'postgresql://[REDACTED]@[REDACTED]:', msg)
-    msg = re.sub(r'password=[^\s]+', 'password=[REDACTED]', msg)
-    return msg
-
-
 def _admin_feedback_tally():
     """Compute aggregate helpful vs unhelpful feedback with small-cell suppression."""
-    return database.get_admin_feedback_tally()
+    conn = database.get_connection()
+    try:
+        feedback_total = conn.execute("SELECT COUNT(*) FROM feedback").fetchone()[0]
+        helpful_total = conn.execute("SELECT COUNT(*) FROM feedback WHERE helpful = 1").fetchone()[0]
+        unhelpful_total = feedback_total - helpful_total
+        # Statistical disclosure control: if either helpful or unhelpful count is < 5,
+        # suppress both counts so the small count cannot be calculated from the total.
+        if helpful_total < 5 or unhelpful_total < 5:
+            yes_display = "<5"
+            no_display = "<5"
+        else:
+            yes_display = str(helpful_total)
+            no_display = str(unhelpful_total)
+        return {
+            "yes": yes_display,
+            "no": no_display,
+            "text": f"Helpful: {yes_display} yes / {no_display} no",
+        }
+    finally:
+        conn.close()
 
 
 def _sanitize_csv_cell(value):
@@ -267,90 +278,75 @@ ADMIN_DOMAIN_TITLES = (
 )
 
 
-def _admin_dashboard_data(now=None):
-    now = now or datetime.now(timezone.utc)
-    metrics = database.get_admin_dashboard_metrics(now)
-
-    users_total = _admin_count(metrics["users_total"])
-    new_users = _admin_count(metrics["new_users"])
-    assessments_total = _admin_count(metrics["assessments_total"])
-    feedback_helpful_rate = metrics["feedback_helpful_rate"]
-
-    cat_counts = {
-        cat: {"Good": 0, "Check": 0, "See a doctor": 0}
-        for cat, _ in ADMIN_DOMAIN_TITLES
-    }
-    for row in metrics["status_rows"]:
-        cat = row["category"]
-        if cat in cat_counts:
-            pres = get_status_presentation(row["rule_label"])
-            label = pres["label"]
-            if label in cat_counts[cat]:
-                cat_counts[cat][label] += row["total"]
-
-    status_counts = {}
-    for cat, title in ADMIN_DOMAIN_TITLES:
-        raw_counts = cat_counts[cat]
-        # Statistical disclosure control / Tightened secondary suppression rule (Requirement 3.1f / Item 4):
-        # If ANY status cell in a domain is below 5, display all three cells for that domain as "<5".
-        # This completely prevents deriving any hidden small count from domain or platform totals.
-        if any(count < 5 for count in raw_counts.values()):
-            status_counts[title] = {
-                "Good": "<5",
-                "Check": "<5",
-                "See a doctor": "<5",
-            }
+def _admin_dashboard_data():
+    conn = database.get_connection()
+    try:
+        now = datetime.now(timezone.utc)
+        users_total = conn.execute("SELECT COUNT(*) FROM users").fetchone()[0]
+        new_users = conn.execute(
+            "SELECT COUNT(*) FROM users WHERE created_at >= ?",
+            ((now - timedelta(days=7)).isoformat(timespec="seconds"),),
+        ).fetchone()[0]
+        assessments_total = conn.execute("SELECT COUNT(*) FROM assessments").fetchone()[0]
+        feedback_total = conn.execute("SELECT COUNT(*) FROM feedback").fetchone()[0]
+        helpful_total = conn.execute("SELECT COUNT(*) FROM feedback WHERE helpful = 1").fetchone()[0]
+        unhelpful_total = feedback_total - helpful_total
+        if helpful_total < 5 or unhelpful_total < 5:
+            feedback_helpful_rate = "<5 responses"
         else:
-            status_counts[title] = {
-                label: str(count)
-                for label, count in raw_counts.items()
+            feedback_helpful_rate = f"{helpful_total / feedback_total:.0%}"
+        status_counts = {}
+        for category, title in ADMIN_DOMAIN_TITLES:
+            rows = conn.execute(
+                """SELECT rule_label, COUNT(*) AS total FROM risk_results
+                   WHERE category = ? GROUP BY rule_label""",
+                (category,),
+            ).fetchall()
+            raw_counts = {
+                "Good": 0,
+                "Check": 0,
+                "See a doctor": 0,
             }
+            for row in rows:
+                label = get_status_presentation(row["rule_label"])["label"]
+                raw_counts[label] = row["total"]
 
-    counts_by_day = {
-        str(r["day_date"]): r["total"]
-        for r in metrics["activity_rows"]
-    }
-    days = []
-    for offset in range(29, -1, -1):
-        day = (now - timedelta(days=offset)).date().isoformat()
-        count = counts_by_day.get(day, 0)
-        days.append({
-            "date": day,
-            "display_count": _admin_count(count),
-            "bar_width": min(count * 12, 100) if count >= 5 else 0,
-        })
-
-    return {
-        "users_total": users_total,
-        "new_users": new_users,
-        "assessments_total": assessments_total,
-        "feedback_helpful_rate": feedback_helpful_rate,
-        "status_counts": status_counts,
-        "days": days,
-    }
-
-
-def _degraded_admin_dashboard_data():
-    """Return a graceful fallback payload when live Supabase queries are temporarily unavailable."""
-    now = datetime.now(timezone.utc)
-    return {
-        "users_total": "—",
-        "new_users": "—",
-        "assessments_total": "—",
-        "feedback_helpful_rate": "Unavailable",
-        "status_counts": {
-            title: {"Good": "—", "Check": "—", "See a doctor": "—"}
-            for _, title in ADMIN_DOMAIN_TITLES
-        },
-        "days": [
-            {
-                "date": (now - timedelta(days=offset)).date().isoformat(),
-                "display_count": "—",
-                "bar_width": 0,
-            }
-            for offset in range(29, -1, -1)
-        ],
-    }
+            # Statistical disclosure control / Tightened secondary suppression rule (Requirement 3.1f / Item 4):
+            # If ANY status cell in a domain is below 5, display all three cells for that domain as "<5".
+            # This completely prevents deriving any hidden small count from domain or platform totals.
+            if any(count < 5 for count in raw_counts.values()):
+                status_counts[title] = {
+                    "Good": "<5",
+                    "Check": "<5",
+                    "See a doctor": "<5",
+                }
+            else:
+                status_counts[title] = {
+                    label: str(count)
+                    for label, count in raw_counts.items()
+                }
+        days = []
+        for offset in range(29, -1, -1):
+            day = (now - timedelta(days=offset)).date()
+            count = conn.execute(
+                "SELECT COUNT(*) FROM assessments WHERE date(created_at) = ?",
+                (day.isoformat(),),
+            ).fetchone()[0]
+            days.append({
+                "date": day.isoformat(),
+                "display_count": _admin_count(count),
+                "bar_width": min(count * 12, 100) if count >= 5 else 0,
+            })
+        return {
+            "users_total": _admin_count(users_total),
+            "new_users": _admin_count(new_users),
+            "assessments_total": _admin_count(assessments_total),
+            "feedback_helpful_rate": feedback_helpful_rate,
+            "status_counts": status_counts,
+            "days": days,
+        }
+    finally:
+        conn.close()
 
 
 def _safe_next_url(value, fallback=None):
@@ -407,15 +403,12 @@ def display_time(value):
     if not value:
         return ""
     try:
-        if isinstance(value, datetime):
-            timestamp = value
-        else:
-            timestamp = datetime.fromisoformat(str(value).replace("Z", "+00:00"))
+        timestamp = datetime.fromisoformat(str(value).replace("Z", "+00:00"))
         if timestamp.tzinfo is None:
             timestamp = timestamp.replace(tzinfo=timezone.utc)
         return timestamp.astimezone(DISPLAY_ZONE).strftime("%Y-%m-%d %H:%M")
     except (TypeError, ValueError):
-        return str(value)
+        return value
 
 @app.after_request
 def set_security_headers(response):
@@ -478,6 +471,25 @@ if RETENTION_DAYS < 1:
     logger.warning("RETENTION_DAYS must be >= 1; falling back to 90.")
     RETENTION_DAYS = 90
 
+CONSENT_VERSION = "terms-2026-11"
+TERMS_EFFECTIVE_DATE = "November 10, 2026"
+TERMS_VERSION = CONSENT_VERSION
+TERMS_CONTACT = os.getenv("TERMS_CONTACT_EMAIL", "").strip() or "the site administrator"
+UNVERIFIED_ACCOUNT_RETENTION_DAYS = 7
+ACCOUNT_EXPORT_LIMIT = 10_000
+
+
+def _terms_template_context():
+    return {
+        "terms_effective_date": TERMS_EFFECTIVE_DATE,
+        "terms_version": TERMS_VERSION,
+        "terms_retention_days": RETENTION_DAYS,
+        "terms_unverified_account_retention_days": UNVERIFIED_ACCOUNT_RETENTION_DAYS,
+        "terms_account_export_limit": ACCOUNT_EXPORT_LIMIT,
+        "terms_contact": TERMS_CONTACT,
+    }
+
+
 LAST_PRUNED_COUNT = 0
 if not LIVE_DB_CHECKS:
     try:
@@ -489,7 +501,7 @@ if not LIVE_DB_CHECKS:
     if pruned_count:
         logger.info("Expired assessments pruned: %d", pruned_count)
     try:
-        pruned_unverified = database.prune_unverified_accounts(days=7)
+        pruned_unverified = database.prune_unverified_accounts(days=UNVERIFIED_ACCOUNT_RETENTION_DAYS)
     except Exception:
         logger.exception("Failed to prune stale unverified accounts")
         pruned_unverified = 0
@@ -532,7 +544,7 @@ for cat in CATEGORIES:
         logger.warning(f"Model file not found for '{cat}' at {path}")
 
 
-def _send_reset_email(email, reset_link, display_name="", minutes=60):
+def _send_reset_email(email, reset_link, display_name=""):
     smtp_host = os.getenv("SMTP_HOST", "").strip()
     smtp_port = int(os.getenv("SMTP_PORT", "587"))
     smtp_user = os.getenv("SMTP_USER", "").strip()
@@ -547,18 +559,8 @@ def _send_reset_email(email, reset_link, display_name="", minutes=60):
     message["Subject"] = "Reset your DiaBeates password"
     message["From"] = smtp_from
     message["To"] = email
-    message.set_content(render_template(
-        "emails/password_reset.txt",
-        display_name=display_name,
-        reset_link=reset_link,
-        minutes=minutes,
-    ))
-    message.add_alternative(render_template(
-        "emails/password_reset.html",
-        display_name=display_name,
-        reset_link=reset_link,
-        minutes=minutes,
-    ), subtype="html")
+    message.set_content(render_template("emails/password_reset.txt", display_name=display_name, reset_link=reset_link, minutes=30))
+    message.add_alternative(render_template("emails/password_reset.html", display_name=display_name, reset_link=reset_link, minutes=30), subtype="html")
     with smtplib.SMTP(smtp_host, smtp_port, timeout=10) as server:
         server.starttls()
         if smtp_user:
@@ -754,7 +756,7 @@ def register():
         if password != confirm_password:
             errors.append("Passwords do not match.")
         if not consent:
-            errors.append("Please agree to the Privacy Notice.")
+            errors.append("Please agree to the Terms & Conditions.")
         if _email_verification_required() and not _smtp_configured():
             errors.append("Email sign-up is temporarily unavailable. Please try again later.")
         if not errors:
@@ -771,7 +773,7 @@ def register():
                                 "UPDATE users SET display_name = ?, password_hash = ?, email_verified_at = NULL, "
                                 "consent_at = ?, consent_version = ?, created_at = ? WHERE id = ?",
                                 (display_name, generate_password_hash(password, method="scrypt"),
-                                 datetime.now(timezone.utc).isoformat(timespec="seconds"), "1.0",
+                                 datetime.now(timezone.utc).isoformat(timespec="seconds"), CONSENT_VERSION,
                                  datetime.now(timezone.utc).isoformat(timespec="seconds"), user_id),
                             )
                             conn.commit()
@@ -786,7 +788,13 @@ def register():
                         sent = _send_verification_email(email, display_name, _verification_link(raw_token))
                     else:
                         verified_at = None if _email_verification_required() else datetime.now(timezone.utc).isoformat(timespec="seconds")
-                        user_id = database.create_user(email, password, display_name, email_verified_at=verified_at)
+                        user_id = database.create_user(
+                            email,
+                            password,
+                            display_name,
+                            consent_version=CONSENT_VERSION,
+                            email_verified_at=verified_at,
+                        )
                         sent = True if verified_at else _create_verification_message(user_id, email, display_name)
                 except (OSError, smtplib.SMTPException, ValueError):
                     logger.warning("Verification email delivery failed for a pending account.")
@@ -802,7 +810,12 @@ def register():
                         return redirect(url_for("check_email"))
                     else:
                         return redirect(url_for("login"))
-    return render_template("register.html", errors=errors, form_data=request.form)
+    return render_template(
+        "register.html",
+        errors=errors,
+        form_data=request.form,
+        **_terms_template_context(),
+    )
 
 
 @app.route("/login", methods=["GET", "POST"])
@@ -930,6 +943,11 @@ def privacy():
     return render_template("privacy.html")
 
 
+@app.get("/terms")
+def terms():
+    return render_template("terms.html", **_terms_template_context())
+
+
 @app.route("/account", methods=["GET"])
 @login_required
 def account():
@@ -1004,7 +1022,7 @@ def account_delete():
 def account_export():
     user_row = database.get_user_by_id(current_user.id)
     records = database.get_all_assessments(
-        session_id=session["session_id"], user_id=current_user.id, limit=10000, sort_order="asc"
+        session_id=session["session_id"], user_id=current_user.id, limit=ACCOUNT_EXPORT_LIMIT, sort_order="asc"
     )
     payload = {
         "nickname": current_user.display_name,
@@ -1031,14 +1049,7 @@ def account_email_notifications():
 @app.get("/admin")
 @admin_required
 def admin_dashboard():
-    admin_error = None
-    try:
-        dashboard = _admin_dashboard_data()
-    except Exception as exc:
-        logger.error("Admin dashboard data fetch failed: %s", _sanitize_db_error(exc))
-        admin_error = "Live dashboard metrics are temporarily unavailable. Displaying degraded state."
-        dashboard = _degraded_admin_dashboard_data()
-    return render_template("admin_dashboard.html", dashboard=dashboard, admin_error=admin_error)
+    return render_template("admin_dashboard.html", dashboard=_admin_dashboard_data())
 
 
 KNOWN_AUDIT_ACTIONS = [
@@ -1061,32 +1072,31 @@ KNOWN_AUDIT_ACTIONS = [
 @app.get("/admin/users")
 @admin_required
 def admin_users():
-    admin_error = None
+    conn = database.get_connection()
     try:
-        users = database.get_admin_users()
-        active_admin_count = _active_admin_count()
-    except Exception as exc:
-        logger.error("Admin users fetch failed: %s", _sanitize_db_error(exc))
-        admin_error = "User account list could not be loaded from the database. Please try again later."
-        users = []
-        active_admin_count = 0
-
-    reset_message = session.pop("admin_reset_message", None)
+        users = [dict(row) for row in conn.execute(
+            """SELECT id, display_name, email, role, is_active, email_verified_at, created_at, last_login_at
+               FROM users ORDER BY id DESC"""
+        ).fetchall()]
+    finally:
+        conn.close()
+    reset_link = session.pop("admin_reset_link", None)
     return render_template(
         "admin_users.html",
         users=users,
-        reset_message=reset_message,
-        active_admin_count=active_admin_count,
-        admin_error=admin_error,
+        reset_link=reset_link,
+        active_admin_count=_active_admin_count(),
     )
 
 
 def _active_admin_count():
+    conn = database.get_connection()
     try:
-        return database.get_active_admin_count()
-    except Exception as exc:
-        logger.error("Active admin count check failed: %s", _sanitize_db_error(exc))
-        return 0
+        return conn.execute(
+            "SELECT COUNT(*) FROM users WHERE role = 'admin' AND is_active = 1"
+        ).fetchone()[0]
+    finally:
+        conn.close()
 
 
 @app.post("/admin/users/<int:user_id>/deactivate")
@@ -1097,12 +1107,13 @@ def admin_deactivate_user(user_id):
         row["role"] == "admin" and row["is_active"] and _active_admin_count() <= 1
     ):
         abort(403)
+    conn = database.get_connection()
     try:
-        database.set_user_active_status(user_id, False)
-        database.log_audit("admin_user_deactivated", str(user_id), current_user.id, get_remote_address())
-    except Exception as exc:
-        logger.error("Admin deactivate user %s failed: %s", user_id, _sanitize_db_error(exc))
-        flash("Could not deactivate account due to a database error.", "error")
+        conn.execute("UPDATE users SET is_active = 0 WHERE id = ?", (user_id,))
+        conn.commit()
+    finally:
+        conn.close()
+    database.log_audit("admin_user_deactivated", str(user_id), current_user.id, get_remote_address())
     return redirect(url_for("admin_users"))
 
 
@@ -1112,12 +1123,13 @@ def admin_reactivate_user(user_id):
     row = database.get_user_by_id(user_id)
     if not row:
         abort(404)
+    conn = database.get_connection()
     try:
-        database.set_user_active_status(user_id, True)
-        database.log_audit("admin_user_reactivated", str(user_id), current_user.id, get_remote_address())
-    except Exception as exc:
-        logger.error("Admin reactivate user %s failed: %s", user_id, _sanitize_db_error(exc))
-        flash("Could not reactivate account due to a database error.", "error")
+        conn.execute("UPDATE users SET is_active = 1 WHERE id = ?", (user_id,))
+        conn.commit()
+    finally:
+        conn.close()
+    database.log_audit("admin_user_reactivated", str(user_id), current_user.id, get_remote_address())
     return redirect(url_for("admin_users"))
 
 
@@ -1140,41 +1152,14 @@ def admin_reset_link(user_id):
     row = database.get_user_by_id(user_id)
     if not row:
         abort(404)
-    if not _smtp_configured():
-        session["admin_reset_message"] = (
-            "Password reset email could not be sent. Email delivery is not configured."
-        )
-        return redirect(url_for("admin_users"))
-
     raw_token = secrets.token_urlsafe(32)
-    token_hash = hashlib.sha256(raw_token.encode("utf-8")).hexdigest()
     database.create_password_reset_token(
         user_id,
-        token_hash,
+        hashlib.sha256(raw_token.encode("utf-8")).hexdigest(),
         (datetime.now(timezone.utc) + timedelta(minutes=60)).isoformat(timespec="seconds"),
     )
-    try:
-        sent = _send_reset_email(
-            row["email"],
-            _reset_link(raw_token),
-            row["display_name"],
-            minutes=60,
-        )
-    except (OSError, smtplib.SMTPException, ValueError):
-        logger.exception("Admin password reset email delivery failed")
-        sent = False
-
-    if not sent:
-        database.invalidate_password_reset_token(token_hash)
-        session["admin_reset_message"] = (
-            "Password reset email could not be sent. Please try again later."
-        )
-        return redirect(url_for("admin_users"))
-
+    session["admin_reset_link"] = _reset_link(raw_token)
     database.log_audit("admin_reset_link_created", str(user_id), current_user.id, get_remote_address())
-    session["admin_reset_message"] = (
-        f"Password reset email sent to {row['email']}. The link expires in 60 minutes."
-    )
     return redirect(url_for("admin_users"))
 
 
@@ -1182,25 +1167,35 @@ def admin_reset_link(user_id):
 @admin_required
 def admin_feedback():
     page = max(1, request.args.get("page", 1, type=int))
-    admin_error = None
+    per_page = 50
+    offset = (page - 1) * per_page
+    conn = database.get_connection()
     try:
-        feedback, has_next = database.get_admin_feedback(page=page, per_page=50, max_items=200)
-        tally = _admin_feedback_tally()
-    except Exception as exc:
-        logger.error("Admin feedback fetch failed: %s", _sanitize_db_error(exc))
-        admin_error = "Feedback submissions could not be retrieved from the database."
-        feedback = []
-        has_next = False
-        tally = None
+        max_allowed = max(0, 200 - offset)
+        fetch_limit = min(per_page + 1, max_allowed)
+        if fetch_limit > 0:
+            raw_feedback = [dict(row) for row in conn.execute(
+                """SELECT helpful, comment, created_at, NULL AS name FROM feedback
+                   UNION ALL
+                   SELECT NULL AS helpful, message AS comment, created_at, name
+                   FROM feedback_submissions
+                   ORDER BY created_at DESC LIMIT ? OFFSET ?""",
+                (fetch_limit, offset),
+            ).fetchall()]
+        else:
+            raw_feedback = []
+    finally:
+        conn.close()
 
+    has_next = len(raw_feedback) > per_page and (offset + per_page < 200)
+    feedback = raw_feedback[:per_page]
     return render_template(
         "admin_feedback.html",
         feedback=feedback,
-        tally=tally,
+        tally=_admin_feedback_tally(),
         page=page,
         has_next=has_next,
         has_prev=(page > 1),
-        admin_error=admin_error,
     )
 
 
@@ -1209,33 +1204,29 @@ def admin_feedback():
 def admin_audit():
     page = max(1, request.args.get("page", 1, type=int))
     action = request.args.get("action", "").strip()
-    sort = request.args.get("sort", "desc").strip().lower()
-    if sort not in ("asc", "desc"):
-        sort = "desc"
-    admin_error = None
+    per_page = 50
+    offset = (page - 1) * per_page
+    conn = database.get_connection()
     try:
-        audit, has_next = database.get_admin_audit_logs(
-            action=action or None,
-            sort=sort,
-            page=page,
-            per_page=50,
-        )
-    except Exception as exc:
-        logger.error("Admin audit fetch failed: %s", _sanitize_db_error(exc))
-        admin_error = "Security audit logs could not be retrieved from the database."
-        audit = []
-        has_next = False
-
+        where = "WHERE action = ?" if action else ""
+        params = (action, per_page + 1, offset) if action else (per_page + 1, offset)
+        raw_audit = [dict(row) for row in conn.execute(
+            f"""SELECT id, actor_user_id, action, target, created_at
+                FROM audit_log {where} ORDER BY id DESC LIMIT ? OFFSET ?""",
+            params,
+        ).fetchall()]
+    finally:
+        conn.close()
+    has_next = len(raw_audit) > per_page
+    audit = raw_audit[:per_page]
     return render_template(
         "admin_audit.html",
         audit=audit,
         action=action,
-        sort=sort,
         page=page,
         has_next=has_next,
         has_prev=(page > 1),
         known_actions=KNOWN_AUDIT_ACTIONS,
-        admin_error=admin_error,
     )
 
 
@@ -1323,11 +1314,7 @@ def admin_backup():
 @app.get("/admin/export.csv")
 @admin_required
 def admin_export_csv():
-    try:
-        dashboard = _admin_dashboard_data()
-    except Exception as exc:
-        logger.error("Admin export CSV data fetch failed: %s", _sanitize_db_error(exc))
-        dashboard = _degraded_admin_dashboard_data()
+    dashboard = _admin_dashboard_data()
     now_iso = datetime.now(timezone.utc).isoformat(timespec="seconds")
     output = io.StringIO()
     writer = csv.writer(output)
@@ -1430,7 +1417,7 @@ def forgot_password():
             database.create_password_reset_token(
                 row["id"],
                 hashlib.sha256(raw_token.encode("utf-8")).hexdigest(),
-                (datetime.now(timezone.utc) + timedelta(minutes=60)).isoformat(timespec="seconds"),
+                (datetime.now(timezone.utc) + timedelta(minutes=30)).isoformat(timespec="seconds"),
             )
             link = _reset_link(raw_token)
             try:
@@ -2061,11 +2048,7 @@ def history_detail(assessment_id):
     )
     report_payload = {
         "v": 1,
-        "created_at": (
-            record["created_at"].isoformat(timespec="seconds")
-            if isinstance(record["created_at"], datetime)
-            else record["created_at"]
-        ),
+        "created_at": record["created_at"],
         "rule_results": record["rule_results"],
         "model_results": record["model_results"],
         "model_confidences": record.get("model_confidences", {}),
@@ -2187,19 +2170,6 @@ def handle_unexpected_error(e):
     if isinstance(e, HTTPException):
         return e
     logger.exception("Unexpected server error")
-    if request.path.startswith("/admin"):
-        return render_template(
-            "admin_dashboard.html",
-            dashboard={
-                "users_total": "—",
-                "new_users": "—",
-                "assessments_total": "—",
-                "feedback_helpful_rate": "—",
-                "status_counts": {},
-                "days": [],
-            },
-            admin_error="An unexpected server error occurred while processing administrative data. Please check server logs.",
-        ), 500
     return render_template(
         "assessment.html",
         errors=["An error occurred while processing your assessment. Please check your inputs and try again."],

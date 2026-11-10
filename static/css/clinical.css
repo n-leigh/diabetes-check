@@ -189,24 +189,10 @@ textarea:focus {
   padding-right: 3.25rem;
 }
 
-/* Hide native Edge / IE password reveal and clear buttons to avoid overlap with custom toggles */
-input::-ms-reveal,
-input::-ms-clear {
-  display: none !important;
-}
-
-input::-webkit-credentials-auto-fill-button {
-  visibility: hidden !important;
-  pointer-events: none !important;
-  position: absolute !important;
-  right: 0 !important;
-}
-
 .password-visibility-toggle {
   position: absolute;
   top: 0;
   right: 0;
-  z-index: 2;
   display: inline-flex;
   width: 48px;
   height: 48px;
@@ -232,30 +218,6 @@ input::-webkit-credentials-auto-fill-button {
 .password-visibility-icon {
   width: 21px;
   height: 21px;
-}
-
-[hidden] {
-  display: none !important;
-}
-
-.password-helper {
-  display: block;
-  margin-top: 0.35rem;
-  font-size: 0.95rem;
-  font-weight: 500;
-  line-height: 1.4;
-}
-
-.password-helper[hidden] {
-  display: none !important;
-}
-
-.password-helper-warning {
-  color: var(--status-doctor-text);
-}
-
-.password-input-warning {
-  border-color: var(--status-doctor-text) !important;
 }
 
 /* Primary Button (Large, calm, 48px+ tap target, 18-20px font) */
@@ -993,27 +955,15 @@ body.admin-interface {
    - Handcrafted micro-interactions (subtle hover lifts, tactile presses)
    ========================================================================== */
 
-.admin-page,
-.admin-container,
-body.admin-interface header > div,
-body.admin-interface footer > div {
+.admin-page {
   width: calc(100% - 240px);
   max-width: none;
 }
 
 @media (max-width: 1000px) {
-  .admin-page,
-  .admin-container,
-  body.admin-interface header > div,
-  body.admin-interface footer > div {
+  .admin-page {
     width: 100%;
   }
-}
-
-body.admin-interface header > div,
-body.admin-interface footer > div {
-  padding-left: 1rem !important;
-  padding-right: 1rem !important;
 }
 
 .admin-workspace-banner {
@@ -1022,18 +972,11 @@ body.admin-interface footer > div {
 }
 
 .admin-workspace-banner p {
-  width: calc(100% - 240px);
-  max-width: none;
+  max-width: 64rem;
   margin: 0 auto;
   padding: 0.75rem 1rem;
   color: #1f2a33;
   font-size: 0.9rem;
-}
-
-@media (max-width: 1000px) {
-  .admin-workspace-banner p {
-    width: 100%;
-  }
 }
 
 .admin-page-heading {
@@ -1906,12 +1849,12 @@ body.admin-interface footer > div {
   border-bottom: 0;
 }
 
-.admin-table td:not(.admin-empty-state):first-child strong,
-.admin-table td:not(.admin-empty-state):first-child span {
+.admin-table td:first-child strong,
+.admin-table td:first-child span {
   display: block;
 }
 
-.admin-table td:not(.admin-empty-state):first-child span {
+.admin-table td:first-child span {
   margin-top: 0.15rem;
   color: #4f5b66;
   font-size: 0.85rem;
@@ -1922,11 +1865,6 @@ body.admin-interface footer > div {
   margin-top: 0;
   color: var(--navy);
   font-size: 18px;
-}
-
-.admin-table td:first-child .admin-empty-state-icon {
-  display: inline-flex !important;
-  margin-top: 0 !important;
 }
 
 /* Chips & Badges */
@@ -2268,23 +2206,15 @@ body.admin-interface footer > div {
 }
 
 .admin-empty-state-icon {
-  display: inline-flex !important;
-  align-items: center !important;
-  justify-content: center !important;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
   width: 3.5rem;
   height: 3.5rem;
   border-radius: 50%;
   background: #f3e9d6;
   color: #063154;
-  margin-top: 0 !important;
   margin-bottom: 0.75rem;
-}
-
-.admin-empty-state-icon svg {
-  display: block;
-  margin: auto;
-  width: 1.75rem;
-  height: 1.75rem;
 }
 
 @media (max-width: 760px) {
@@ -2775,119 +2705,6 @@ dialog::backdrop {
   background-color: rgba(1, 76, 94, 0.6);
 }
 
-.action-confirm-dialog {
-  width: min(440px, calc(100vw - 32px));
-  max-width: 440px;
-  border: 1px solid var(--border-cream);
-  border-radius: 16px;
-  box-shadow: 0 16px 48px rgba(31, 42, 51, 0.22);
-}
-
-.action-confirm-dialog::backdrop {
-  background-color: rgba(31, 42, 51, 0.56);
-}
-
-.action-confirm-panel {
-  overflow: hidden;
-  border-radius: inherit;
-  background-color: var(--white);
-}
-
-.action-confirm-header {
-  display: flex;
-  min-height: 72px;
-  align-items: center;
-  justify-content: space-between;
-  gap: 16px;
-  padding: 12px 20px 12px 24px;
-  background-color: var(--cream);
-  border-bottom: 1px solid var(--border-cream);
-}
-
-.action-confirm-header h2 {
-  margin: 0;
-  font-size: 1.35rem;
-}
-
-.action-confirm-close {
-  display: inline-flex;
-  width: 48px;
-  height: 48px;
-  flex: 0 0 48px;
-  align-items: center;
-  justify-content: center;
-  border: 0;
-  border-radius: 8px;
-  color: var(--ink-muted);
-  background-color: transparent;
-  cursor: pointer;
-  font-size: 28px;
-  line-height: 1;
-}
-
-.action-confirm-close:hover {
-  color: var(--navy);
-  background-color: var(--teal-light);
-}
-
-.action-confirm-content {
-  padding: 24px;
-  color: var(--ink);
-  font-size: 1rem;
-}
-
-.action-confirm-content p {
-  margin: 0;
-}
-
-.action-confirm-footer {
-  display: flex;
-  justify-content: flex-end;
-  gap: 12px;
-  padding: 16px 24px 20px;
-  border-top: 1px solid var(--border-cream);
-  background-color: var(--white);
-}
-
-.action-confirm-footer button {
-  min-width: 112px;
-}
-
-.action-confirm-footer .action-confirm-danger {
-  color: var(--white);
-  background-color: var(--status-doctor-text);
-  border-color: var(--status-doctor-text);
-}
-
-.action-confirm-footer .action-confirm-danger:hover {
-  background-color: var(--status-doctor-text);
-  border-color: var(--status-doctor-text);
-}
-
-@media (max-width: 480px) {
-  .action-confirm-dialog {
-    width: calc(100vw - 24px);
-    margin: auto;
-  }
-
-  .action-confirm-header {
-    padding-left: 18px;
-  }
-
-  .action-confirm-content {
-    padding: 20px 18px;
-  }
-
-  .action-confirm-footer {
-    flex-direction: column-reverse;
-    padding: 14px 18px 18px;
-  }
-
-  .action-confirm-footer button {
-    width: 100%;
-  }
-}
-
 /* Reduced Motion Override */
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after {
@@ -3223,5 +3040,125 @@ dialog::backdrop {
   .admin-activity-stats-grid {
     grid-template-columns: 1fr;
     gap: 0.5rem;
+  }
+}
+
+.terms-dialog {
+  width: min(640px, calc(100vw - 32px));
+  max-width: 640px;
+  max-height: 85vh;
+  margin: auto;
+  padding: 0;
+  overflow: hidden;
+  border: 1px solid var(--border-cream);
+  border-radius: 12px;
+  background: var(--white);
+  color: var(--ink);
+  box-shadow: var(--card-shadow);
+}
+
+.terms-dialog::backdrop {
+  background: rgba(31, 42, 51, 0.65);
+}
+
+.terms-dialog__layout {
+  display: flex;
+  flex-direction: column;
+  max-height: 85vh;
+}
+
+.terms-dialog__header,
+.terms-dialog__footer {
+  position: sticky;
+  z-index: 1;
+  display: flex;
+  flex: 0 0 auto;
+  align-items: center;
+  gap: 12px;
+  background: var(--white);
+}
+
+.terms-dialog__header {
+  top: 0;
+  justify-content: space-between;
+  padding: 12px 16px;
+  border-bottom: 1px solid var(--border-cream);
+}
+
+.terms-dialog__header h2 {
+  margin: 0;
+}
+
+.terms-dialog__close {
+  display: inline-flex;
+  width: 44px;
+  height: 44px;
+  flex: 0 0 44px;
+  align-items: center;
+  justify-content: center;
+  border: 1px solid var(--border-cream);
+  border-radius: 8px;
+  background: var(--white);
+  color: var(--navy);
+  font: inherit;
+  font-size: 1.5rem;
+  cursor: pointer;
+}
+
+.terms-dialog__body {
+  min-height: 0;
+  flex: 1 1 auto;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  padding: 16px;
+}
+
+.terms-dialog__footer {
+  bottom: 0;
+  justify-content: flex-end;
+  padding: 12px 16px;
+  border-top: 1px solid var(--border-cream);
+}
+
+.terms-dialog__action {
+  min-height: 44px;
+}
+
+.terms-dialog :focus-visible {
+  outline: 2px solid var(--teal) !important;
+  outline-offset: 2px !important;
+}
+
+html.terms-dialog-open {
+  overflow: hidden;
+}
+
+@media (max-width: 420px) {
+  .terms-dialog {
+    width: calc(100vw - 16px);
+    max-width: none;
+    height: calc(100vh - 16px);
+    max-height: none;
+  }
+
+  .terms-dialog__layout {
+    height: 100%;
+    max-height: none;
+  }
+
+  .terms-dialog__header,
+  .terms-dialog__footer {
+    padding-right: 12px;
+    padding-left: 12px;
+  }
+
+  .terms-dialog__body {
+    padding: 12px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .terms-dialog__body {
+    scroll-behavior: auto;
   }
 }

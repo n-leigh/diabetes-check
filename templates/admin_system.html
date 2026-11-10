@@ -58,9 +58,7 @@
       <p class="admin-panel-description">Backups are managed in Supabase or with pg_dump.</p>
       {% else %}
       <p class="admin-panel-description">Backups contain private records. Store and share them carefully.</p>
-      <form class="admin-backup-form" method="post" action="/admin/system/backup"
-        data-confirm-message="Create a new encrypted database backup?"
-        data-confirm-label="Create backup">
+      <form class="admin-backup-form" method="post" action="/admin/system/backup" data-confirm-message="Create a new encrypted database backup?">
         <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
         <button class="btn-primary admin-backup-button" type="submit">Create backup</button>
       </form>
