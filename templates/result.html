@@ -3,7 +3,7 @@
 icon_shoe, icon_water, icon_plate %}
 
 {% block title %}DiaBeates - Your Health Results{% endblock %}
-{% set active_page = 'assessment' %}
+{% set active_page = 'history' if viewing_past|default(false) else 'assessment' %}
 
 {% block content %}
 <div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8 sm:py-12">

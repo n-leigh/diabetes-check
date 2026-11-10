@@ -214,6 +214,35 @@ def test_ownership_returns_404_for_all_assessment_actions(client, user):
         database.delete_user_account(other_id)
 
 
+def test_history_view_opens_saved_results(client, user, monkeypatch):
+    user_id, email = user
+    assert _login(client, email).status_code == 302
+    with client.session_transaction() as state:
+        session_id = state["session_id"]
+    assessment_id = _assessment(session_id, user_id=user_id)
+
+    history_response = client.get("/history")
+    history_html = history_response.get_data(as_text=True)
+    assert history_response.status_code == 200
+    assert f'href="/history/{assessment_id}"' in history_html
+
+    get_assessment = database.get_assessment
+
+    def get_assessment_with_datetime(*args, **kwargs):
+        record = get_assessment(*args, **kwargs)
+        record["created_at"] = datetime.now(timezone.utc)
+        return record
+
+    monkeypatch.setattr(app.database, "get_assessment", get_assessment_with_datetime)
+    result_response = client.get(f"/history/{assessment_id}")
+    result_html = result_response.get_data(as_text=True)
+    assert result_response.status_code == 200
+    assert "Saved Check (" in result_html
+    assert "Here is what we found" in result_html
+    assert "Health Risk Check" not in result_html
+    assert f'href="/history" class="text-[19px] font-semibold transition-colors duration-150 py-1.5 text-[#014c5e] border-b-2 border-[#2e7283]"' in result_html
+
+
 def test_archive_button_moves_assessment_to_archived_history(client, user):
     _, owner_email = user
     assert _login(client, owner_email).status_code == 302
