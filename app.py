@@ -243,7 +243,7 @@ def _admin_feedback_tally():
     conn = database.get_connection()
     try:
         feedback_total = conn.execute("SELECT COUNT(*) FROM feedback").fetchone()[0]
-        helpful_total = conn.execute("SELECT COUNT(*) FROM feedback WHERE helpful = 1").fetchone()[0]
+        helpful_total = conn.execute("SELECT COUNT(*) FROM feedback WHERE helpful IS TRUE").fetchone()[0]
         unhelpful_total = feedback_total - helpful_total
         # Statistical disclosure control: if either helpful or unhelpful count is < 5,
         # suppress both counts so the small count cannot be calculated from the total.
@@ -289,7 +289,7 @@ def _admin_dashboard_data():
         ).fetchone()[0]
         assessments_total = conn.execute("SELECT COUNT(*) FROM assessments").fetchone()[0]
         feedback_total = conn.execute("SELECT COUNT(*) FROM feedback").fetchone()[0]
-        helpful_total = conn.execute("SELECT COUNT(*) FROM feedback WHERE helpful = 1").fetchone()[0]
+        helpful_total = conn.execute("SELECT COUNT(*) FROM feedback WHERE helpful IS TRUE").fetchone()[0]
         unhelpful_total = feedback_total - helpful_total
         if helpful_total < 5 or unhelpful_total < 5:
             feedback_helpful_rate = "<5 responses"
@@ -1093,7 +1093,7 @@ def _active_admin_count():
     conn = database.get_connection()
     try:
         return conn.execute(
-            "SELECT COUNT(*) FROM users WHERE role = 'admin' AND is_active = 1"
+            "SELECT COUNT(*) FROM users WHERE role = 'admin' AND is_active IS TRUE"
         ).fetchone()[0]
     finally:
         conn.close()
@@ -1109,7 +1109,7 @@ def admin_deactivate_user(user_id):
         abort(403)
     conn = database.get_connection()
     try:
-        conn.execute("UPDATE users SET is_active = 0 WHERE id = ?", (user_id,))
+        conn.execute("UPDATE users SET is_active = FALSE WHERE id = ?", (user_id,))
         conn.commit()
     finally:
         conn.close()
@@ -1125,7 +1125,7 @@ def admin_reactivate_user(user_id):
         abort(404)
     conn = database.get_connection()
     try:
-        conn.execute("UPDATE users SET is_active = 1 WHERE id = ?", (user_id,))
+        conn.execute("UPDATE users SET is_active = TRUE WHERE id = ?", (user_id,))
         conn.commit()
     finally:
         conn.close()

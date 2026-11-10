@@ -270,6 +270,7 @@ PLAN_STATUS
 P1 [x] P2 [x] P3 [x] P4 [x] P5 [x] P6 [x] P7 [x] P8 [x]
 
 CHANGELOG
+- 2026-11-10: Fixed PostgreSQL admin dashboard and feedback tally errors by using portable boolean predicates; updated admin activation queries and writes to use boolean literals.
 - 2026-11-10: Fixed the history View page failing when a saved assessment timestamp is returned as a datetime; added regression coverage.
 - 2026-11-08: Added optional email ownership verification with hashed, single-use 24-hour tokens, neutral resend flow, verified-login gating, reset verification, and SQLite/Postgres schema support.
 - 2026-11-04: Tightened secondary small-cell suppression on dashboard and CSV export so that if any status cell in a domain is under 5, all three cells display as "<5" to prevent derivation; added plain-language privacy note under dashboard status list explaining group suppression; unified clinical model titles (Heart, Kidneys, Nerves and feet, Eyes) in system health view using a shared domain mapping; wrapped test fixtures with isolated_database_environment; and improved test suite quality for health privacy, secondary suppression, and unconditioned pagination.
