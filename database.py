@@ -96,8 +96,14 @@ class _PostgresConnection:
 
     def close(self):
         if not self._closed:
-            self._connection.rollback()
-            self._pool.putconn(self._connection)
+            try:
+                self._connection.rollback()
+            except Exception:
+                pass
+            try:
+                self._pool.putconn(self._connection)
+            except Exception:
+                pass
             self._closed = True
 
 
@@ -121,6 +127,8 @@ def _get_postgres_pool():
             min_size=min_size,
             max_size=max_size,
             timeout=float(os.getenv("POSTGRES_POOL_TIMEOUT", "10")),
+            max_idle=float(os.getenv("POSTGRES_POOL_MAX_IDLE", "300")),
+            check=ConnectionPool.check_connection,
             kwargs={
                 "row_factory": _hybrid_row,
                 "connect_timeout": int(os.getenv("POSTGRES_CONNECT_TIMEOUT", "10")),
