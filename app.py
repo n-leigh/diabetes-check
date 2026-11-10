@@ -1235,6 +1235,7 @@ def admin_audit():
 def admin_system():
     health_info = _system_health_status()
     uptime = _format_uptime(APP_STARTED_AT)
+    database_backend = database.DB_BACKEND
     model_details = [
         {
             "category": cat,
@@ -1246,46 +1247,34 @@ def admin_system():
         for cat, title in ADMIN_DOMAIN_TITLES
     ]
 
-    if database.DB_BACKEND == "postgres":
-        return render_template(
-            "admin_system.html",
-            backups=[],
-            database_size=None,
-            database_backend="postgres",
-            model_names=MODEL_NAMES,
-            health_info=health_info,
-            uptime=uptime,
-            model_details=model_details,
-            retention_days=RETENTION_DAYS,
-            last_pruned=LAST_PRUNED_COUNT,
-            backup_message=session.pop("backup_message", None),
-        )
-    backups_dir = os.path.join(BASE_DIR, "backups")
-    os.makedirs(backups_dir, exist_ok=True)
     backups = []
-    for name in sorted(os.listdir(backups_dir), reverse=True):
-        if name.endswith(".zip"):
-            bpath = os.path.join(backups_dir, name)
-            try:
-                bsize = format_file_size(os.path.getsize(bpath))
-            except OSError:
-                bsize = "Unknown size"
-            backups.append({"name": name, "size": bsize})
+    database_size = None
+    if database_backend != "postgres":
+        backups_dir = os.path.join(BASE_DIR, "backups")
+        os.makedirs(backups_dir, exist_ok=True)
+        for name in sorted(os.listdir(backups_dir), reverse=True):
+            if name.endswith(".zip"):
+                bpath = os.path.join(backups_dir, name)
+                try:
+                    bsize = format_file_size(os.path.getsize(bpath))
+                except OSError:
+                    bsize = "Unknown size"
+                backups.append({"name": name, "size": bsize})
 
-    try:
-        database_size = format_file_size(os.path.getsize(database.DB_PATH))
-    except OSError:
-        database_size = "0 bytes"
+        try:
+            database_size = format_file_size(os.path.getsize(database.DB_PATH))
+        except OSError:
+            database_size = "0 bytes"
 
     return render_template(
         "admin_system.html",
         backups=backups,
         database_size=database_size,
+        database_backend=database_backend,
+        model_names=MODEL_NAMES,
         health_info=health_info,
         uptime=uptime,
         model_details=model_details,
-        database_backend=database.DB_BACKEND,
-        model_names=MODEL_NAMES,
         retention_days=RETENTION_DAYS,
         last_pruned=LAST_PRUNED_COUNT,
         backup_message=session.pop("backup_message", None),
@@ -2174,11 +2163,7 @@ def handle_unexpected_error(e):
     if isinstance(e, HTTPException):
         return e
     logger.exception("Unexpected server error")
-    return render_template(
-        "assessment.html",
-        errors=["An error occurred while processing your assessment. Please check your inputs and try again."],
-        form_data={},
-    ), 500
+    return "An unexpected error occurred. Please try again later.", 500
 
 
 @app.cli.command("create-admin")
