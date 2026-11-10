@@ -560,6 +560,39 @@ def test_admin_system_page_metrics_and_chips(client, admin):
     assert "Eyes" in html
 
 
+def test_admin_system_page_renders_for_postgres_backend(client, admin, monkeypatch):
+    _, admin_email = admin
+    assert _login(client, admin_email).status_code == 302
+    sqlite_get_connection = database.get_connection
+
+    def get_test_database_connection():
+        backend = database.DB_BACKEND
+        database.DB_BACKEND = "sqlite"
+        try:
+            return sqlite_get_connection()
+        finally:
+            database.DB_BACKEND = backend
+
+    monkeypatch.setattr(database, "DB_BACKEND", "postgres")
+    monkeypatch.setattr(database, "get_connection", get_test_database_connection)
+    monkeypatch.setattr(app, "_system_health_status", lambda: {
+        "status": "healthy",
+        "database": "connected",
+        "models_loaded_count": 4,
+        "models_expected_count": 4,
+    })
+
+    response = client.get("/admin/system")
+
+    assert response.status_code == 200
+    html = response.get_data(as_text=True)
+    assert "Database status" in html
+    assert "Connected" in html
+    assert "4 of 4 loaded" in html
+    assert "Supabase Postgres" in html
+    assert "Backups are managed in Supabase or with pg_dump." in html
+
+
 def test_admin_never_exposes_individual_health_data(client, admin):
     _, admin_email = admin
     unique_bmi = 77.3

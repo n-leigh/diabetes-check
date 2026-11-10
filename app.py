@@ -1233,6 +1233,19 @@ def admin_audit():
 @app.get("/admin/system")
 @admin_required
 def admin_system():
+    health_info = _system_health_status()
+    uptime = _format_uptime(APP_STARTED_AT)
+    model_details = [
+        {
+            "category": cat,
+            "title": title,
+            "name": MODEL_NAMES.get(cat, "Unknown model"),
+            "status": CLINICAL_METRICS.get(cat, {}).get("model_status", "validated"),
+            "is_loaded": cat in MODELS,
+        }
+        for cat, title in ADMIN_DOMAIN_TITLES
+    ]
+
     if database.DB_BACKEND == "postgres":
         return render_template(
             "admin_system.html",
@@ -1240,7 +1253,11 @@ def admin_system():
             database_size=None,
             database_backend="postgres",
             model_names=MODEL_NAMES,
+            health_info=health_info,
+            uptime=uptime,
+            model_details=model_details,
             retention_days=RETENTION_DAYS,
+            last_pruned=LAST_PRUNED_COUNT,
             backup_message=session.pop("backup_message", None),
         )
     backups_dir = os.path.join(BASE_DIR, "backups")
@@ -1259,19 +1276,6 @@ def admin_system():
         database_size = format_file_size(os.path.getsize(database.DB_PATH))
     except OSError:
         database_size = "0 bytes"
-
-    health_info = _system_health_status()
-    uptime = _format_uptime(APP_STARTED_AT)
-
-    model_details = []
-    for cat, title in ADMIN_DOMAIN_TITLES:
-        model_details.append({
-            "category": cat,
-            "title": title,
-            "name": MODEL_NAMES.get(cat, "Unknown model"),
-            "status": CLINICAL_METRICS.get(cat, {}).get("model_status", "validated"),
-            "is_loaded": cat in MODELS,
-        })
 
     return render_template(
         "admin_system.html",
