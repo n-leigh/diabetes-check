@@ -15,9 +15,34 @@
       <span>Back to dashboard</span>
     </a>
   </div>
+  {% if admin_error %}
+  <div role="alert" aria-live="polite" class="mb-6 rounded-lg border border-[#f1b8af] bg-[#f9e1dc] p-4 text-[#b03a2e]">
+    <p class="font-semibold">{{ admin_error }}</p>
+  </div>
+  {% endif %}
   {% if reset_message %}
   <div role="alert" aria-live="polite" class="admin-reset-notice">
     <p>{{ reset_message }}</p>
+  </div>
+  {% endif %}
+  {% if reset_link %}
+  <div role="alert" aria-live="polite" class="admin-reset-notice">
+    <div class="flex items-start gap-3">
+      <span
+        class="inline-flex items-center justify-center w-8 h-8 rounded-full bg-[#fbeed0] text-[#a86a0a] border border-[#f4d99f] flex-shrink-0"
+        aria-hidden="true">
+        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+            d="M15 7a2 2 0 012 2m4 0a6 6 0 01-7.743 5.743L11 17H9v2H7v2H4a1 1 0 01-1-1v-2.586a1 1 0 01.293-.707l5.964-5.964A6 6 0 1121 9z">
+          </path>
+        </svg>
+      </span>
+      <div>
+        <strong>One-time password reset link</strong>
+        <p>Share it privately. It expires in 60 minutes.</p>
+      </div>
+    </div>
+    <code class="break-all">{{ reset_link }}</code>
   </div>
   {% endif %}
   <div class="admin-table-wrap">
@@ -71,15 +96,13 @@
               {% if not is_self %}
               {% if user.is_active %}
               <form method="post" action="/admin/users/{{ user.id }}/deactivate"
-                data-confirm-message="Deactivate this user?"
-                data-confirm-label="Deactivate account">
+                data-confirm-message="Deactivate this user?">
                 <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
                 <button class="admin-action-button" type="submit">Deactivate</button>
               </form>
               {% else %}
               <form method="post" action="/admin/users/{{ user.id }}/reactivate"
-                data-confirm-message="Reactivate this user?"
-                data-confirm-label="Reactivate account">
+                data-confirm-message="Reactivate this user?">
                 <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
                 <button class="admin-action-button" type="submit">Reactivate</button>
               </form>
@@ -87,16 +110,13 @@
               {% endif %}
               {% endif %}
               <form method="post" action="/admin/users/{{ user.id }}/reset-link"
-                data-confirm-message="Email a 60-minute password reset link to this account?"
-                data-confirm-label="Send reset email">
+                data-confirm-message="Create a 60-minute password reset link for this user?">
                 <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
                 <button class="admin-action-button" type="submit">Reset link</button>
               </form>
               {% if not is_self and not is_last_active_admin %}
               <form method="post" action="/admin/users/{{ user.id }}/delete"
-                data-confirm-message="Delete this user and saved checks?"
-                data-confirm-label="Delete account"
-                data-confirm-variant="danger">
+                data-confirm-message="Delete this user and saved checks?">
                 <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
                 <button class="admin-action-button is-danger" type="submit">Delete</button>
               </form>
